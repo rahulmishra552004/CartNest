@@ -1,9 +1,12 @@
 import { Header } from './Header.jsx';
 import './HomePage.css';
-import { products } from '../../starting-code/data/products.js';
 import { formatCurrency } from '../utils/money.js'
+import { useState } from 'react';
 
 export function HomePage() {
+
+  const [ products, setProducts ] = useState()
+
   return (
     <>
       <Header />
