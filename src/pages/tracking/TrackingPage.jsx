@@ -1,5 +1,5 @@
 import './TrackingPage.css';
-import { Header } from './Header';
+import { Header } from '../Header';
 import dayjs from 'dayjs';
 
 function getProduct(orders, orderId, productId){
