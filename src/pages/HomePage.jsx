@@ -4,25 +4,17 @@ import { formatCurrency } from '../utils/money.js'
 import axios from 'axios'
 import { useEffect, useState } from 'react';
 
-export function HomePage() {
+export function HomePage({ cart }) {
 
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]);
-
+  
   useEffect(() => {
     axios('/api/products')
     .then( (response) => {
         setProducts(response.data);
     })
-
-    axios('/api/cart-items')
-    .then((response) => {
-      setCart(response.data);
-    })
   }, []);
 
-  console.log(products);
-  console.log(cart);
   return (
     <>
       <Header cart={cart} />
