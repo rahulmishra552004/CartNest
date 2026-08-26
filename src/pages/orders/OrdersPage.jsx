@@ -4,7 +4,7 @@ import { formatCurrency } from '../../utils/money.js';
 import dayjs from 'dayjs';
 import { OrderDetailsGrid } from './OrderDetailsGrid.jsx';
 
-export function OrdersPage({ cart, orders }) {
+export function OrdersPage({ cart, orders, getCartData }) {
   return (
     <>
       <Header cart={cart} />
@@ -38,7 +38,7 @@ export function OrdersPage({ cart, orders }) {
                     </div>
                   </div>
 
-                  <OrderDetailsGrid order={order} />
+                  <OrderDetailsGrid order={order} getCartData={getCartData}/>
                 </div>
               );
             })

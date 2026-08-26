@@ -5,22 +5,33 @@ import { useState, useEffect, Fragment } from 'react';
 import { OrderSummary } from './OrderSummary';
 import { PaymentSummary } from './PaymentSummary';
 
-export function CheckoutPage({ cart }) {
+export function CheckoutPage({ cart, getCartData, getOrdersData }) {
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [paymentSummary, setPaymentSummary] = useState([]);
+  
+  let cartQuantity = 0;
+  cart.forEach((cartItem) => {
+    cartQuantity += cartItem.quantity;
+  })
+
+  const getPaymentSummary = async () => {
+    axios('api/payment-summary')
+      .then((response) => {
+        setPaymentSummary(response.data);
+      })
+  }
 
   useEffect(() => {
     axios('/api/delivery-options?expand=estimatedDeliveryTime')
       .then((response) => {
         setDeliveryOptions(response.data);
       })
-
-    axios('api/payment-summary')
-      .then((response) => {
-        setPaymentSummary(response.data);
-      })
-
   }, [])
+
+  useEffect(() => {
+    getPaymentSummary();
+  }, [cart])
+
   return (
     <>
       <div className="checkout-header">
@@ -34,7 +45,7 @@ export function CheckoutPage({ cart }) {
 
           <div className="checkout-header-middle-section">
             Checkout (<a className="return-to-home-link"
-              href="/">3 items</a>)
+              href="/"> {cartQuantity} items</a>)
           </div>
 
           <div className="checkout-header-right-section">
@@ -48,9 +59,9 @@ export function CheckoutPage({ cart }) {
 
         <div className="checkout-grid">
 
-          <OrderSummary cart={cart} deliveryOptions={deliveryOptions} />
+          <OrderSummary cart={cart} deliveryOptions={deliveryOptions} getCartData={getCartData} getPaymentSummary={getPaymentSummary}/>
 
-          <PaymentSummary paymentSummary={paymentSummary} />
+          <PaymentSummary paymentSummary={paymentSummary} getCartData={getCartData} getOrdersData={getOrdersData} />
 
         </div>
       </div>

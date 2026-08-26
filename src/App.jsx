@@ -15,25 +15,52 @@ function App() {
     const response = await axios('/api/cart-items?expand=product')
     setCart(response.data);
   }
+  const getOrdersData = async () => {
+    const response = await axios('/api/orders?expand=products')
+    setOrders(response.data);
+  }
 
   useEffect(() => {
-    const getOrdersData = async () => {
-      const response = await axios('/api/orders?expand=products')
-      setOrders(response.data);
-    }
+    getCartData()
+  }, [cart]);
 
-    getCartData();
+  useEffect(() => {
     getOrdersData();
-
   }, []);
 
   return (
     <>
       <Routes>
-        <Route path="/" element={<HomePage cart={cart} getCartData={getCartData}/>} />
-        <Route path="/checkout" element={<CheckoutPage cart={cart} />} />
-        <Route path="/orders" element={<OrdersPage cart={cart} orders={orders} />} />
-        <Route path="/tracking" element={<TrackingPage cart={cart} orders={orders} />}/>
+        <Route 
+          path="/" 
+          element={<HomePage 
+            cart={cart} 
+            getCartData={getCartData}
+          />} 
+        />
+        <Route 
+          path="/checkout" 
+          element={<CheckoutPage 
+            cart={cart} 
+            getCartData={getCartData} 
+            getOrdersData={getOrdersData}
+          />} 
+        />
+        <Route 
+          path="/orders" 
+          element={<OrdersPage 
+            cart={cart} 
+            orders={orders} 
+            getCartData={getCartData}
+            />} 
+          />
+        <Route 
+          path="/tracking" 
+          element={<TrackingPage 
+            cart={cart} 
+            orders={orders} 
+          />}
+        />
       </Routes>
     </>
   )
