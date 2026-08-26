@@ -35,6 +35,10 @@ export function TrackingPage({ cart, orders }) {
 
   return (
     <>
+      <title>
+        Tracking
+      </title>
+
       <Header cart={cart} />
 
       <div className="tracking-page">

@@ -7,6 +7,10 @@ import { OrderDetailsGrid } from './OrderDetailsGrid.jsx';
 export function OrdersPage({ cart, orders, getCartData }) {
   return (
     <>
+      <title>
+        Orders
+      </title>
+
       <Header cart={cart} />
 
       <div className="orders-page">

@@ -19,6 +19,10 @@ export function HomePage({ cart, getCartData }) {
 
   return (
     <>
+      <title>
+        Ecommerce Website
+      </title>
+      
       <Header cart={cart} />
 
       <div className="home-page">
