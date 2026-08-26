@@ -21,6 +21,8 @@ export function HomePage() {
     })
   }, []);
 
+  console.log(products);
+  console.log(cart);
   return (
     <>
       <Header cart={cart} />
