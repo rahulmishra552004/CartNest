@@ -1,11 +1,19 @@
 import { Header } from './Header.jsx';
 import './HomePage.css';
 import { formatCurrency } from '../utils/money.js'
-import { useState } from 'react';
+import axios from 'axios'
+import { useEffect, useState } from 'react';
 
 export function HomePage() {
 
-  const [ products, setProducts ] = useState()
+  const [products, setProducts] = useState([]);
+  useEffect(() => {
+    axios('http://localhost:3000/api/products')
+    .then( (response) => {
+        setProducts(response.data);
+    })
+  }, []);
+  
 
   return (
     <>
