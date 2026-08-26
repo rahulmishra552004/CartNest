@@ -1,5 +1,6 @@
 import './TrackingPage.css';
 import { Header } from './Header';
+import dayjs from 'dayjs';
 
 function getProduct(orders, orderId, productId){
   let matchingOrder;
@@ -43,7 +44,7 @@ export function TrackingPage({ cart, orders }) {
           </a>
 
           <div className="delivery-date">
-            {product.estimatedDeliveryTimeMs}
+            {dayjs(product.estimatedDeliveryTimeMs).format('dddd, MMMM D')}
           </div>
 
           <div className="product-info">

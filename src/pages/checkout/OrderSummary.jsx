@@ -1,15 +1,21 @@
 import { formatCurrency } from '../../utils/money.js';
 import { Fragment } from 'react';
+import dayjs from 'dayjs';
 
 export function OrderSummary({ cart, deliveryOptions }){
   return (
     <div className="order-summary">
-            {cart.map((cartItem) => {
+            {deliveryOptions.length>0 && cart.map((cartItem) => {
+              let matchingDelivereyOption = 
+              deliveryOptions.find((deliveryOption) => {
+                if(deliveryOption.id === cartItem.deliveryOptionId)
+                  return true;
+              })
               return (
                 <Fragment key={cartItem.productId}>
                   <div className="cart-item-container">
                     <div className="delivery-date">
-                      Delivery date: Tuesday, June 21
+                      Delivery date: {dayjs(matchingDelivereyOption.estimatedDeliveryTimeMs).format('dddd, MMMM D')}
                     </div>
 
                     <div className="cart-item-details-grid">
@@ -51,13 +57,13 @@ export function OrderSummary({ cart, deliveryOptions }){
                                 name={`delivery-option-${cartItem.productId}`} />
                               <div>
                                 <div className="delivery-option-date">
-                                  {(deliveryOption.estimatedDeliveryTimeMs)}
+                                  {dayjs(deliveryOption.estimatedDeliveryTimeMs).format('dddd, MMMM D')}
                                 </div>
                                 <div className="delivery-option-price">
                                   {
                                     deliveryOption.priceCents === 0 ? 
                                     "FREE Shipping" : 
-                                    `$${formatCurrency(deliveryOption.priceCents)}`
+                                    `$${formatCurrency(deliveryOption.priceCents)} - Shipping`
                                   }
                                 </div>
                               </div>

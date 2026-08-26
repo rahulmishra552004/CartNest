@@ -2,6 +2,7 @@ import { Header } from './Header.jsx';
 import './OrdersPage.css';
 import { formatCurrency } from '../utils/money.js';
 import { Fragment } from 'react';
+import dayjs from 'dayjs';
 
 export function OrdersPage({ cart, orders }) {
   return (
@@ -23,7 +24,7 @@ export function OrdersPage({ cart, orders }) {
                     <div className="order-header-left-section">
                       <div className="order-date">
                         <div className="order-header-label">Order Placed:</div>
-                        <div>{order.orderTimeMs}</div>
+                        <div>{dayjs(order.orderTimeMs).format('dddd, MMMM D')}</div>
                       </div>
                       <div className="order-total">
                         <div className="order-header-label">Total:</div>
@@ -51,7 +52,7 @@ export function OrdersPage({ cart, orders }) {
                                 {orderedProduct.product.name}
                               </div>
                               <div className="product-delivery-date">
-                                Arriving on: {orderedProduct.estimatedDeliveryTimeMs}
+                                Arriving on: {dayjs(orderedProduct.estimatedDeliveryTimeMs).format('dddd, MMMM D')}
                               </div>
                               <div className="product-quantity">
                                 Quantity: {orderedProduct.quantity}
