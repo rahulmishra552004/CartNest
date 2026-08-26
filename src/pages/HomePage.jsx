@@ -7,17 +7,23 @@ import { useEffect, useState } from 'react';
 export function HomePage() {
 
   const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+
   useEffect(() => {
-    axios('http://localhost:3000/api/products')
+    axios('/api/products')
     .then( (response) => {
         setProducts(response.data);
     })
+
+    axios('/api/cart-items')
+    .then((response) => {
+      setCart(response.data);
+    })
   }, []);
-  
 
   return (
     <>
-      <Header />
+      <Header cart={cart} />
 
       <div className="home-page">
         <div className="products-grid">
