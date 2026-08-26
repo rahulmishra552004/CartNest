@@ -9,11 +9,19 @@ import { useState, useEffect } from 'react';
 
 function App() {
   const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState([]);
+
   useEffect(() => {
     axios('/api/cart-items?expand=product')
     .then((response) => {
       setCart(response.data);
     })
+
+    axios('/api/orders?expand=products')
+      .then((response) => {
+        setOrders(response.data);
+      })
+
   }, []);
 
   return (
@@ -21,8 +29,8 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage cart={cart} />} />
         <Route path="/checkout" element={<CheckoutPage cart={cart} />} />
-        <Route path="/orders" element={<OrdersPage cart={cart} />} />
-        <Route path="/tracking" element={<TrackingPage />} />
+        <Route path="/orders" element={<OrdersPage cart={cart} orders={orders} />} />
+        <Route path="/tracking" element={<TrackingPage cart={cart} orders={orders} />}/>
       </Routes>
     </>
   )

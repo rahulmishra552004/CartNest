@@ -1,18 +1,9 @@
 import { Header } from './Header.jsx';
 import './OrdersPage.css';
-import { useState, useEffect, Fragment } from 'react';
-import axios from 'axios';
 import { formatCurrency } from '../utils/money.js';
+import { Fragment } from 'react';
 
-export function OrdersPage({ cart }) {
-  const [orders, setOrders] = useState([]);
-  useEffect(() => {
-    axios('/api/orders?expand=products')
-      .then((response) => {
-        setOrders(response.data);
-      })
-  }, []);
-
+export function OrdersPage({ cart, orders }) {
   return (
     <>
       <Header cart={cart} />
@@ -72,7 +63,7 @@ export function OrdersPage({ cart }) {
                             </div>
 
                             <div className="product-actions">
-                              <a href="/tracking">
+                              <a href={`/tracking?orderId=${order.id}&productId=${orderedProduct.productId}`}>
                                 <button className="track-package-button button-secondary">
                                   Track package
                                 </button>

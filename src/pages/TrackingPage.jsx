@@ -1,45 +1,75 @@
 import './TrackingPage.css';
 import { Header } from './Header';
 
-export function TrackingPage() {
+function getProduct(orders, orderId, productId){
+  let matchingOrder;
+  let matchingProduct;
+
+  orders.forEach((order) => {
+    if(order.id === orderId){
+      matchingOrder = order;
+      return;
+    }
+  })
+
+  matchingOrder.products.forEach((orderedProduct) => {
+    if(orderedProduct.product.id === productId){
+      matchingProduct = orderedProduct;
+      return;
+    }
+  })
+  
+  return matchingProduct;
+}
+
+export function TrackingPage({ cart, orders }) {
+  if(orders.length === 0) 
+    return;
+
+  const urlParameters = new URLSearchParams(window.location.search);
+  const orderId = urlParameters.get('orderId');
+  const productId = urlParameters.get('productId');
+
+  const product = getProduct(orders, orderId, productId);
+
   return (
     <>
-      <Header />
+      <Header cart={cart} />
 
-      <div class="tracking-page">
-        <div class="order-tracking">
-          <a class="back-to-orders-link link-primary" href="/orders">
+      <div className="tracking-page">
+        <div className="order-tracking">
+          <a className="back-to-orders-link link-primary" href="/orders">
             View all orders
           </a>
 
-          <div class="delivery-date">
-            Arriving on Monday, June 13
+          <div className="delivery-date">
+            {product.estimatedDeliveryTimeMs}
           </div>
 
-          <div class="product-info">
-            Black and Gray Athletic Cotton Socks - 6 Pairs
+          <div className="product-info">
+            {product.product.name}
           </div>
 
-          <div class="product-info">
-            Quantity: 1
+          <div className="product-info">
+            Quantity: {product.quantity}
           </div>
 
-          <img class="product-image" src="images/products/athletic-cotton-socks-6-pairs.jpg" />
+          <img className="product-image" src={product.product.image} />
 
-          <div class="progress-labels-container">
-            <div class="progress-label">
+          <div className="progress-labels-container">
+            <div className="progress-label">
               Preparing
             </div>
-            <div class="progress-label current-status">
+            <div className="progress-label current-status">
               Shipped
             </div>
-            <div class="progress-label">
+            <div className="progress-label">
               Delivered
             </div>
           </div>
 
-          <div class="progress-bar-container">
-            <div class="progress-bar"></div>
+          <div className="progress-bar-container">
+            <div className="progress-bar"></div>
           </div>
         </div>
       </div>
