@@ -33,7 +33,7 @@ export function OrderDetailsGrid({ order, getCartData }) {
                 <button 
                 onClick={addToCart}
                 className="buy-again-button button-primary">
-                  <img className="buy-again-icon" src="images/icons/buy-again.png" />
+                  <img className="buy-again-icon" src="/media/icons/buy-again.png" />
                   <span className="buy-again-message">Add to Cart</span>
                 </button>
               </div>

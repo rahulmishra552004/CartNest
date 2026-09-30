@@ -42,8 +42,8 @@ export function CheckoutPage({ cart, getCartData, getOrdersData }) {
         <div className="header-content">
           <div className="checkout-header-left-section">
             <a href="/">
-              <img className="logo" src="images/logo.png" />
-              <img className="mobile-logo" src="images/mobile-logo.png" />
+              <img className="logo" src="/media/logo.png" />
+              <img className="mobile-logo" src="/media/mobile-logo.png" />
             </a>
           </div>
 
@@ -53,7 +53,7 @@ export function CheckoutPage({ cart, getCartData, getOrdersData }) {
           </div>
 
           <div className="checkout-header-right-section">
-            <img src="images/icons/checkout-lock-icon.png" />
+            <img src="/media/icons/checkout-lock-icon.png" />
           </div>
         </div>
       </div>
