@@ -13,9 +13,9 @@ def current_time_ms():
 def get_total_cost_cents():
     return 0
 
-def get_products(user):
+def get_products(cart_items):
     products_list = []
-    for cart_item in CartItem.objects.filter(user=user).select_related('product', 'delivery_option'):
+    for cart_item in cart_items:
         product_dict = {}
         product_dict['productId'] = str(cart_item.product_id)
         product_dict['quantity'] = cart_item.quantity
@@ -40,7 +40,7 @@ def get_product(product):
     return product_dict
 
 
-def get_payment_summary(user):
+def get_payment_summary(cart_items):
     payment_summary = {
             'total_items' : 0,
             'product_cost_cents' : 0,
@@ -50,10 +50,6 @@ def get_payment_summary(user):
             'total_cost_cents' : 0
             }
 
-    cart_items = CartItem.objects.filter(user=user).select_related(
-                'product',
-                'delivery_option'
-                )
     for cart_item in cart_items:
         payment_summary['total_items'] += cart_item.quantity
         payment_summary['product_cost_cents'] += cart_item.quantity * cart_item.product.price_cents

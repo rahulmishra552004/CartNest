@@ -24,5 +24,9 @@ class CartItem(models.Model):
                 models.UniqueConstraint(
                     fields = ['user', 'product'],
                     name = 'unique product in a user cart'
-                    )
-                ]
+                ),
+                models.CheckConstraint(
+                    condition = models.Q(quantity__gt = 0),
+                    name = 'cart item quantity greater than 0'
+                ),
+            ]

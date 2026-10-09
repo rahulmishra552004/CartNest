@@ -7,6 +7,8 @@ updated.
 
 Last reviewed: 2026-09-28
 
+Cart and checkout ORM behavior reviewed: 2026-10-09.
+
 ## Project location
 
 The active Django project is this `ecommerce_backend` directory. There is no
@@ -194,10 +196,11 @@ serializer's object-level validation runs.
 
 POST currently behaves as an "add to cart" operation:
 
-1. The serializer checks the submitted quantity against product stock.
-2. It looks for the same product in the authenticated user's cart.
-3. If found, it calculates existing quantity plus submitted quantity.
-4. It rejects the request if the combined quantity exceeds inventory stock.
+1. The view starts a transaction and locks the authenticated user's row.
+2. The serializer fetches and locks the product before checking stock.
+3. It looks for the same product in the authenticated user's cart.
+4. If found, it calculates existing quantity plus submitted quantity and
+   rejects the request if the combined quantity exceeds inventory stock.
 5. The serializer's custom `create()` updates the existing row with the
    combined quantity and optionally the submitted delivery option.
 6. If no row exists, the parent serializer creates one.
@@ -213,7 +216,13 @@ updated row. It does not distinguish HTTP 201 for creation.
 - During PUT and PATCH, `productId` is read-only. The existing cart item's
   product is used for stock validation.
 - The view currently forces `partial=True` for PUT, so PUT behaves like PATCH.
-- The cart code has no transaction or row locking around concurrent additions.
+- POST, PUT/PATCH, DELETE, and checkout acquire the same user-row lock inside
+  a transaction before reading or changing the user's cart. This coordinates
+  these API write paths even when the cart is empty.
+- The database enforces `quantity > 0` in addition to serializer validation.
+- Row locks require a database that supports `SELECT FOR UPDATE`, such as
+  PostgreSQL. SQLite ignores `select_for_update()`, so local SQLite tests do
+  not verify the concurrency guarantees.
 
 ## Payment summary
 
@@ -228,8 +237,12 @@ For each cart row it calculates:
 - Tax as ten percent of the subtotal, rounded to cents.
 - Final total as subtotal plus tax.
 
-Inventory is validated when cart quantities are written, but inventory is not
-decremented when an order is created.
+Inventory is validated when cart quantities are written and decremented during
+checkout. Adding a product to a cart does not reserve its stock.
+
+The summary helper accepts already loaded cart items. The payment-summary
+endpoint fetches the current user's cart with product and delivery-option
+relations; checkout reuses its existing cart list without querying it again.
 
 ## Order creation
 
@@ -237,15 +250,21 @@ Order APIs require authentication and filter all order reads by `request.user`.
 
 Creating an order performs these operations inside one database transaction:
 
-1. Calculate the current user's payment summary.
-2. Build a JSON snapshot from that user's cart.
-3. Save the order with `user`, `total_cost_cents`, and `products` supplied by
-   the backend.
-4. Delete only that user's cart rows.
-5. Commit both the order and cart deletion together.
+1. Lock the authenticated user's row, then load and lock their cart rows.
+   `of=("self",)` keeps this query from also locking its joined relations.
+2. Reject an empty cart.
+3. Lock the cart's products in primary-key order. Replace the cart items'
+   product references with these freshly fetched instances.
+4. Check stock and decrement inventory using `bulk_update()`.
+5. Calculate totals and build JSON snapshots from the same loaded cart list.
+6. Save the order and create its `OrderItem` rows with `bulk_create()`.
+   Foreign-key IDs come from backend-owned objects rather than client input.
+7. Delete only the cart rows included in this checkout.
+8. Commit the order, order items, inventory changes, and cart deletion together.
 
-If the transaction fails, both changes roll back. The current implementation
-allows an empty cart to create a zero-value order.
+If any step fails, all database changes in this transaction roll back.
+Order items retain product JSON snapshots, user and vendor ownership, quantity,
+and the selected delivery option. Their product field is not a foreign key.
 
 Order responses omit the nested product details by default. Use
 `?expand=products` to include them.
@@ -312,10 +331,25 @@ The following project-specific migrations are currently applied:
 - `cart.0003_auto_20260927_1823`
 - `orders_and_paymentsummary.0001_initial`
 - `orders_and_paymentsummary.0002_auto_20260927_1823`
+- `orders_and_paymentsummary.0003_alter_order_user_orderitem`
+
+The new `cart.0004_enforce_positive_cart_quantity` migration adds the database
+quantity check. Apply pending migrations with `python manage.py migrate` when
+updating a development database.
 
 The staged product migrations preserved the 42 pre-existing products while
 adding required vendor and inventory fields. The cart and order migrations
 assigned existing data to user ID 1 where a non-null user was required.
+
+## Cart and checkout tests
+
+Run `python manage.py test cart orders_and_paymentsummary` to check cart
+additions, stock validation, per-user isolation, the quantity constraint,
+payment summaries, order snapshots, and checkout rollback after an order-item
+insert failure. The helper tests also verify that loaded cart items can be
+reused without additional queries. These tests apply migrations to a temporary
+test database and do not modify the development data. PostgreSQL concurrency
+tests are still needed to verify actual row-lock contention.
 
 ## Known limitations and unfinished work
 
@@ -325,16 +359,14 @@ assigned existing data to user ID 1 where a non-null user was required.
   `ForeignKeyRelatedField`, which does not exist. It is unused because there is
   no vendor endpoint yet.
 - Roles are not enforced through permission classes.
-- Inventory is not reserved when items enter a cart and is not decremented at
-  order creation.
-- Empty carts can create zero-value orders.
-- Cart create-or-increase is not protected against concurrent requests.
+- Inventory is not reserved when items enter a cart.
+- The development SQLite database does not implement the row-locking protocol.
 - Cart POST returns HTTP 200 even when it creates a new row.
 - PUT is treated as a partial update.
 - The catalog importer cannot create new products without vendor and stock
   defaults.
-- All app `tests.py` files contain only the generated placeholder; there is no
-  meaningful automated test suite yet.
+- Cart and checkout have regression tests; the other apps still have generated
+  test placeholders. Actual PostgreSQL concurrency tests are not implemented.
 - Development settings contain a hard-coded secret key and `DEBUG=True`; they
   are not suitable for deployment.
 - The project has no dependency lock file.

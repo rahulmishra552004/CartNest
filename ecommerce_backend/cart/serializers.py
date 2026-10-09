@@ -37,6 +37,16 @@ class CartItemSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         product = attrs.get('product')
         quantity = attrs.get('quantity')
+        request = self.context.get('request')
+        user = request.user
+
+        if request and request.method == 'POST':
+            product = (
+                    Product.objects.select_for_update()
+                    .get(pk = product.pk)
+                )
+            attrs['product'] = product
+
 
         if product is None and self.instance is not None:
             product = self.instance.product
@@ -48,9 +58,6 @@ class CartItemSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                     'quantity greater than inventory stock'
                     )
-
-        request = self.context.get('request')
-        user = request.user
 
         if request and request.method == 'POST':
             try:
