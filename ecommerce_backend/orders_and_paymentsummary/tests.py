@@ -64,13 +64,13 @@ class CheckoutTests(APITestCase):
         self.assertEqual(len(snapshots), 2)
 
     def test_payment_summary_uses_only_authenticated_users_cart(self):
-        response = self.client.get("/api/payment-summary")
+        response = self.client.get("/api/payment-summary/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["totalItems"], 3)
         self.assertEqual(response.data["totalCostCents"], 5280)
 
     def test_checkout_saves_items_snapshots_and_stock_atomically(self):
-        response = self.client.post("/api/orders", {}, format="json")
+        response = self.client.post("/api/orders/", {}, format="json")
         self.assertEqual(response.status_code, 201)
         order = Order.objects.get(pk=response.data["id"])
         self.assertEqual(order.user_id, self.user.pk)
@@ -96,14 +96,14 @@ class CheckoutTests(APITestCase):
 
     def test_empty_cart_is_rejected(self):
         CartItem.objects.filter(user=self.user).delete()
-        response = self.client.post("/api/orders", {}, format="json")
+        response = self.client.post("/api/orders/", {}, format="json")
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Order.objects.exists())
         self.assertTrue(CartItem.objects.filter(pk=self.other_cart_item.pk).exists())
 
     def test_insufficient_stock_preserves_cart_and_inventory(self):
         Product.objects.filter(pk=self.product.pk).update(inventory_stock=1)
-        response = self.client.post("/api/orders", {}, format="json")
+        response = self.client.post("/api/orders/", {}, format="json")
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Order.objects.exists())
         self.assertEqual(CartItem.objects.filter(user=self.user).count(), 2)
@@ -118,7 +118,7 @@ class CheckoutTests(APITestCase):
             side_effect=IntegrityError("Simulated order-item insert failure"),
         ):
             with self.assertRaises(IntegrityError):
-                self.client.post("/api/orders", {}, format="json")
+                self.client.post("/api/orders/", {}, format="json")
 
         self.assertFalse(Order.objects.exists())
         self.assertFalse(OrderItem.objects.exists())

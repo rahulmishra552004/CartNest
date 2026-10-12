@@ -8,11 +8,11 @@ export function OrderDetailsGrid({ order, getCartData }) {
       {
         order.products.map((orderedProduct) => {
           async function addToCart() {
-            axios.post('/api/cart-items', {
+            await axios.post('/api/cart-items/', {
               'productId': orderedProduct.productId,
               'quantity': 1
             })
-            getCartData();
+            await getCartData();
           }
           return (
             <Fragment key={orderedProduct.productId}>
@@ -30,7 +30,7 @@ export function OrderDetailsGrid({ order, getCartData }) {
                 <div className="product-quantity">
                   Quantity: {orderedProduct.quantity}
                 </div>
-                <button 
+                <button
                 onClick={addToCart}
                 className="buy-again-button button-primary">
                   <img className="buy-again-icon" src="/media/icons/buy-again.png" />

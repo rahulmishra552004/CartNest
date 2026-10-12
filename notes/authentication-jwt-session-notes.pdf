@@ -1,0 +1,1149 @@
+%PDF-1.4
+% Generated study notes
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R 35 0 R 37 0 R 39 0 R] /Count 17 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 1250 >>
+stream
+0.075 0.160 0.280 rg 0.00 0.00 595.28 841.89 re f
+0.080 0.620 0.670 rg 0.00 0.00 15.00 841.89 re f
+0.080 0.620 0.670 rg 54.00 690.00 82.00 5.00 re f
+BT /F2 10.00 Tf 0.500 0.870 0.900 rg 1 0 0 1 54.00 728.00 Tm (BACKEND DEVELOPER STUDY GUIDE) Tj ET
+BT /F2 29.00 Tf 1.000 1.000 1.000 rg 1 0 0 1 54.00 650.00 Tm (Authentication, Session) Tj ET
+BT /F2 29.00 Tf 1.000 1.000 1.000 rg 1 0 0 1 54.00 613.00 Tm (Authentication, and JWT) Tj ET
+0.080 0.620 0.670 RG 1.20 w 54.00 573.00 m 300.00 573.00 l S
+BT /F1 12.00 Tf 0.820 0.870 0.920 rg 1 0 0 1 54.00 534.00 Tm (Backend developer study notes) Tj ET
+BT /F1 12.00 Tf 0.820 0.870 0.920 rg 1 0 0 1 54.00 511.00 Tm (Concepts, Django and DRF request flows, browser security, implementation) Tj ET
+BT /F1 12.00 Tf 0.820 0.870 0.920 rg 1 0 0 1 54.00 493.00 Tm (tradeoffs, and high-level interview review) Tj ET
+BT /F1 12.00 Tf 0.820 0.870 0.920 rg 1 0 0 1 54.00 470.00 Tm (Updated: October 2026) Tj ET
+BT /F2 8.00 Tf 0.500 0.870 0.900 rg 1 0 0 1 54.00 120.00 Tm (AUTHN) Tj ET
+BT /F2 8.00 Tf 0.500 0.870 0.900 rg 1 0 0 1 137.00 120.00 Tm (SESSIONS) Tj ET
+BT /F2 8.00 Tf 0.500 0.870 0.900 rg 1 0 0 1 247.00 120.00 Tm (JWT) Tj ET
+BT /F2 8.00 Tf 0.500 0.870 0.900 rg 1 0 0 1 307.00 120.00 Tm (BROWSER SECURITY) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
+<< /Length 6892 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+0.080 0.620 0.670 rg 54.00 771.00 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 775.00 Tm (How to use these notes) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 760.00 m 541.28 760.00 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 741.00 Tm (These notes are organized around one mental model: credentials establish an identity, an authentication mechanism) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 727.90 Tm (carries that identity across requests, and authorization decides what that identity may do.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 705.80 Tm (For interviews, do not only describe how to configure a library. Explain the threat being addressed, the trust) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 692.70 Tm (boundary, the failure mode, and the tradeoff introduced by the design.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 670.60 Tm (Key questions to ask about any authentication design:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 650.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 650.50 Tm (What credential proves the user's identity?) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 634.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 634.70 Tm (Where is authenticated state stored?) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 618.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 618.90 Tm (How is the credential transported?) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 603.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 603.10 Tm (What can steal or replay it?) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 587.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 587.30 Tm (How does it expire or get revoked?) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 571.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 571.50 Tm (Where and how is authorization enforced?) Tj ET
+0.080 0.620 0.670 rg 54.00 538.70 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 542.70 Tm (1. Core terminology) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 527.70 m 541.28 527.70 l S
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 503.70 Tm (Authentication and authorization) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 483.70 Tm (Authentication, often abbreviated AuthN, answers: Who is making this request?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 461.60 Tm (Authorization, often abbreviated AuthZ, answers: Is this authenticated principal allowed to perform this action on) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 448.50 Tm (this resource?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 426.40 Tm (Example:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 351.70 487.28 59.60 re B
+0.075 0.360 0.580 rg 54.00 351.70 3.50 59.60 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 398.30 Tm (Session or JWT identifies User 17 -> authentication) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 387.90 Tm (User 17 has the vendor role -> role authorization) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 377.50 Tm (Product 42 belongs to User 17's vendor -> object authorization) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 367.10 Tm (Vendor may update but not approve the product -> action authorization) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 336.70 Tm (Authentication must happen before authorization, but a successfully authenticated user is not automatically) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 323.60 Tm (authorized.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 296.50 Tm (Important terms) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 278.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 278.50 Tm (Identity: an account or entity, such as User\(id=17\).) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 262.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 262.70 Tm (Principal: the entity currently associated with a request.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 246.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 246.90 Tm (Credential: evidence used to prove identity, such as a password or private key.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 231.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 231.10 Tm (Authenticator: a password, OTP, passkey, certificate, or security key.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 215.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 215.30 Tm (Session: continuing authenticated state across multiple requests.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 199.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 199.50 Tm (Token: a value representing authentication or delegated authorization.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 183.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 183.70 Tm (Bearer token: possession is sufficient to use it; whoever bears it can act with its authority.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 167.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 167.90 Tm (Claim: a statement inside a token, such as subject, issuer, audience, or expiration.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 152.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 152.10 Tm (Scope: a delegated capability, such as orders:read.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 136.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 136.30 Tm (Role: a collection or category of permissions, such as vendor or admin.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 113.50 Tm (401 versus 403) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 95.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 95.50 Tm (401 Unauthorized means authentication credentials are absent, invalid, or expired.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 79.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 79.70 Tm (403 Forbidden means the caller is known but lacks permission.) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (2 / 17) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 12 0 R >>
+endobj
+12 0 obj
+<< /Length 6505 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 777.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 777.00 Tm (404 Not Found may deliberately hide the existence of a protected object.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 759.20 Tm (Despite its historical name, HTTP 401 represents an authentication problem, not an authorization decision.) Tj ET
+0.080 0.620 0.670 rg 54.00 722.10 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 726.10 Tm (2. Password authentication fundamentals) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 711.10 m 541.28 711.10 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 692.10 Tm (Passwords must never be stored as plaintext or with reversible encryption. Store a deliberately slow password) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 679.00 Tm (hash.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 656.90 Tm (Suitable password-hashing families include Argon2id, scrypt, bcrypt, and PBKDF2 where compatibility requirements) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 643.80 Tm (apply.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 616.70 Tm (Salt, pepper, and work factor) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 598.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 598.70 Tm (Salt: a unique random value for each password hash. It prevents identical passwords from producing identical) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 585.90 Tm (stored hashes and defeats precomputed tables. The salt is normally stored with the hash.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 570.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 570.10 Tm (Pepper: an optional application secret stored separately from the password database.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 554.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 554.30 Tm (Work factor: makes each password guess intentionally expensive. It should be increased over time as hardware) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 541.50 Tm (improves.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 518.70 Tm (Login endpoint protections) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 500.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 500.70 Tm (Rate-limit attempts by account and by network signals.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 484.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 484.90 Tm (Use generic failure messages to reduce username enumeration.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 469.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 469.10 Tm (Compare secrets using constant-time operations where applicable.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 453.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 453.30 Tm (Record security events without logging passwords or tokens.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 437.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 437.50 Tm (Add MFA or passkeys for higher-risk accounts.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 421.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 421.70 Tm (Re-authenticate users before sensitive operations.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 405.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 405.90 Tm (Treat password-reset flows as authentication flows.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 388.10 Tm (Password-reset tokens should be random, short-lived, single-use, and invalidated after success. Password changes) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 375.00 Tm (may also invalidate existing sessions or refresh-token families.) Tj ET
+0.080 0.620 0.670 rg 54.00 337.90 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 341.90 Tm (3. Session authentication) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 326.90 m 541.28 326.90 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 307.90 Tm (Session authentication stores authenticated state on the server and gives the browser a random session identifier.) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 212.40 487.28 80.40 re B
+0.075 0.360 0.580 rg 54.00 212.40 3.50 80.40 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 279.80 Tm (1. Browser submits username and password) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 269.40 Tm (2. Server verifies the password) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 259.00 Tm (3. Server creates a session record) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 248.60 Tm (4. Server returns a sessionid cookie) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 238.20 Tm (5. Browser automatically includes the cookie on later requests) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 227.80 Tm (6. Server uses the session ID to load the user) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 197.40 Tm (The cookie should contain an unpredictable identifier rather than the user's password or full user record.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 170.30 Tm (Django session request flow) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 76.90 487.28 80.40 re B
+0.075 0.360 0.580 rg 54.00 76.90 3.50 80.40 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 144.30 Tm (HTTP request with sessionid cookie) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 133.90 Tm (|) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 123.50 Tm (v) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 113.10 Tm (SessionMiddleware loads request.session) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 102.70 Tm (|) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 92.30 Tm (v) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (3 / 17) Tj ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 14 0 R >>
+endobj
+14 0 obj
+<< /Length 5576 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 691.20 487.28 90.80 re B
+0.075 0.360 0.580 rg 54.00 691.20 3.50 90.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 769.00 Tm (AuthenticationMiddleware resolves request.user) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 758.60 Tm (|) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 748.20 Tm (v) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 737.80 Tm (DRF SessionAuthentication accepts that user) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 727.40 Tm (|) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 717.00 Tm (v) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 706.60 Tm (Permission classes authorize the operation) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 676.20 Tm (In your Django project, the important middleware ordering is:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 570.30 487.28 90.80 re B
+0.075 0.360 0.580 rg 54.00 570.30 3.50 90.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 648.10 Tm (MIDDLEWARE = [) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 637.70 Tm (# ...) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 627.30 Tm ('django.contrib.sessions.middleware.SessionMiddleware',) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 616.90 Tm ('django.middleware.csrf.CsrfViewMiddleware',) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 606.50 Tm ('django.contrib.auth.middleware.AuthenticationMiddleware',) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 596.10 Tm (# ...) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 585.70 Tm (]) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 555.30 Tm (SessionMiddleware must run before AuthenticationMiddleware because authentication reads the session.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 533.20 Tm (DRF configuration:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 448.10 487.28 70.00 re B
+0.075 0.360 0.580 rg 54.00 448.10 3.50 70.00 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 505.10 Tm (REST_FRAMEWORK = {) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 494.70 Tm ('DEFAULT_AUTHENTICATION_CLASSES': [) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 484.30 Tm ('rest_framework.authentication.SessionAuthentication',) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 473.90 Tm (],) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 463.50 Tm (}) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 428.10 Tm (Login) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 293.10 487.28 122.00 re B
+0.075 0.360 0.580 rg 54.00 293.10 3.50 122.00 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 402.10 Tm (user = authenticate\() Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 391.70 Tm (request,) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 381.30 Tm (username=username,) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 370.90 Tm (password=password,) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 360.50 Tm (\)) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 339.70 Tm (if user is None:) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 329.30 Tm (return JsonResponse\({'detail': 'Invalid credentials'}, status=401\)) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 308.50 Tm (django_login\(request, user\)) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 278.10 Tm (authenticate verifies the credentials. django_login associates the user with a newly created or rotated server-side) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 265.00 Tm (session and causes a session cookie to be returned.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 237.90 Tm (Page refresh with a session) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 217.90 Tm (React state is memory and disappears on refresh. The browser cookie and the server-side session normally remain.) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 101.60 487.28 101.20 re B
+0.075 0.360 0.580 rg 54.00 101.60 3.50 101.20 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 189.80 Tm (Page refresh) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 179.40 Tm (-> React starts with user = undefined) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 169.00 Tm (-> frontend calls GET /api/auth/me/) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 158.60 Tm (-> browser automatically sends sessionid) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 148.20 Tm (-> Django reconstructs request.user) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 137.80 Tm (-> endpoint returns public user data) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 127.40 Tm (-> React calls setUser\(user\)) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 117.00 Tm (-> cart and orders are fetched again) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 86.60 Tm (Use three frontend states:) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (4 / 17) Tj ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 16 0 R >>
+endobj
+16 0 obj
+<< /Length 5955 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 732.80 487.28 49.20 re B
+0.075 0.360 0.580 rg 54.00 732.80 3.50 49.20 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 769.00 Tm (undefined -> authentication check is still running) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 758.60 Tm (null -> no authenticated user) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 748.20 Tm (object -> authenticated user information) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 712.80 Tm (Logout) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 692.80 Tm (Server-side logout invalidates or flushes the session and expires the cookie. The frontend should also clear) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 679.70 Tm (user-specific state such as cached cart and order data.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 652.60 Tm (Session strengths and costs) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 632.60 Tm (Strengths:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 612.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 612.50 Tm (Immediate server-side revocation is straightforward.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 596.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 596.70 Tm (Browser security attributes work naturally with cookies.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 580.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 580.90 Tm (The session can reflect current server state.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 565.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 565.10 Tm (It is simple for a first-party Django web application.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 547.30 Tm (Costs:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 527.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 527.20 Tm (The server needs a session lookup.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 511.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 511.40 Tm (Multiple application instances need a shared session store, such as Redis or a database.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 495.60 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 495.60 Tm (Automatically sent cookies require CSRF defenses for unsafe operations.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 477.80 Tm (Session authentication is not inherently obsolete or unscalable. A shared session store is a normal) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 464.70 Tm (distributed-system design.) Tj ET
+0.080 0.620 0.670 rg 54.00 427.60 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 431.60 Tm (4. Cookie security and CSRF) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 416.60 m 541.28 416.60 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 397.60 Tm (A production session cookie should generally use:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 312.50 487.28 70.00 re B
+0.075 0.360 0.580 rg 54.00 312.50 3.50 70.00 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 369.50 Tm (HttpOnly -> JavaScript cannot read the cookie value) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 359.10 Tm (Secure -> cookie is sent only over HTTPS) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 348.70 Tm (SameSite -> limits cross-site cookie sending) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 338.30 Tm (Path -> restricts where the cookie is sent) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 327.90 Tm (Domain -> should be as narrow as possible) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 297.50 Tm (Example Django production settings:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 202.00 487.28 80.40 re B
+0.075 0.360 0.580 rg 54.00 202.00 3.50 80.40 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 269.40 Tm (SESSION_COOKIE_HTTPONLY = True) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 259.00 Tm (SESSION_COOKIE_SECURE = True) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 248.60 Tm (SESSION_COOKIE_SAMESITE = 'Lax') Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 227.80 Tm (CSRF_COOKIE_SECURE = True) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 217.40 Tm (CSRF_COOKIE_SAMESITE = 'Lax') Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 182.00 Tm (Why session ID and CSRF token are both needed) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 164.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 164.00 Tm (The session ID answers: Which authenticated session is making this request?) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 148.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 148.20 Tm (The CSRF token answers: Was this unsafe request intentionally created by the trusted frontend?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 130.40 Tm (The browser automatically attaches cookies. A malicious site may therefore cause a victim's browser to send an) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 117.30 Tm (authenticated request. Django requires the submitted CSRF token to match the expected token.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 95.20 Tm (Typical unsafe request:) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (5 / 17) Tj ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 18 0 R >>
+endobj
+18 0 obj
+<< /Length 5237 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 732.80 487.28 49.20 re B
+0.075 0.360 0.580 rg 54.00 732.80 3.50 49.20 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 769.00 Tm (POST /api/orders/) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 758.60 Tm (Cookie: sessionid=abc123; csrftoken=xyz789) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 748.20 Tm (X-CSRFToken: xyz789) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 717.80 Tm (HttpOnly prevents JavaScript from extracting the session ID, but it does not make XSS harmless. Malicious) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 704.70 Tm (JavaScript running inside the trusted origin may still perform actions while it is active.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 682.60 Tm (SameSite is defense in depth and should not automatically be treated as a replacement for framework CSRF) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 669.50 Tm (protection.) Tj ET
+0.080 0.620 0.670 rg 54.00 632.40 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 636.40 Tm (5. CORS is not authentication) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 621.40 m 541.28 621.40 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 602.40 Tm (CORS is a browser-enforced response-sharing policy. It decides whether JavaScript from one origin may read) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 589.30 Tm (responses from another origin.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 567.20 Tm (CORS does not:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 547.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 547.10 Tm (authenticate a user;) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 531.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 531.30 Tm (authorize access;) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 515.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 515.50 Tm (prevent curl, Postman, mobile applications, or servers from calling an API;) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 499.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 499.70 Tm (replace CSRF protection;) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 483.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 483.90 Tm (secure an endpoint whose backend permissions are missing.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 466.10 Tm (Strong interview statement:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 422.60 487.28 28.40 re B
+0.075 0.360 0.580 rg 54.00 422.60 3.50 28.40 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 438.00 Tm (CORS is a browser policy, not an API security boundary.) Tj ET
+0.080 0.620 0.670 rg 54.00 392.60 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 396.60 Tm (6. What a JWT is) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 381.60 m 541.28 381.60 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 362.60 Tm (JWT means JSON Web Token. It is a token format, not a complete authentication protocol.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 340.50 Tm (A compact signed JWT contains three segments:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 297.00 487.28 28.40 re B
+0.075 0.360 0.580 rg 54.00 297.00 3.50 28.40 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 312.40 Tm (base64url\(header\).base64url\(payload\).base64url\(signature\)) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 282.00 Tm (Example structure:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 196.90 487.28 70.00 re B
+0.075 0.360 0.580 rg 54.00 196.90 3.50 70.00 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 253.90 Tm (eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 243.50 Tm (.) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 233.10 Tm (eyJ1c2VyX2lkIjoxNywidG9rZW5fdHlwZSI6ImFjY2VzcyJ9) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 222.70 Tm (.) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 212.30 Tm (signature-bytes-encoded-for-transport) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 176.90 Tm (JWT header) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 104.30 487.28 59.60 re B
+0.075 0.360 0.580 rg 54.00 104.30 3.50 59.60 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 150.90 Tm ({) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 140.50 Tm ("alg": "HS256",) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 130.10 Tm ("typ": "JWT") Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 119.70 Tm (}) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (6 / 17) Tj ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 20 0 R >>
+endobj
+20 0 obj
+<< /Length 5481 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 775.00 Tm (The header is untrusted token metadata. It may describe an algorithm, type, and key identifier. The server must) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 761.90 Tm (compare it with trusted server-side configuration rather than allowing the incoming token to choose arbitrary) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 748.80 Tm (security behavior.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 721.70 Tm (JWT payload) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 597.10 487.28 111.60 re B
+0.075 0.360 0.580 rg 54.00 597.10 3.50 111.60 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 695.70 Tm ({) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 685.30 Tm ("user_id": 17,) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 674.90 Tm ("token_type": "access",) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 664.50 Tm ("iss": "https://auth.example.com",) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 654.10 Tm ("aud": "ecommerce-api",) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 643.70 Tm ("iat": 1791012045,) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 633.30 Tm ("exp": 1791012345,) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 622.90 Tm ("jti": "unique-token-id") Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 612.50 Tm (}) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 582.10 Tm (The payload contains claims. It does not normally contain the complete database user.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 555.00 Tm (JWT signature) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 535.00 Tm (The signature protects the encoded header and encoded payload against undetected modification.) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 481.10 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 481.10 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 506.90 Tm (signing_input = encoded_header + "." + encoded_payload) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 496.50 Tm (signature = sign\(signing_input, signing_key\)) Tj ET
+0.080 0.620 0.670 rg 54.00 451.10 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 455.10 Tm (7. Encoding, signing, and encryption) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 440.10 m 541.28 440.10 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 421.10 Tm (These operations solve different problems.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 401.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 401.00 Tm (Encoding makes bytes safe to transport. It is reversible without a secret.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 385.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 385.20 Tm (Signing detects modification and proves possession of a signing key.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 369.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 369.40 Tm (Encryption hides content from parties without the decryption key.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 351.60 Tm (A normal signed JWT is Base64URL-encoded and signed. It is usually not encrypted.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 329.50 Tm (Anyone who receives a standard JWT can decode its header and payload. Never place passwords, card data, secret) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 316.40 Tm (keys, or confidential personal information in an ordinary JWT payload.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 294.30 Tm (Base64URL uses URL-safe characters and commonly omits padding. It provides no confidentiality.) Tj ET
+0.080 0.620 0.670 rg 54.00 257.20 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 261.20 Tm (8. How JWT signature validation works) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 246.20 m 541.28 246.20 l S
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 222.20 Tm (HS256: symmetric signing) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 202.20 Tm (With HS256, issuer and verifier share the same secret.) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 127.50 487.28 59.60 re B
+0.075 0.360 0.580 rg 54.00 127.50 3.50 59.60 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 174.10 Tm (expected_signature = HMAC-SHA256\() Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 163.70 Tm (encoded_header + "." + encoded_payload,) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 153.30 Tm (shared_secret) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 142.90 Tm (\)) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 112.50 Tm (The verifier recalculates the expected signature and performs a constant-time comparison with the signature) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 99.40 Tm (received in the JWT.) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (7 / 17) Tj ET
+endstream
+endobj
+21 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 22 0 R >>
+endobj
+22 0 obj
+<< /Length 6124 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 775.00 Tm (If an attacker changes user_id or role, the signing input changes. Without the shared secret, the attacker cannot) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 761.90 Tm (create the new required signature.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 739.80 Tm (Important tradeoff: every service possessing an HMAC verification secret can also mint valid tokens.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 712.70 Tm (RS256 or ES256: asymmetric signing) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 660.90 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 660.90 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 686.70 Tm (Authorization server: private key signs) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 676.30 Tm (Resource servers: public key verifies) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 645.90 Tm (A service with only the public key can validate tokens but cannot create new valid tokens. This separation is useful) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 632.80 Tm (when multiple independent services validate tokens.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 605.70 Tm (Key identifiers and rotation) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 585.70 Tm (A JWT header may contain kid, a key identifier. The verifier can use it to select a trusted key from a controlled key) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 572.60 Tm (set such as JWKS.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 550.50 Tm (kid is not itself trusted. It must never be used unsafely as a file path, command fragment, or database query. Key) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 537.40 Tm (rotation should allow a transition period where currently valid tokens can still be verified with an older trusted) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 524.30 Tm (public key.) Tj ET
+0.080 0.620 0.670 rg 54.00 487.20 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 491.20 Tm (9. Complete JWT validation) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 476.20 m 541.28 476.20 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 457.20 Tm (A valid signature is necessary but not sufficient.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 435.10 Tm (Recommended validation sequence:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 287.60 487.28 132.40 re B
+0.075 0.360 0.580 rg 54.00 287.60 3.50 132.40 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 407.00 Tm (1. Extract token from an approved location) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 396.60 Tm (2. Require the expected token format) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 386.20 Tm (3. Enforce an algorithm allowlist) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 375.80 Tm (4. Select a trusted verification key) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 365.40 Tm (5. Verify the signature) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 355.00 Tm (6. Validate exp and nbf with a small clock-skew allowance) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 344.60 Tm (7. Validate expected issuer, iss) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 334.20 Tm (8. Validate expected audience, aud) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 323.80 Tm (9. Validate token type and required claims) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 313.40 Tm (10. Resolve or construct the principal) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 303.00 Tm (11. Apply authorization and object-level permissions) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 272.60 Tm (Common claims:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 252.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 252.50 Tm (sub: stable subject identifier.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 236.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 236.70 Tm (iss: trusted issuer.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 220.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 220.90 Tm (aud: intended API or resource server.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 205.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 205.10 Tm (exp: expiration time.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 189.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 189.30 Tm (nbf: token must not be accepted before this time.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 173.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 173.50 Tm (iat: issuance time.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 157.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 157.70 Tm (jti: unique token identifier; useful for audit or revocation state.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 139.90 Tm (Examples of rejected tokens:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 75.60 487.28 49.20 re B
+0.075 0.360 0.580 rg 54.00 75.60 3.50 49.20 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 111.80 Tm (Valid signature + expired exp -> reject) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 101.40 Tm (Valid signature + wrong audience -> reject) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 91.00 Tm (Valid signature + untrusted issuer -> reject) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (8 / 17) Tj ET
+endstream
+endobj
+23 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 24 0 R >>
+endobj
+24 0 obj
+<< /Length 5677 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 743.20 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 743.20 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 769.00 Tm (Valid refresh token used as access token -> reject) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 758.60 Tm (Valid token + disabled user -> reject according to policy) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 728.20 Tm (The server must never blindly trust alg from the token header. Configure acceptable algorithms on the verifier.) Tj ET
+0.080 0.620 0.670 rg 54.00 691.10 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 695.10 Tm (10. JWT authentication in Django REST Framework) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 680.10 m 541.28 680.10 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 661.10 Tm (Typical Simple JWT configuration:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 576.00 487.28 70.00 re B
+0.075 0.360 0.580 rg 54.00 576.00 3.50 70.00 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 633.00 Tm (REST_FRAMEWORK = {) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 622.60 Tm ('DEFAULT_AUTHENTICATION_CLASSES': [) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 612.20 Tm ('rest_framework_simplejwt.authentication.JWTAuthentication',) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 601.80 Tm (],) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 591.40 Tm (}) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 561.00 Tm (Typical authenticated request:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 507.10 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 507.10 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 532.90 Tm (GET /api/orders/) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 522.50 Tm (Authorization: Bearer eyJhbGciOi...) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 492.10 Tm (The HTTP Authorization header transports the JWT. It does not itself validate anything.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 470.00 Tm (Do not confuse the two headers:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 449.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 449.90 Tm (HTTP Authorization header: carries Bearer and the compact token.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 434.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 434.10 Tm (Internal JWT header: contains metadata such as alg, typ, and possibly kid.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 416.30 Tm (DRF flow:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 300.00 487.28 101.20 re B
+0.075 0.360 0.580 rg 54.00 300.00 3.50 101.20 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 388.20 Tm (Read HTTP Authorization header) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 377.80 Tm (-> require Bearer scheme) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 367.40 Tm (-> extract compact JWT) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 357.00 Tm (-> validate signature and claims) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 346.60 Tm (-> read user_id) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 336.20 Tm (-> load the current User) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 325.80 Tm (-> set request.user) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 315.40 Tm (-> run permission classes) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 285.00 Tm (Normal Simple JWT authentication can validate the signature without a session lookup, but it generally performs a) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 271.90 Tm (database lookup to obtain request.user.) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 228.40 487.28 28.40 re B
+0.075 0.360 0.580 rg 54.00 228.40 3.50 28.40 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 243.80 Tm (No session lookup does not mean no database lookup.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 213.40 Tm (A stateless token-user implementation can avoid loading the database User, but it may not suit applications that) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 200.30 Tm (need current roles, vendor profiles, account status, or object ownership.) Tj ET
+0.080 0.620 0.670 rg 54.00 163.20 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 167.20 Tm (11. Access and refresh tokens) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 152.20 m 541.28 152.20 l S
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 128.20 Tm (Access token) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 110.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 110.20 Tm (Short-lived, often minutes.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 94.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 94.40 Tm (Sent to resource APIs.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 78.60 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 78.60 Tm (Carries limited authority and audience.) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (9 / 17) Tj ET
+endstream
+endobj
+25 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 26 0 R >>
+endobj
+26 0 obj
+<< /Length 6190 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 777.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 777.00 Tm (Used in Authorization: Bearer.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 754.20 Tm (Refresh token) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 736.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 736.20 Tm (Longer-lived and more sensitive.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 720.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 720.40 Tm (Sent only to the authorization server or refresh endpoint.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 704.60 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 704.60 Tm (Used to obtain new access tokens.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 688.80 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 688.80 Tm (Should support expiration, revocation, and rotation.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 673.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 673.00 Tm (Should never be sent with every normal API request.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 655.20 Tm (Typical flow:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 559.70 487.28 80.40 re B
+0.075 0.360 0.580 rg 54.00 559.70 3.50 80.40 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 627.10 Tm (Login credentials) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 616.70 Tm (-> access token + refresh token) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 606.30 Tm (-> access token calls APIs) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 595.90 Tm (-> access token expires) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 585.50 Tm (-> refresh token obtains a new access token) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 575.10 Tm (-> logout revokes or blacklists the refresh token) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 539.70 Tm (Refresh-token rotation) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 477.50 487.28 49.20 re B
+0.075 0.360 0.580 rg 54.00 477.50 3.50 49.20 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 513.70 Tm (Client submits refresh token A) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 503.30 Tm (-> server invalidates A) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 492.90 Tm (-> server returns access token plus refresh token B) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 462.50 Tm (If both an attacker and the legitimate client use A, reuse of the already consumed token can signal theft. The server) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 449.40 Tm (may revoke the whole token family and require login again.) Tj ET
+0.080 0.620 0.670 rg 54.00 412.30 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 416.30 Tm (12. JWT logout and revocation) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 401.30 m 541.28 401.30 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 382.30 Tm (A purely stateless access token remains independently valid until expiration. Logout therefore differs from deleting) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 369.20 Tm (a server session.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 347.10 Tm (Common strategies:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 327.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 327.00 Tm (Keep access tokens short-lived.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 311.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 311.20 Tm (Revoke or blacklist refresh tokens.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 295.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 295.40 Tm (Denylist access-token jti values when immediate revocation is essential.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 279.60 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 279.60 Tm (Store a per-user token version or valid-after timestamp.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 263.80 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 263.80 Tm (Revoke token families after password changes or suspected compromise.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 248.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 248.00 Tm (Use token introspection when centralized control is more important than stateless validation.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 230.20 Tm (Tradeoff:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 176.30 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 176.30 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 202.10 Tm (Pure stateless validation -> fewer central lookups, harder immediate revocation) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 191.70 Tm (Revocation lookup -> stronger control, less stateless) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 161.30 Tm (Deleting a token from one browser does not invalidate a stolen copy. Server-side revocation policy is still needed for) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 148.20 Tm (important threats.) Tj ET
+0.080 0.620 0.670 rg 54.00 111.10 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 115.10 Tm (13. JWT claims and stale authorization data) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 100.10 m 541.28 100.10 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 81.10 Tm (Claims are snapshots made when the token is issued.) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (10 / 17) Tj ET
+endstream
+endobj
+27 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 28 0 R >>
+endobj
+28 0 obj
+<< /Length 5561 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 775.00 Tm (Suppose a token says:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 700.30 487.28 59.60 re B
+0.075 0.360 0.580 rg 54.00 700.30 3.50 59.60 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 746.90 Tm ({) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 736.50 Tm ("user_id": 17,) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 726.10 Tm ("role": "vendor") Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 715.70 Tm (}) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 685.30 Tm (If the database role later becomes customer, the existing token may continue saying vendor until it expires.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 663.20 Tm (Ways to manage staleness:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 643.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 643.10 Tm (Use short access-token lifetimes.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 627.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 627.30 Tm (Load current authorization data from the database.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 611.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 611.50 Tm (Use a token or permission version.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 595.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 595.70 Tm (Revoke existing token families.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 579.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 579.90 Tm (Avoid embedding fast-changing resource permissions.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 562.10 Tm (For an e-commerce API, product ownership, current inventory permissions, account status, and tenant boundaries) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 549.00 Tm (should generally be checked against current server data.) Tj ET
+0.080 0.620 0.670 rg 54.00 511.90 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 515.90 Tm (14. Frontend JWT flow) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 500.90 m 541.28 500.90 l S
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 476.90 Tm (Login) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 383.50 487.28 80.40 re B
+0.075 0.360 0.580 rg 54.00 383.50 3.50 80.40 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 450.90 Tm (1. Submit username and password to /api/auth/login/) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 440.50 Tm (2. Receive access and refresh tokens) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 430.10 Tm (3. Store tokens according to the selected security architecture) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 419.70 Tm (4. Call /api/auth/me/ using the access token) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 409.30 Tm (5. Store public user information in React state) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 398.90 Tm (6. Load cart and order data) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 363.50 Tm (Axios request interceptor) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 238.90 487.28 111.60 re B
+0.075 0.360 0.580 rg 54.00 238.90 3.50 111.60 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 337.50 Tm (api.interceptors.request.use\(\(config\) => {) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 327.10 Tm (const accessToken = getAccessToken\(\);) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 306.30 Tm (if \(accessToken\) {) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 295.90 Tm (config.headers.Authorization = `Bearer ${accessToken}`;) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 285.50 Tm (}) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 264.70 Tm (return config;) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 254.30 Tm (}\);) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 223.90 Tm (The interceptor centralizes the Authorization header so each component does not implement token attachment) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 210.80 Tm (separately.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 183.70 Tm (Expired access token) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 100.70 487.28 70.00 re B
+0.075 0.360 0.580 rg 54.00 100.70 3.50 70.00 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 157.70 Tm (API request returns 401) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 147.30 Tm (-> response interceptor checks whether retry is allowed) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 136.90 Tm (-> one refresh request is started) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 126.50 Tm (-> new access token is stored) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 116.10 Tm (-> original request is retried once) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 85.70 Tm (Important safeguards:) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (11 / 17) Tj ET
+endstream
+endobj
+29 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 30 0 R >>
+endobj
+30 0 obj
+<< /Length 5542 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 777.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 777.00 Tm (Mark the original request so it is retried only once.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 761.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 761.20 Tm (Do not recursively intercept the refresh request.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 745.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 745.40 Tm (Coordinate simultaneous failures so they share one refresh operation.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 729.60 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 729.60 Tm (If refresh fails, clear local authentication state and return to login.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 706.80 Tm (Page refresh with JWT) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 686.80 Tm (If an access token is stored persistently, the app calls /auth/me/ and sends it. If only the refresh token persists,) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 673.70 Tm (the app first refreshes an access token and then calls /auth/me/.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 651.60 Tm (React's user state is still only presentation state. The backend token and permissions remain the real security) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 638.50 Tm (boundary.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 611.40 Tm (Logout) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 538.80 487.28 59.60 re B
+0.075 0.360 0.580 rg 54.00 538.80 3.50 59.60 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 585.40 Tm (Send refresh token to revocation/blacklist endpoint) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 575.00 Tm (-> clear access and refresh credentials locally) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 564.60 Tm (-> clear user, cart, and orders from React state) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 554.20 Tm (-> navigate to login) Tj ET
+0.080 0.620 0.670 rg 54.00 508.80 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 512.80 Tm (15. Browser token storage) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 497.80 m 541.28 497.80 l S
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 473.80 Tm (localStorage and sessionStorage) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 453.80 Tm (JavaScript executing in the origin can read both. A single XSS vulnerability can exfiltrate stored bearer tokens.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 431.70 Tm (sessionStorage reduces persistence to a tab lifetime but does not prevent XSS theft.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 404.60 Tm (HttpOnly cookies) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 384.60 Tm (JavaScript cannot read an HttpOnly cookie. Secure and SameSite should also be configured appropriately.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 362.50 Tm (Because browsers automatically attach cookies, cookie-carried authentication requires CSRF analysis and usually) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 349.40 Tm (CSRF protection on unsafe endpoints.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 322.30 Tm (Common architecture choices) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 302.30 Tm (First-party Django web application:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 248.40 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 248.40 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 274.20 Tm (Django session in Secure, HttpOnly cookie) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 263.80 Tm (+ CSRF protection) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 233.40 Tm (JWT browser application requiring JWT semantics:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 169.10 487.28 49.20 re B
+0.075 0.360 0.580 rg 54.00 169.10 3.50 49.20 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 205.30 Tm (Short-lived access token in memory) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 194.90 Tm (+ refresh token in Secure, HttpOnly cookie) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 184.50 Tm (+ CSRF protection for refresh and logout endpoints) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 154.10 Tm (Backend-for-frontend pattern:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 100.20 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 100.20 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 126.00 Tm (Browser holds only a hardened session cookie) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 115.60 Tm (BFF stores or manages downstream OAuth tokens) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 85.20 Tm (Avoid persistent authentication tokens in Web Storage for production systems when a safer design is practical.) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (12 / 17) Tj ET
+endstream
+endobj
+31 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 32 0 R >>
+endobj
+32 0 obj
+<< /Length 5677 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+0.080 0.620 0.670 rg 54.00 771.00 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 775.00 Tm (16. Sessions versus JWT) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 760.00 m 541.28 760.00 l S
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 736.00 Tm (Prefer sessions when) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 718.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 718.00 Tm (The application is a first-party browser frontend plus one backend.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 702.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 702.20 Tm (Immediate logout and revocation are important.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 686.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 686.40 Tm (Centralized session state is acceptable.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 670.60 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 670.60 Tm (Simplicity and secure browser-cookie integration are priorities.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 647.80 Tm (Consider JWT when) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 629.80 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 629.80 Tm (Multiple resource servers need independently verifiable tokens.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 614.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 614.00 Tm (Mobile, machine, or third-party clients need API credentials.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 598.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 598.20 Tm (OAuth or OpenID Connect integration is required.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 582.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 582.40 Tm (Audience-restricted delegated access is needed.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 559.60 Tm (Avoid weak reasoning) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 539.60 Tm (Weak statement:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 496.10 487.28 28.40 re B
+0.075 0.360 0.580 rg 54.00 496.10 3.50 28.40 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 511.50 Tm (JWT is always more scalable and modern.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 481.10 Tm (Stronger statement:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 406.40 487.28 59.60 re B
+0.075 0.360 0.580 rg 54.00 406.40 3.50 59.60 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 453.00 Tm (JWT moves some authentication state into signed claims and enables local) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 442.60 Tm (verification, but introduces revocation, token-storage, claim-staleness,) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 432.20 Tm (and key-management tradeoffs. Sessions offer centralized control and are) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 421.80 Tm (often the simpler design for a first-party web application.) Tj ET
+0.080 0.620 0.670 rg 54.00 376.40 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 380.40 Tm (17. Authorization models) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 365.40 m 541.28 365.40 l S
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 341.40 Tm (RBAC: role-based access control) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 289.60 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 289.60 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 315.40 Tm (vendor -> create and update owned products) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 305.00 Tm (admin -> manage users and approve products) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 269.60 Tm (ABAC: attribute-based access control) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 197.00 487.28 59.60 re B
+0.075 0.360 0.580 rg 54.00 197.00 3.50 59.60 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 243.60 Tm (Allow update when:) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 233.20 Tm (user.role == vendor) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 222.80 Tm (and product.vendor_id == user.vendor_id) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 212.40 Tm (and product.status != locked) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 177.00 Tm (ReBAC: relationship-based access control) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 125.20 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 125.20 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 151.00 Tm (User may view an order because they own it.) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 140.60 Tm (Manager may view it because they manage the owner.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 110.20 Tm (Object-level checks prevent IDOR or BOLA vulnerabilities. IsAuthenticated alone does not stop User A from) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 97.10 Tm (requesting User B's object if the queryset or object permission is incorrect.) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (13 / 17) Tj ET
+endstream
+endobj
+33 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 34 0 R >>
+endobj
+34 0 obj
+<< /Length 5590 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 775.00 Tm (In DRF, restrict both the queryset and object mutation:) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 721.10 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 721.10 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 746.90 Tm (def get_queryset\(self\):) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 736.50 Tm (return Order.objects.filter\(user=self.request.user\)) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 674.30 487.28 38.80 re B
+0.075 0.360 0.580 rg 54.00 674.30 3.50 38.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 700.10 Tm (def has_object_permission\(self, request, view, obj\):) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 689.70 Tm (return obj.user_id == request.user.id) Tj ET
+0.080 0.620 0.670 rg 54.00 644.30 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 648.30 Tm (18. OAuth 2.0 and OpenID Connect) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 633.30 m 541.28 633.30 l S
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 616.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 616.30 Tm (JWT is a token format.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 600.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 600.50 Tm (OAuth 2.0 is a delegated authorization framework.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 584.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 584.70 Tm (OpenID Connect is an identity layer built on OAuth 2.0.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 566.90 Tm (Token purposes:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 546.80 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 546.80 Tm (Access token: presented to a resource API.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 531.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 531.00 Tm (ID token: tells the client about an authenticated user.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 515.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 515.20 Tm (Refresh token: obtains new access tokens.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 497.40 Tm (Do not use an ID token as a general API access token. The intended audience and validation rules differ.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 470.30 Tm (Authorization Code Flow with PKCE) Tj ET
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 366.50 487.28 90.80 re B
+0.075 0.360 0.580 rg 54.00 366.50 3.50 90.80 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 444.30 Tm (Client generates random code_verifier) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 433.90 Tm (-> derives code_challenge) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 423.50 Tm (-> authorization request carries challenge) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 413.10 Tm (-> client receives authorization code) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 402.70 Tm (-> token request carries code plus verifier) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 392.30 Tm (-> server verifies the relationship) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 381.90 Tm (-> tokens are issued) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 351.50 Tm (PKCE protects an intercepted authorization code from redemption by a party that lacks the verifier.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 329.40 Tm (A browser SPA is a public client. A client secret embedded in JavaScript is not confidential and must not be treated) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 316.30 Tm (as proof of the SPA's identity.) Tj ET
+0.080 0.620 0.670 rg 54.00 279.20 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 283.20 Tm (19. High-level interview questions) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 268.20 m 541.28 268.20 l S
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 244.20 Tm (Is a JWT encrypted?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 224.20 Tm (Usually no. A standard signed JWT is readable but tamper-evident. Encryption is a separate operation.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 197.10 Tm (Is only the signature checked?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 177.10 Tm (No. Verify the allowed algorithm and signature, then validate time, issuer, audience, token type, and other required) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 164.00 Tm (claims before authorization.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 136.90 Tm (Is a JWT validated through the HTTP header?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 116.90 Tm (The HTTP Authorization header transports it. The verifier validates the JWT's signature and claims. The internal) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 103.80 Tm (JWT header is token metadata, not trusted server configuration.) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (14 / 17) Tj ET
+endstream
+endobj
+35 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 36 0 R >>
+endobj
+36 0 obj
+<< /Length 5713 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 770.00 Tm (Can JWT validation happen without a database?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 750.00 Tm (Cryptographic validation can. The application may still load a user, permissions, revocation status, or resource) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 736.90 Tm (ownership from a database.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 709.80 Tm (Can a user modify a JWT?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 689.80 Tm (Anyone can edit the encoded bytes, but modification invalidates the signature unless they possess the signing key or) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 676.70 Tm (exploit a verifier flaw.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 649.60 Tm (How do you revoke a JWT immediately?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 629.60 Tm (Introduce state, such as a denylist, token version, valid-after timestamp, or introspection. Otherwise, a valid access) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 616.50 Tm (token lives until expiration.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 589.40 Tm (Why validate audience?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 569.40 Tm (To prevent a valid token intended for Service A from being accepted by Service B.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 542.30 Tm (Should roles be placed in a JWT?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 522.30 Tm (Stable, coarsely scoped roles may be included, but claims can become stale. Sensitive or fast-changing permissions) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 509.20 Tm (should be checked against current server state.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 482.10 Tm (Does JWT eliminate CSRF?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 462.10 Tm (Not inherently. An Authorization header manually added by application code reduces classic CSRF exposure. A JWT) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 449.00 Tm (automatically sent in a cookie still requires CSRF defenses.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 421.90 Tm (Does HttpOnly eliminate XSS?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 401.90 Tm (No. It prevents scripts from reading that cookie, but malicious same-origin JavaScript may still make authenticated) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 388.80 Tm (requests while running.) Tj ET
+BT /F2 11.80 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 361.70 Tm (JWT or session?) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 341.70 Tm (Choose based on clients, trust boundaries, revocation requirements, distribution, and operational complexity. Neither) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 328.60 Tm (is universally superior.) Tj ET
+0.080 0.620 0.670 rg 54.00 291.50 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 295.50 Tm (20. Security and design checklist) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 280.50 m 541.28 280.50 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 261.50 Tm (Authentication:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 241.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 241.40 Tm (Use established libraries and framework primitives.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 225.60 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 225.60 Tm (Hash passwords with a suitable adaptive algorithm.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 209.80 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 209.80 Tm (Rate-limit authentication and recovery endpoints.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 194.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 194.00 Tm (Support MFA for sensitive accounts.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 178.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 178.20 Tm (Avoid account enumeration and secret logging.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 160.40 Tm (Sessions and cookies:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 140.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 140.30 Tm (Use high-entropy identifiers.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 124.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 124.50 Tm (Rotate identifiers after authentication or privilege changes.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 108.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 108.70 Tm (Set HttpOnly, Secure, and appropriate SameSite attributes.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 92.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 92.90 Tm (Enforce CSRF protection for unsafe cookie-authenticated requests.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 77.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 77.10 Tm (Provide expiration, logout, and server-side revocation.) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (15 / 17) Tj ET
+endstream
+endobj
+37 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 38 0 R >>
+endobj
+38 0 obj
+<< /Length 7488 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 775.00 Tm (JWT:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 754.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 754.90 Tm (Enforce an algorithm allowlist.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 739.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 739.10 Tm (Protect signing keys and plan rotation.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 723.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 723.30 Tm (Validate signature, exp, nbf, iss, aud, and token type.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 707.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 707.50 Tm (Keep access tokens short-lived and narrowly scoped.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 691.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 691.70 Tm (Protect and rotate refresh tokens.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 675.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 675.90 Tm (Do not place confidential information in readable claims.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 660.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 660.10 Tm (Design explicitly for logout, password change, and account compromise.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 642.30 Tm (Authorization:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 622.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 622.20 Tm (Enforce permissions on the backend.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 606.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 606.40 Tm (Restrict querysets by owner or tenant.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 590.60 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 590.60 Tm (Check object-level permissions.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 574.80 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 574.80 Tm (Treat token claims as potentially stale.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 559.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 559.00 Tm (Test horizontal and vertical privilege escalation.) Tj ET
+BT /F1 9.45 Tf 0.180 0.200 0.230 rg 1 0 0 1 54.00 541.20 Tm (Operations:) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 521.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 521.10 Tm (Use HTTPS end to end.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 505.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 505.30 Tm (Keep tokens out of logs, URLs, analytics, and error reports.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 489.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 489.50 Tm (Synchronize clocks and use only small leeway.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 473.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 473.70 Tm (Audit security-relevant events.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 457.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 457.90 Tm (Monitor credential stuffing, token replay, and unusual refresh activity.) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 442.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 442.10 Tm (Fail closed when validation is incomplete or ambiguous.) Tj ET
+0.080 0.620 0.670 rg 54.00 409.30 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 413.30 Tm (21. Final mental model) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 398.30 m 541.28 398.30 l S
+0.930 0.950 0.970 rg 0.800 0.840 0.880 RG 0.45 w 54.00 285.10 487.28 101.20 re B
+0.075 0.360 0.580 rg 54.00 285.10 3.50 101.20 re f
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 373.30 Tm (Credentials establish identity.) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 362.90 Tm (Sessions or tokens carry authenticated identity between requests.) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 352.50 Tm (Signatures protect token integrity, not secrecy.) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 342.10 Tm (Claims must be validated, not merely decoded.) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 331.70 Tm (Authorization is always a server-side decision.) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 321.30 Tm (Browser storage determines which attack can steal or replay credentials.) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 310.90 Tm (Expiration limits damage; revocation provides control.) Tj ET
+BT /F3 7.80 Tf 0.100 0.120 0.150 rg 1 0 0 1 67.00 300.50 Tm (The best design follows the system's actual trust boundaries.) Tj ET
+0.080 0.620 0.670 rg 54.00 255.10 4.00 21.00 re f
+BT /F2 16.20 Tf 0.075 0.160 0.280 rg 1 0 0 1 68.00 259.10 Tm (References) Tj ET
+0.800 0.840 0.880 RG 0.55 w 68.00 244.10 m 541.28 244.10 l S
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 227.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 227.10 Tm (OWASP Authentication Cheat Sheet:) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 214.30 Tm (https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 198.50 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 198.50 Tm (OWASP Password Storage Cheat Sheet:) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 185.70 Tm (https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 169.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 169.90 Tm (OWASP Session Management Cheat Sheet:) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 157.10 Tm (https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 141.30 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 141.30 Tm (OWASP JSON Web Token Cheat Sheet:) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 128.50 Tm (https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet.html) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 112.70 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 112.70 Tm (RFC 7519, JSON Web Token: https://www.rfc-editor.org/rfc/rfc7519) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 96.90 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 96.90 Tm (RFC 8725, JWT Best Current Practices: https://www.rfc-editor.org/rfc/rfc8725) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 81.10 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 81.10 Tm (RFC 9700, OAuth 2.0 Security Best Current Practice: https://www.rfc-editor.org/rfc/rfc9700) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (16 / 17) Tj ET
+endstream
+endobj
+39 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 40 0 R >>
+endobj
+40 0 obj
+<< /Length 1405 >>
+stream
+BT /F2 7.60 Tf 0.075 0.360 0.580 rg 1 0 0 1 54.00 810.00 Tm (BACKEND SECURITY NOTES) Tj ET
+BT /F1 7.60 Tf 0.400 0.440 0.490 rg 1 0 0 1 388.00 810.00 Tm (Authentication / Sessions / JWT) Tj ET
+0.800 0.840 0.880 RG 0.65 w 54.00 800.00 m 541.28 800.00 l S
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 777.00 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 777.00 Tm (OpenID Connect Core: https://openid.net/specs/openid-connect-core-1_0.html) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 761.20 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 761.20 Tm (Django authentication documentation: https://docs.djangoproject.com/en/stable/topics/auth/) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 745.40 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 745.40 Tm (Django REST Framework authentication: https://www.django-rest-framework.org/api-guide/authentication/) Tj ET
+BT /F2 9.25 Tf 0.075 0.360 0.580 rg 1 0 0 1 56.00 729.60 Tm (-) Tj ET
+BT /F1 9.25 Tf 0.180 0.200 0.230 rg 1 0 0 1 72.00 729.60 Tm (Simple JWT documentation: https://django-rest-framework-simplejwt.readthedocs.io/) Tj ET
+0.800 0.840 0.880 RG 0.50 w 54.00 39.00 m 541.28 39.00 l S
+BT /F1 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 54.00 25.00 Tm (Authentication, Session Authentication, and JWT) Tj ET
+BT /F2 7.20 Tf 0.400 0.440 0.490 rg 1 0 0 1 507.28 25.00 Tm (17 / 17) Tj ET
+endstream
+endobj
+xref
+0 41
+0000000000 65535 f 
+0000000033 00000 n 
+0000000082 00000 n 
+0000000251 00000 n 
+0000000348 00000 n 
+0000000450 00000 n 
+0000000545 00000 n 
+0000000650 00000 n 
+0000000812 00000 n 
+0000002113 00000 n 
+0000002276 00000 n 
+0000009220 00000 n 
+0000009384 00000 n 
+0000015941 00000 n 
+0000016105 00000 n 
+0000021733 00000 n 
+0000021897 00000 n 
+0000027904 00000 n 
+0000028068 00000 n 
+0000033357 00000 n 
+0000033521 00000 n 
+0000039054 00000 n 
+0000039218 00000 n 
+0000045394 00000 n 
+0000045558 00000 n 
+0000051287 00000 n 
+0000051451 00000 n 
+0000057693 00000 n 
+0000057857 00000 n 
+0000063470 00000 n 
+0000063634 00000 n 
+0000069228 00000 n 
+0000069392 00000 n 
+0000075121 00000 n 
+0000075285 00000 n 
+0000080927 00000 n 
+0000081091 00000 n 
+0000086856 00000 n 
+0000087020 00000 n 
+0000094560 00000 n 
+0000094724 00000 n 
+trailer
+<< /Size 41 /Root 1 0 R >>
+startxref
+96181
+%%EOF

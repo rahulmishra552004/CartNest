@@ -9,7 +9,7 @@ export function OrderSummary({ cart, deliveryOptions, getCartData, getPaymentSum
     <div className="order-summary">
       {deliveryOptions.length > 0 && cart.map((cartItem) => {
         async function deleteItemFromCart() {
-          await axios.delete(`/api/cart-items/${cartItem.productId}`)
+          await axios.delete(`/api/cart-items/${cartItem.productId}/`)
           getCartData();
         }
         let matchingDelivereyOption =

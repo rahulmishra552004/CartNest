@@ -4,16 +4,16 @@ import axios from 'axios'
 import { useEffect, useState } from 'react';
 import { ProductsGrid } from './ProductsGrid.jsx';
 
-export function HomePage({ cart, getCartData }) {
+export function HomePage({ cart, getCartData, user, onLogout }) {
 
   const [products, setProducts] = useState([]);
-  
+
   useEffect(() => {
     const getProductsData = async () => {
-      const response = await axios('/api/products');
+      const response = await axios('/api/products/');
       setProducts(response.data);
     }
-    
+
     getProductsData();
   }, []);
 
@@ -22,14 +22,14 @@ export function HomePage({ cart, getCartData }) {
       <title>
         Ecommerce Website
       </title>
-      
-      <Header cart={cart} />
+
+      <Header cart={cart} user={user} onLogout={onLogout} />
 
       <div className="home-page">
         <div className="products-grid">
 
           <ProductsGrid products={products} getCartData={getCartData}/>
-          
+
         </div>
       </div>
     </>

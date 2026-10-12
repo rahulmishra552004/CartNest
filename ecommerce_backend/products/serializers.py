@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Product
 
 class RatingSerializer(serializers.ModelSerializer):
-    stars = serializers.DecimalField(source = 'rating_stars', 
+    stars = serializers.DecimalField(source = 'rating_stars',
                                     decimal_places = 1,
                                     max_digits = 2,
                                     coerce_to_string = False)
@@ -17,5 +17,15 @@ class ProductSerializer(serializers.ModelSerializer):
     priceCents = serializers.IntegerField(source = 'price_cents')
     class Meta:
         model = Product
-        fields = ['id', 'image', 'name', 'rating', 'priceCents', 'keywords']
+        fields = [
+            'id',
+            'image',
+            'name',
+            'rating',
+            'priceCents',
+            'keywords',
+            'inventory_stock',
+            'vendor'
+        ]
+        read_only_fields = ['vendor']
 

@@ -34,7 +34,7 @@ class CartMutationTests(APITestCase):
     def test_post_creates_one_row_and_increments_existing_quantity(self):
         for _ in range(2):
             response = self.client.post(
-                "/api/cart-items",
+                "/api/cart-items/",
                 {"productId": str(self.product.pk), "quantity": 2},
                 format="json",
             )
@@ -50,7 +50,7 @@ class CartMutationTests(APITestCase):
             user=self.user, product=self.product, quantity=8,
         )
         response = self.client.post(
-            "/api/cart-items",
+            "/api/cart-items/",
             {"productId": str(self.product.pk), "quantity": 3},
             format="json",
         )
@@ -63,7 +63,7 @@ class CartMutationTests(APITestCase):
         other_item = CartItem.objects.create(
             user=self.other_user, product=self.product, quantity=7,
         )
-        url = f"/api/cart-items/{self.product.pk}"
+        url = f"/api/cart-items/{self.product.pk}/"
         for method, quantity in (("put", 2), ("patch", 3)):
             response = getattr(self.client, method)(
                 url, {"quantity": quantity}, format="json",

@@ -23,7 +23,7 @@ function getProduct(orders, orderId, productId){
   return matchingProduct;
 }
 
-export function TrackingPage({ cart, orders }) {
+export function TrackingPage({ cart, orders, user, onLogout }) {
   if(orders.length === 0) 
     return;
 
@@ -39,7 +39,7 @@ export function TrackingPage({ cart, orders }) {
         Tracking
       </title>
 
-      <Header cart={cart} />
+      <Header cart={cart} user={user} onLogout={onLogout} />
 
       <div className="tracking-page">
         <div className="order-tracking">

@@ -5,24 +5,22 @@ import { useState, useEffect, Fragment } from 'react';
 import { OrderSummary } from './OrderSummary';
 import { PaymentSummary } from './PaymentSummary';
 
-export function CheckoutPage({ cart, getCartData, getOrdersData }) {
+export function CheckoutPage({ cart, getCartData, getOrdersData, onLogout }) {
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [paymentSummary, setPaymentSummary] = useState([]);
-  
+
   let cartQuantity = 0;
   cart.forEach((cartItem) => {
     cartQuantity += cartItem.quantity;
   })
 
   const getPaymentSummary = async () => {
-    axios('api/payment-summary')
-      .then((response) => {
-        setPaymentSummary(response.data);
-      })
+    const response = await axios('/api/payment-summary/');
+    setPaymentSummary(response.data);
   }
 
   useEffect(() => {
-    axios('/api/delivery-options?expand=estimatedDeliveryTime')
+    axios('/api/delivery-options/?expand=estimatedDeliveryTime')
       .then((response) => {
         setDeliveryOptions(response.data);
       })
@@ -37,7 +35,7 @@ export function CheckoutPage({ cart, getCartData, getOrdersData }) {
       <title>
         Checkout
       </title>
-      
+
       <div className="checkout-header">
         <div className="header-content">
           <div className="checkout-header-left-section">
@@ -53,6 +51,13 @@ export function CheckoutPage({ cart, getCartData, getOrdersData }) {
           </div>
 
           <div className="checkout-header-right-section">
+            <button
+              type="button"
+              className="checkout-logout-button"
+              onClick={onLogout}
+            >
+              Logout
+            </button>
             <img src="/media/icons/checkout-lock-icon.png" />
           </div>
         </div>

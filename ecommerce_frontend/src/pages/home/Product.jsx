@@ -5,7 +5,7 @@ export function Product({ product, getCartData }) {
   const [quantity, setQuantity] = useState(1);
 
   async function addToCart() {
-    await axios.post('/api/cart-items', {
+    await axios.post('/api/cart-items/', {
       "productId": product.id,
       "quantity": quantity
     })
@@ -65,5 +65,5 @@ export function Product({ product, getCartData }) {
         Add to Cart
       </button>
     </div>
-  ); 
+  );
 }

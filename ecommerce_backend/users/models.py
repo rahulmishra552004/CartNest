@@ -12,4 +12,4 @@ class User(AbstractUser):
             default = Role.CUSTOMER,
             )
 
-    
+

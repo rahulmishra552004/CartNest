@@ -102,6 +102,19 @@
   height: 32px;
 }
 
+.checkout-header .checkout-logout-button {
+  color: rgb(25, 135, 84);
+  background: transparent;
+  border: 0;
+  margin-right: 12px;
+  padding: 6px;
+  font-weight: 700;
+}
+
+.checkout-header .checkout-logout-button:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 1000px) {
   .checkout-header .checkout-header-right-section {
     width: auto;

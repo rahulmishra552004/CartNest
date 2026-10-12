@@ -10,22 +10,23 @@ export function DeliveryOptions({ cartItem, deliveryOptions, getCartData, getPay
       </div>
       {deliveryOptions.map((deliveryOption) => {
         async function changeDeliveryOption() {
-          axios.put(`/api/cart-items/${cartItem.productId}`, {
+          await axios.put(`/api/cart-items/${cartItem.productId}/`, {
             'deliveryOptionId' : deliveryOption.id
           })
-          getCartData();
-          getPaymentSummary();
+          await Promise.all([
+            getCartData(),
+            getPaymentSummary()
+          ]);
         }
 
         return (
           <div
             key={deliveryOption.id}
             className="delivery-option"
-            onChange={changeDeliveryOption}
           >
             <input type="radio"
-              onChange={() => {}}
-              checked={deliveryOption.id === cartItem.deliveryOptionId} 
+              onChange={changeDeliveryOption}
+              checked={deliveryOption.id === cartItem.deliveryOptionId}
               className="delivery-option-input"
               name={`delivery-option-${cartItem.productId}`} />
             <div>

@@ -2,25 +2,25 @@
 Here's a list of all the URL Paths you can use with this backend and what each URL Path does.
 
 **Products, Delivery Options**
-- [GET /api/products](#get-apiproducts)
-- [GET /api/delivery-options](#get-apidelivery-options)
+- [GET /api/products/](#get-apiproducts)
+- [GET /api/delivery-options/](#get-apidelivery-options)
 
 **Cart**
-- [GET /api/cart-items](#get-apicart-items)
-- [POST /api/cart-items](#post-apicart-items)
-- [PUT /api/cart-items/:productId](#put-apicart-itemsproductid)
-- [DELETE /api/cart-items/:productId](#delete-apicart-itemsproductid)
+- [GET /api/cart-items/](#get-apicart-items)
+- [POST /api/cart-items/](#post-apicart-items)
+- [PUT /api/cart-items/:productId/](#put-apicart-itemsproductid)
+- [DELETE /api/cart-items/:productId/](#delete-apicart-itemsproductid)
 
 **Orders**
-- [GET /api/orders](#get-apiorders)
-- [POST /api/orders](#post-apiorders)
-- [GET /api/orders/:orderId](#get-apiordersorderid)
+- [GET /api/orders/](#get-apiorders)
+- [POST /api/orders/](#post-apiorders)
+- [GET /api/orders/:orderId/](#get-apiordersorderid)
 
 **Payment Summary, Reset**
-- [GET /api/payment-summary](#get-apipayment-summary)
-- [POST /api/reset](#post-apireset)
+- [GET /api/payment-summary/](#get-apipayment-summary)
+- [POST /api/reset/](#post-apireset)
   
-## GET /api/products
+## GET /api/products/
 Returns a list of products.
 
 **Query Parameters:**
@@ -43,7 +43,7 @@ Returns a list of products.
 ]
 ```
 
-## GET /api/delivery-options
+## GET /api/delivery-options/
 Returns a list of all delivery options.
 
 **Query Parameters:**
@@ -62,7 +62,7 @@ Returns a list of all delivery options.
 ]
 ```
 
-## GET /api/cart-items
+## GET /api/cart-items/
 Returns all items in the cart.
 
 **Query Parameters:**
@@ -81,7 +81,7 @@ Returns all items in the cart.
 ]
 ```
 
-## POST /api/cart-items
+## POST /api/cart-items/
 Adds a product to the cart.
 
 **Request:**
@@ -102,7 +102,7 @@ Adds a product to the cart.
 }
 ```
 
-## PUT /api/cart-items/:productId
+## PUT /api/cart-items/:productId/
 Updates a cart item.
 
 **URL Parameters:**
@@ -128,7 +128,7 @@ Updates a cart item.
 }
 ```
 
-## DELETE /api/cart-items/:productId
+## DELETE /api/cart-items/:productId/
 Removes an item from the cart.
 
 **URL Parameters:**
@@ -137,7 +137,7 @@ Removes an item from the cart.
 **Response:**
 - Status: 204 (No response)
 
-## GET /api/orders
+## GET /api/orders/
 Returns all orders, sorted by most recent first.
 
 **Query Parameters:**
@@ -163,7 +163,7 @@ Returns all orders, sorted by most recent first.
 ]
 ```
 
-## POST /api/orders
+## POST /api/orders/
 Creates a new order from the current cart items.
 
 **Response:**
@@ -183,7 +183,7 @@ Creates a new order from the current cart items.
 ```
 - Side effect: Cart is emptied
 
-## GET /api/orders/:orderId
+## GET /api/orders/:orderId/
 Returns a specific order.
 
 **URL Parameters:**
@@ -210,7 +210,7 @@ Returns a specific order.
 }
 ```
 
-## GET /api/payment-summary
+## GET /api/payment-summary/
 Calculates and returns the payment summary for the current cart.
 
 **Response:**
@@ -225,7 +225,7 @@ Calculates and returns the payment summary for the current cart.
 }
 ```
 
-## POST /api/reset
+## POST /api/reset/
 Resets the database to its default state.
 
 **Response:**

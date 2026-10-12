@@ -1,3 +1,4 @@
+from products.views import invalidate_products
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins, viewsets
@@ -71,6 +72,7 @@ class OrderViewSet(
                     pk__in = [cart_item.pk for cart_item in cart_items]
                 ).delete()
 
+            transaction.on_commit(lambda: invalidate_products(*product_ids))
             return response
 
     def perform_create(self, serializer):
