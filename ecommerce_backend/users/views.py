@@ -114,14 +114,27 @@ def login_view(request):
         data = json.loads(request.body)
     except(json.JSONDecodeError, UnicodeDecodeError):
         return JsonResponse(
-                {'detail' : 'incorrect json body'},
-                status = 400)
+            {'detail' : 'incorrect json body'},
+            status = 400
+        )
+
+    if not isinstance(data, dict):
+        return JsonResponse(
+            {'detail' : 'expected a json object'},
+            status = 400
+        )
+
     username = data.get('username')
     password = data.get('password')
 
-    if not username or not password:
+    if (
+        not isinstance(username, str)
+        or not isinstance(password, str)
+        or not username.strip()
+        or not password
+    ):
         return JsonResponse(
-                {'detail' : 'username and password required'},
+                {'detail' : 'username and password required, both must be non empty strings'},
                 status = 400
                 )
 

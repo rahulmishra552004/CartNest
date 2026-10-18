@@ -72,7 +72,20 @@ class Order(models.Model):
     order_time_ms = models.BigIntegerField(default=current_time_ms)
     total_cost_cents = models.PositiveIntegerField(default=0)
     products = models.JSONField(default=list)
-
+    confirmation_email_sent_at = models.DateTimeField(
+        null = True,
+        blank = True,
+        editable = False,
+    )
+    confirmation_email_attempts = models.PositiveIntegerField(
+        default=0,
+        editable=False
+    )
+    confirmation_email_last_attempt_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        editable=False
+    )
 
 class OrderItem(models.Model):
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
@@ -98,3 +111,25 @@ class OrderItem(models.Model):
             )
     product = models.JSONField(default=dict)
     quantity = models.PositiveIntegerField()
+
+class CheckoutRequest(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete = models.PROTECT,
+    )
+    key = models.CharField(max_length=128)
+    order = models.OneToOneField(
+        'Order',
+        on_delete = models.PROTECT,
+        null = True,
+        blank = True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields = ['user', 'key'],
+                name = 'unique checkout per key user'
+            ),
+        ]

@@ -1,23 +1,38 @@
 import logging
+import random
+import time
 from django.db import transaction
+from django.db.models import Q
 from django.core.cache import cache
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.exceptions import NotFound
 from .serializers import ProductSerializer
 from .models import Product
-from django.db.models import Q
 from .permissions import IsVendorOwnerOrReadOnly
+from .throttles import ProductSearchThrottle
+from .recent_views import record_product_view, get_recent_product_ids
+from .most_viewed import update_most_viewed, get_most_viewed_product_ids
+from .cache_locks import acquire_cache_lock, release_cache_lock
+from .identifiers import normalize_product_id
 
 logger = logging.getLogger(__name__)
 
 class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsVendorOwnerOrReadOnly]
+    throttle_classes = [ProductSearchThrottle]
 
     def get_queryset(self):
         queryset = Product.objects.all()
+
+        if self.action in ('update', 'partial_update'):
+            queryset = queryset.select_for_update()
+
         search = self.request.query_params.get('search', '').strip()
 
         if search:
@@ -31,36 +46,83 @@ class ProductViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(vendor=self.request.user.vendor)
 
+    def _normalize_product_lookup(self, product_id):
+        try:
+            return normalize_product_id(product_id)
+        except ValueError as exc:
+            raise NotFound('Product not found.') from exc
+
     def list(self, request, *args, **kwargs):
         search = self.request.query_params.get('search', '').strip()
         if search:
             return super().list(request, *args, **kwargs)
 
         key = 'products:list'
-        cache_available = True
 
         try:
             data = cache.get(key)
         except (RedisConnectionError, RedisTimeoutError):
             logger.warning('products list cache read failed')
-            data = None
-            cache_available = False
+            return super().list(request, *args, **kwargs)
 
         if data is not None:
             return Response(data)
 
-        response = super().list(request, *args, **kwargs)
+        deadline = time.monotonic()+1
 
-        if cache_available:
+        while True:
             try:
-                cache.set(key, response.data)
+                token = acquire_cache_lock(key, ttl=10)
             except (RedisConnectionError, RedisTimeoutError):
-                logger.warning('products list cache write failed')
+                logger.warning('cache lock aquisition failed')
+                return super().list(request, *args, **kwargs)
 
-        return response
+            if token is not None:
+                break
+
+            if time.monotonic() >= deadline:
+                return super().list(request, *args, **kwargs)
+
+            time.sleep(0.05)
+
+            try:
+                data = cache.get(key)
+            except (RedisConnectionError, RedisTimeoutError):
+                logger.warning('product list cache read failed')
+                return super().list(request, *args, **kwargs)
+
+            if data is not None:
+                return Response(data)
+
+        try:
+            try:
+                data = cache.get(key)
+            except(RedisConnectionError, RedisTimeoutError):
+                logger.warning('product list cache recheck failed')
+                return super().list(request, *args, **kwargs)
+
+            if data is not None:
+                return Response(data)
+
+            response = super().list(request, *args, **kwargs)
+
+            if response.status_code == 200:
+                try:
+                    cache.set(key, response.data, timeout=300)
+                except (RedisConnectionError, RedisTimeoutError):
+                    logger.warning('product list cache write failed')
+
+            return response
+
+        finally:
+            try:
+                release_cache_lock(key, token)
+            except (RedisConnectionError, RedisTimeoutError):
+                logger.warning('product list cache lock release failed')
+
 
     def retrieve(self, request, *args, **kwargs):
-        product_id = kwargs['pk']
+        product_id = self._normalize_product_lookup(kwargs['pk'])
         key = f"products:{product_id}"
         cache_available = True
 
@@ -72,17 +134,38 @@ class ProductViewSet(ModelViewSet):
             cache_available = False
 
         if data is not None:
+            self._record_recent_view(request, product_id)
+            self._record_most_viewed(request, product_id)
             return Response(data)
 
         response = super().retrieve(request, *args, **kwargs)
+        if response.status_code == 200:
+            self._record_most_viewed(request, product_id)
+            self._record_recent_view(request, product_id)
 
         if cache_available:
             try:
-                cache.set(key, response.data)
+                ttl = 300 + random.randint(0, 60)
+                cache.set(key, response.data, timeout=ttl)
             except (RedisConnectionError, RedisTimeoutError):
                 logger.warning(f"product : {product_id} cache write error")
 
         return response
+
+    def _record_recent_view(self, request, product_id):
+        if not request.user.is_authenticated:
+            return
+
+        try:
+            record_product_view(request.user.id, product_id)
+        except (RedisConnectionError, RedisTimeoutError):
+            logger.warning('Recently viewed product cache write failed')
+
+    def _record_most_viewed(self, request, product_id):
+        try:
+            update_most_viewed(product_id)
+        except (RedisConnectionError, RedisTimeoutError):
+            logger.warning('most viewed write failed')
 
     def create(self, request, *args, **kwargs):
         with transaction.atomic():
@@ -92,7 +175,7 @@ class ProductViewSet(ModelViewSet):
         return response
 
     def update(self, request, *args, **kwargs):
-        product_id = kwargs['pk']
+        product_id = self._normalize_product_lookup(kwargs['pk'])
         with transaction.atomic():
             response = super().update(request, *args, **kwargs)
             transaction.on_commit(lambda: invalidate_products(product_id))
@@ -100,13 +183,80 @@ class ProductViewSet(ModelViewSet):
         return response
 
     def destroy(self, request, *args, **kwargs):
-        product_id = kwargs['pk']
+        product_id = self._normalize_product_lookup(kwargs['pk'])
 
         with transaction.atomic():
             response = super().destroy(request, *args, **kwargs)
             transaction.on_commit(lambda: invalidate_products(product_id))
 
         return response
+
+    @action(
+        detail = False,
+        methods = ['get'],
+        url_path = 'recently-viewed',
+        permission_classes = [IsAuthenticated]
+    )
+    def recently_viewed(self, request, *args, **kwargs):
+        try:
+            product_ids = get_recent_product_ids(request.user.pk)
+        except (RedisConnectionError, RedisTimeoutError):
+            logger.warning('Recently viewed products read failed')
+            return Response([])
+
+        if not product_ids:
+            return Response([])
+
+        products = Product.objects.filter(pk__in=product_ids)
+        products_by_id = {
+            str(product.pk) : product
+            for product in products
+        }
+
+        ordered_products = [
+            products_by_id[product_id] for product_id in product_ids
+            if product_id in products_by_id
+        ]
+
+        serializer = self.get_serializer(
+            ordered_products,
+            many = True
+        )
+
+        return Response(serializer.data)
+
+    @action(
+        detail = False,
+        methods = ['get'],
+        url_path = 'most-viewed',
+        permission_classes = [AllowAny]
+    )
+    def most_viewed(self, request, *args, **kwargs):
+        try:
+            product_ids = get_most_viewed_product_ids()
+        except (RedisConnectionError, RedisTimeoutError):
+            logger.warning('most viewed products cache read failed')
+            return Response([])
+
+        if not product_ids:
+            return Response([])
+
+        products = Product.objects.filter(pk__in=product_ids)
+        products_by_id = {
+            str(product.pk) : product
+            for product in products
+        }
+        ordered_products = [
+            products_by_id[product_id]
+            for product_id in product_ids
+            if product_id in products_by_id
+        ]
+
+        serializer = self.get_serializer(
+            ordered_products,
+            many = True
+        )
+        return Response(serializer.data)
 
 def invalidate_products(*product_ids):
     try:
@@ -116,7 +266,7 @@ def invalidate_products(*product_ids):
 
     keys = []
     for product_id in product_ids:
-        keys.append(f"products:{product_id}")
+        keys.append(f"products:{normalize_product_id(product_id)}")
 
     if keys:
         try:

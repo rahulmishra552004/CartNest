@@ -31,6 +31,9 @@ ecommerce_backend/loadtest-export.json
 ecommerce_backend/loadtest-postgres-baseline.dump
 ecommerce_backend/loadtest-postgres-baseline.dump.tmp
 
+# Celery scheduler runtime state
+celerybeat-schedule*
+
 # Editors and operating systems
 .vscode/
 .idea/

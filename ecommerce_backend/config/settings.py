@@ -165,13 +165,15 @@ REST_FRAMEWORK = {
     ],
 }
 
+REDIS_URL = os.environ.get(
+    "REDIS_URL",
+    "redis://127.0.0.1:6379/0",
+)
+
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": os.environ.get(
-            "REDIS_URL",
-            "redis://127.0.0.1:6379/0",
-        ),
+        "LOCATION": REDIS_URL,
         "KEY_PREFIX": os.environ.get(
             "REDIS_CACHE_PREFIX",
             "ecommerce:dev",
@@ -184,3 +186,20 @@ CACHES = {
         },
     },
 }
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_CACHE_ALIAS = 'default'
+
+CELERY_BROKER_URL = os.environ.get(
+    'CELERY_BROKER_URL',
+    'redis://127.0.0.1:6379/1',
+)
+
+CELERY_BEAT_SCHEDULE = {
+    'recover-order-confirmations': {
+        'task': 'orders_and_paymentsummary.tasks.recover_order_confirmation',
+        'schedule': 60.0,
+    },
+}
+
+DEFAULT_FROM_EMAIL = 'store@example.com'

@@ -14,7 +14,10 @@ class RatingSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     rating = RatingSerializer(source = '*', read_only = True)
-    priceCents = serializers.IntegerField(source = 'price_cents')
+    priceCents = serializers.IntegerField(
+        source = 'price_cents',
+        min_value = 0,
+    )
     class Meta:
         model = Product
         fields = [
