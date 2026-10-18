@@ -54,9 +54,15 @@ python manage.py test --settings=config.test
 ```
 
 Django creates `test_ecommerce`, applies migrations, and removes it when the
-tests finish. This configuration uses a local in-memory cache. The default
-database backend is PostgreSQL even when running tests without this settings
-override; the override also isolates the cache from development Redis.
+tests finish. This configuration uses Redis with a `:test` cache prefix and
+database-backed cached sessions, matching development's cache/session backends.
+The default database backend is PostgreSQL even without this settings override;
+use `config.test` to avoid sharing development cache keys.
+
+Celery broker/queue isolation is not provided by the cache prefix. Configure
+test task behavior separately before publishing tasks involving the temporary
+test database. Existing checkout tests also need the required `Idempotency-Key`
+header; see the root README for current validation limitations.
 
 ## Migrated data
 

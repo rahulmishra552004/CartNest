@@ -8,6 +8,14 @@ Load tests use isolated `media.loadtest/` uploads and a separate Redis key
 prefix. The load-test middleware adds `X-Loadtest-Database: isolated`; workloads
 check this marker before login or writes.
 
+Current integration gaps: `CheckoutUser` does not yet send the required
+`Idempotency-Key` header, so order creation returns HTTP 400 until the scenario
+is updated. Search requests are now throttled and can return HTTP 429; the
+current workload treats that as a failure. Cache isolation does not isolate
+Celery: `config.loadtest` still inherits the development broker/default queue.
+Configure dedicated queues or broker namespaces and matching workers/Beat before
+running background tasks for the load-test database.
+
 The current Windows PostgreSQL load-test records were migrated into WSL without
 resetting stock, carts, or orders. The existing `loadtest_data.json` account
 credentials and product IDs were preserved. A native PostgreSQL reset baseline
