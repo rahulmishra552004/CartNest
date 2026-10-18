@@ -1,0 +1,497 @@
+--- a/ecommerce_backend/products/views.py
++++ b/ecommerce_backend/products/views.py
+@@ -21,7 +21,6 @@
+ from .cache_locks import acquire_cache_lock, release_cache_lock
+ from .identifiers import normalize_product_id
+ from config.cache_responses import cached_json_response
+-from .catalog_cache import LIST_KEY, read_catalog, store_catalog, invalidate_products
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -61,59 +60,68 @@
+         if search:
+             return super().list(request, *args, **kwargs)
+ 
+-        try:
+-            state = read_catalog()
++        key = 'products:list'
++
++        try:
++            data = cache.get(key)
+         except (RedisConnectionError, RedisTimeoutError):
+             logger.warning('products list cache read failed')
+             return super().list(request, *args, **kwargs)
+ 
+-        if state.reusable:
+-            return cached_json_response(state.payload)
+-
+-        deadline = time.monotonic() + 1
++        if data is not None:
++            return cached_json_response(data)
++
++        deadline = time.monotonic()+1
++
+         while True:
+             try:
+-                token = acquire_cache_lock(LIST_KEY, ttl=10)
+-            except (RedisConnectionError, RedisTimeoutError):
+-                logger.warning('cache lock acquisition failed')
+-                return super().list(request, *args, **kwargs)
++                token = acquire_cache_lock(key, ttl=10)
++            except (RedisConnectionError, RedisTimeoutError):
++                logger.warning('cache lock aquisition failed')
++                return super().list(request, *args, **kwargs)
++
+             if token is not None:
+                 break
+-            if state.usable_while_refreshing:
+-                return cached_json_response(state.payload)
++
+             if time.monotonic() >= deadline:
+                 return super().list(request, *args, **kwargs)
++
+             time.sleep(0.05)
+-            try:
+-                state = read_catalog()
++
++            try:
++                data = cache.get(key)
+             except (RedisConnectionError, RedisTimeoutError):
+                 logger.warning('product list cache read failed')
+                 return super().list(request, *args, **kwargs)
+-            if state.reusable:
+-                return cached_json_response(state.payload)
+-
+-        try:
+-            try:
+-                state = read_catalog()
+-            except (RedisConnectionError, RedisTimeoutError):
++
++            if data is not None:
++                return cached_json_response(data)
++
++        try:
++            try:
++                data = cache.get(key)
++            except(RedisConnectionError, RedisTimeoutError):
+                 logger.warning('product list cache recheck failed')
+                 return super().list(request, *args, **kwargs)
+-            if state.reusable:
+-                return cached_json_response(state.payload)
+-
+-            built_at = time.time()
++
++            if data is not None:
++                return cached_json_response(data)
++
+             response = super().list(request, *args, **kwargs)
++
+             if response.status_code == 200:
+                 payload = JSONRenderer().render(response.data)
+                 try:
+-                    store_catalog(payload, state, built_at)
++                    cache.set(key, payload, timeout=300)
+                 except (RedisConnectionError, RedisTimeoutError):
+                     logger.warning('product list cache write failed')
+                 return cached_json_response(payload)
++
+             return response
++
+         finally:
+             try:
+-                release_cache_lock(LIST_KEY, token)
++                release_cache_lock(key, token)
+             except (RedisConnectionError, RedisTimeoutError):
+                 logger.warning('product list cache lock release failed')
+ 
+@@ -257,3 +265,19 @@
+             many = True
+         )
+         return Response(serializer.data)
++
++def invalidate_products(*product_ids):
++    try:
++        cache.delete('products:list')
++    except(RedisConnectionError, RedisTimeoutError):
++        logger.warning('product-list cache delete failed')
++
++    keys = []
++    for product_id in product_ids:
++        keys.append(f"products:{normalize_product_id(product_id)}")
++
++    if keys:
++        try:
++            cache.delete_many(keys)
++        except (RedisConnectionError, RedisTimeoutError):
++            logger.warning('products cache delete failed')
+--- a/ecommerce_backend/orders_and_paymentsummary/views.py
++++ b/ecommerce_backend/orders_and_paymentsummary/views.py
+@@ -1,7 +1,7 @@
+ import logging
+ from django.conf import settings
+ from kombu.exceptions import OperationalError
+-from products.catalog_cache import invalidate_inventory
++from products.views import invalidate_products
+ from rest_framework.decorators import api_view, permission_classes
+ from rest_framework.permissions import IsAuthenticated
+ from rest_framework import mixins, viewsets
+@@ -130,7 +130,7 @@
+                     pk__in = [cart_item.pk for cart_item in cart_items]
+                 ).delete()
+ 
+-            transaction.on_commit(lambda: invalidate_inventory(*product_ids))
++            transaction.on_commit(lambda: invalidate_products(*product_ids))
+             if cache_available:
+                 transaction.on_commit(lambda: self._cache_checkout_response(cache_key, response.data))
+             return response
+--- a/ecommerce_backend/products/management/commands/import_catalog.py
++++ b/ecommerce_backend/products/management/commands/import_catalog.py
+@@ -120,11 +120,11 @@
+         ))
+ 
+     def _invalidate_cache(self, product_ids):
+-        from products.catalog_cache import invalidate_products
+-        invalidate_products(*product_ids)
+         keys = [
++            'products:list',
+             'delivery-options:v1:expanded:0',
+             'delivery-options:v1:expanded:1',
++            *(f'products:{product_id}' for product_id in product_ids),
+         ]
+         try:
+             cache.delete_many(keys)
+--- a/ecommerce_backend/setup_loadtest_postgres.py
++++ b/ecommerce_backend/setup_loadtest_postgres.py
+@@ -54,10 +54,9 @@
+ 
+ def invalidate_cache(ids):
+     from django.core.cache import cache
+-    from products.catalog_cache import invalidate_products
+     from redis.exceptions import ConnectionError, TimeoutError
+-    invalidate_products(*ids)
+-    keys = ['delivery-options:v1:expanded:0', 'delivery-options:v1:expanded:1']
++    keys = ['products:list', 'delivery-options:v1:expanded:0', 'delivery-options:v1:expanded:1']
++    keys.extend(f'products:{product_id}' for product_id in ids)
+     try:
+         cache.delete_many(keys)
+     except (ConnectionError, TimeoutError):
+--- a/ecommerce_backend/products/tests.py
++++ b/ecommerce_backend/products/tests.py
+@@ -9,10 +9,7 @@
+ 
+ from vendors.models import Vendor
+ from .models import Product
+-from .catalog_cache import (
+-    INVENTORY_VERSION_KEY, LIST_KEY, METADATA_KEY, STATE_KEYS,
+-    CatalogState, invalidate_inventory, invalidate_products, read_catalog, store_catalog,
+-)
++
+ 
+ 
+ @override_settings(CACHES={'default': {
+@@ -33,15 +30,14 @@
+     def setUp(self):
+         self.detail_key = f'products:{self.product.pk}'
+         self.detail_url = f'/api/products/{self.product.pk}/'
+-        self.cache_keys = [*STATE_KEYS, self.detail_key]
+-        cache.delete_many(self.cache_keys)
++        cache.delete_many(['products:list', self.detail_key])
+         acquire = patch('products.views.acquire_cache_lock', return_value='test-token')
+         release = patch('products.views.release_cache_lock')
+         self.acquire = acquire.start()
+         self.release = release.start()
+         self.addCleanup(acquire.stop)
+         self.addCleanup(release.stop)
+-        self.addCleanup(cache.delete_many, self.cache_keys)
++        self.addCleanup(cache.delete_many, ['products:list', self.detail_key])
+         recent = patch('products.views.record_product_view')
+         ranking = patch('products.views.update_most_viewed')
+         self.recent = recent.start()
+@@ -82,8 +78,7 @@
+             with self.subTest(token=token):
+                 self.release.reset_mock()
+                 self.acquire.return_value = token
+-                with patch('products.views.read_catalog', side_effect=[
+-                        CatalogState(None, None, 0, ''), CatalogState(b'[]', None, 0, '')]), \
++                with patch('products.views.cache.get', side_effect=[None, b'[]']), \
+                         patch('products.views.time.sleep'), self.assertNumQueries(0):
+                     response = self.client.get('/api/products/')
+                 self.assertEqual(response.content, b'[]')
+@@ -94,13 +89,13 @@
+ 
+     def test_redis_read_failure_returns_database_json(self):
+         expected = self.client.get('/api/products/').json()
+-        with patch('products.views.read_catalog', side_effect=RedisConnectionError):
++        with patch('products.views.cache.get', side_effect=RedisConnectionError):
+             response = self.client.get('/api/products/')
+         self.assertEqual(response.status_code, 200)
+         self.assertEqual(response.json(), expected)
+ 
+     def test_redis_write_failure_still_returns_rendered_json_and_releases_lock(self):
+-        with patch('products.views.store_catalog', side_effect=RedisConnectionError):
++        with patch('products.views.cache.set', side_effect=RedisConnectionError):
+             response = self.client.get('/api/products/')
+         self.assertEqual(response.status_code, 200)
+         self.assertEqual(response.json()[0]['id'], str(self.product.pk))
+@@ -182,94 +177,3 @@
+             write.assert_not_called()
+         self.recent.assert_not_called()
+         self.ranking.assert_not_called()
+-
+-    def test_inventory_changes_coalesce_until_five_seconds_then_refresh(self):
+-        with patch('products.catalog_cache.time.time', return_value=1000) as clock:
+-            original = self.client.get('/api/products/').content
+-            Product.objects.filter(pk=self.product.pk).update(inventory_stock=9)
+-            invalidate_inventory(self.product.pk)
+-            self.acquire.reset_mock()
+-            clock.return_value = 1004
+-            with self.assertNumQueries(0):
+-                coalesced = self.client.get('/api/products/')
+-            self.assertEqual(coalesced.content, original)
+-            self.acquire.assert_not_called()
+-            clock.return_value = 1005
+-            refreshed = self.client.get('/api/products/')
+-            self.assertEqual(refreshed.json()[0]['inventory_stock'], 9)
+-            self.assertTrue(read_catalog().current)
+-            self.acquire.assert_called_once()
+-
+-    def test_busy_refresh_uses_stale_data_but_never_extends_ten_second_deadline(self):
+-        with patch('products.catalog_cache.time.time', return_value=1000) as clock:
+-            original = self.client.get('/api/products/').content
+-            Product.objects.filter(pk=self.product.pk).update(inventory_stock=9)
+-            invalidate_inventory(self.product.pk)
+-            self.acquire.return_value = None
+-            clock.return_value = 1006
+-            with self.assertNumQueries(0):
+-                stale = self.client.get('/api/products/')
+-            self.assertEqual(stale.content, original)
+-            clock.return_value = 1009
+-            invalidate_inventory(self.product.pk)
+-            clock.return_value = 1010
+-            with patch('products.views.time.monotonic', side_effect=[0, 2]):
+-                response = self.client.get('/api/products/')
+-            self.assertEqual(response.json()[0]['inventory_stock'], 9)
+-
+-    def test_vendor_edit_during_rebuild_prevents_reusing_old_generation(self):
+-        def race(payload, state, built_at):
+-            Product.objects.filter(pk=self.product.pk).update(name='Renamed shirt')
+-            invalidate_products(self.product.pk)
+-            store_catalog(payload, state, built_at)
+-        with patch('products.views.store_catalog', side_effect=race):
+-            self.client.get('/api/products/')
+-        self.assertFalse(read_catalog().reusable)
+-        response = self.client.get('/api/products/')
+-        self.assertEqual(response.json()[0]['name'], 'Renamed shirt')
+-        self.assertTrue(read_catalog().current)
+-
+-    def test_checkout_during_rebuild_keeps_original_version_tag(self):
+-        def race(payload, state, built_at):
+-            Product.objects.filter(pk=self.product.pk).update(inventory_stock=9)
+-            invalidate_inventory(self.product.pk)
+-            store_catalog(payload, state, built_at)
+-        with patch('products.catalog_cache.time.time', return_value=1000) as clock:
+-            with patch('products.views.store_catalog', side_effect=race):
+-                self.client.get('/api/products/')
+-            state = read_catalog()
+-            self.assertFalse(state.current)
+-            self.assertEqual(state.metadata['inventory_version'], 0)
+-            self.assertEqual(state.inventory_version, 1)
+-            clock.return_value = 1005
+-            response = self.client.get('/api/products/')
+-            self.assertEqual(response.json()[0]['inventory_stock'], 9)
+-            self.assertTrue(read_catalog().current)
+-
+-    def test_inventory_invalidation_forces_legacy_cache_to_upgrade(self):
+-        cache.set(LIST_KEY, b'[]')
+-        invalidate_inventory(self.product.pk)
+-        response = self.client.get('/api/products/')
+-        self.assertEqual(response.json()[0]['id'], str(self.product.pk))
+-        self.assertIsNotNone(cache.get(METADATA_KEY))
+-
+-    @override_settings(ORDER_CONFIRMATIONS_ENABLED=False)
+-    def test_checkout_keeps_list_bytes_and_invalidates_product_details_after_commit(self):
+-        from cart.models import CartItem
+-        from deliveryoptions.models import DeliveryOption
+-        delivery = DeliveryOption.objects.create(
+-            id='1', delivery_days=1, price_cents=100, estimated_delivery_time_ms=86400000,
+-        )
+-        CartItem.objects.create(user=self.owner, product=self.product, quantity=1, delivery_option=delivery)
+-        original = self.client.get('/api/products/').content
+-        self.client.get(self.detail_url)
+-        self.client.force_authenticate(self.owner)
+-        with self.captureOnCommitCallbacks(execute=True):
+-            response = self.client.post('/api/orders/', {}, format='json',
+-                                         HTTP_IDEMPOTENCY_KEY=str(uuid4()))
+-        self.assertEqual(response.status_code, 201)
+-        self.assertEqual(cache.get(LIST_KEY), original)
+-        self.assertIsNone(cache.get(self.detail_key))
+-        self.assertEqual(cache.get(INVENTORY_VERSION_KEY), 1)
+-        self.product.refresh_from_db()
+-        self.assertEqual(self.product.inventory_stock, 9)
+--- a/README.md
++++ b/README.md
+@@ -341,19 +341,8 @@
+ Redis connection and timeout failures log warnings and fall back to PostgreSQL.
+ When a read fails, that request skips its cache write. Product create, update,
+ and delete operations invalidate caches only after a successful database
+-commit. Checkout invalidates affected product details after commit and increments
+-an inventory version while retaining product-list bytes.
+-
+-The list reads its payload, metadata, inventory version, and catalog epoch in a
+-single Redis MGET. During inventory changes, lists rebuilt less than five seconds
+-ago are reused to coalesce checkout-driven refreshes. Once eligible, one request
+-refreshes synchronously under the existing lock. Other requests can reuse the
+-outdated snapshot only while it is less than ten seconds old. Repeated checkouts
+-do not extend this deadline. Vendor edits and imports advance a separate catalog
+-epoch and delete the list immediately, bypassing inventory coalescing. Builds
+-retain the versions read before querying, preventing writes during a rebuild
+-from making an old result appear current. PostgreSQL checkout stock validation
+-and row locking remain authoritative; the catalog may show briefly stale stock.
++commit; checkout does the same after inventory changes.
++
+ 
+ The product-list cache uses `SET NX EX` with a random ownership token and a
+ ten-second lock lifetime. Waiting requests poll the cache every 50 ms for
+@@ -365,8 +354,8 @@
+ 
+ Catalog imports invalidate product and both delivery-option variants after
+ commit. Admin changes and other direct ORM writes still bypass invalidation.
+-Product-list generations guard reuse after concurrent invalidation; individual
+-product-detail fills can still race with invalidation. Redis memory-full errors are not covered by
++Concurrent fills and invalidation can repopulate an old result; cache generation
++coordination is not implemented. Redis memory-full errors are not covered by
+ the connection/timeout fallback handlers.
+ 
+ ### Search throttling, history, and rankings
+--- a/ecommerce_backend/README.md
++++ b/ecommerce_backend/README.md
+@@ -102,11 +102,6 @@
+   of jitter. List rebuilds use a ten-second token-owned lock, a cache recheck,
+   roughly one second of polling, and Lua-based safe release. Waiting or failed
+   Redis operations can fall back to PostgreSQL.
+-- Checkout retains list bytes and increments an inventory version after commit,
+-  coalescing refreshes over five seconds. When a refresh is busy, outdated list
+-  snapshots may be served only while less than ten seconds old. Product details
+-  invalidate immediately. Vendor edits/imports hard-invalidate list generations.
+-  Refresh runs in the requesting thread, without Celery.
+ - Search-only token buckets allow bursts of five requests per signed-in user
+   (refill five/minute) or three per guest IP (refill three/minute). Exhaustion
+   returns 429 with `Retry-After`; connection/timeout errors fail open.
+--- a/LOAD_TESTING.md
++++ b/LOAD_TESTING.md
+@@ -241,14 +241,6 @@
+    ID, adequate stock, and unique accounts, then run checkout users.
+ 6. Search admission, session churn, and checkout replay: run each explicitly.
+ 
+-Checkout-driven catalog invalidation now retains rendered list bytes and uses
+-inventory versions to coalesce rebuilds over five seconds. One request refreshes
+-under the existing lock; competitors can reuse an outdated snapshot only while
+-less than ten seconds old. Vendor edits/imports bypass that window and invalidate
+-the list immediately. Product details still invalidate after checkout. This trades
+-briefly stale catalog stock for fewer rebuilds, with authoritative stock validation
+-remaining in checkout. No Celery worker is involved. Restart all API workers to
+-load the new cache metadata protocol before comparing throughput.
+ 
+ After stopping HTTP traffic, allow the worker to drain if Celery was enabled,
+ then verify (also set `LOADTEST_ENABLE_CELERY=1` on the audit command for that run):
+--- a/ecommerce_backend/products/catalog_cache.py
++++ /dev/null
+@@ -1,98 +0,0 @@
+-"""Coalesce inventory-driven list refreshes without delaying vendor edits."""
+-from dataclasses import dataclass
+-import logging
+-import time
+-from uuid import uuid4
+-
+-from django.core.cache import cache
+-from redis.exceptions import ConnectionError, TimeoutError
+-
+-from .identifiers import normalize_product_id
+-
+-logger = logging.getLogger(__name__)
+-LIST_KEY = 'products:list'
+-METADATA_KEY = 'products:list:metadata'
+-INVENTORY_VERSION_KEY = 'products:inventory-version'
+-CATALOG_EPOCH_KEY = 'products:catalog-epoch'
+-STATE_KEYS = (LIST_KEY, METADATA_KEY, INVENTORY_VERSION_KEY, CATALOG_EPOCH_KEY)
+-CACHE_TTL = 300
+-REFRESH_INTERVAL = 5
+-MAX_STALE_AGE = 10
+-
+-
+-@dataclass(frozen=True)
+-class CatalogState:
+-    payload: object
+-    metadata: dict | None
+-    inventory_version: int
+-    catalog_epoch: str
+-
+-    @property
+-    def age(self):
+-        return max(0, time.time() - self.metadata['built_at']) if self.metadata else float('inf')
+-
+-    @property
+-    def same_catalog(self):
+-        return (self.payload is not None and self.metadata is not None
+-                and self.metadata['catalog_epoch'] == self.catalog_epoch)
+-
+-    @property
+-    def current(self):
+-        if self.metadata is None:
+-            # Pre-upgrade entries are usable until any invalidation takes place.
+-            return self.payload is not None and self.inventory_version == 0 and not self.catalog_epoch
+-        return self.same_catalog and self.metadata['inventory_version'] == self.inventory_version
+-
+-    @property
+-    def reusable(self):
+-        return self.current or (self.same_catalog and self.age < REFRESH_INTERVAL)
+-
+-    @property
+-    def usable_while_refreshing(self):
+-        return self.reusable or (self.same_catalog and self.age < MAX_STALE_AGE)
+-
+-
+-def read_catalog():
+-    # One MGET gives readers a consistent payload/metadata/version snapshot.
+-    values = cache.get_many(STATE_KEYS)
+-    metadata = values.get(METADATA_KEY)
+-    return CatalogState(values.get(LIST_KEY), metadata,
+-                        values.get(INVENTORY_VERSION_KEY, 0), values.get(CATALOG_EPOCH_KEY, ''))
+-
+-
+-def store_catalog(payload, state, built_at):
+-    # Tag the generation read BEFORE querying. A checkout/vendor edit during
+-    # rebuilding cannot make this result look current to subsequent readers.
+-    # RedisCache.set_many uses a transaction for the payload and metadata.
+-    cache.set_many({
+-        LIST_KEY: payload,
+-        METADATA_KEY: {'built_at': built_at, 'inventory_version': state.inventory_version,
+-                       'catalog_epoch': state.catalog_epoch},
+-    }, timeout=CACHE_TTL)
+-
+-
+-def invalidate_inventory(*product_ids):
+-    """Post-commit checkout invalidation: retain the list, expire details."""
+-    try:
+-        cache.add(INVENTORY_VERSION_KEY, 0, timeout=None)
+-        cache.incr(INVENTORY_VERSION_KEY)
+-    except (ConnectionError, TimeoutError):
+-        logger.warning('Inventory version update failed')
+-    try:
+-        if product_ids:
+-            cache.delete_many([f'products:{normalize_product_id(pk)}' for pk in product_ids])
+-    except (ConnectionError, TimeoutError):
+-        logger.warning('Inventory cache invalidation failed')
+-
+-
+-def invalidate_products(*product_ids):
+-    """Vendor/import invalidation: prevent reuse even by in-flight rebuilds."""
+-    try:
+-        cache.set(CATALOG_EPOCH_KEY, uuid4().hex, timeout=None)
+-    except (ConnectionError, TimeoutError):
+-        logger.warning('Catalog epoch update failed')
+-    try:
+-        cache.delete_many([LIST_KEY, METADATA_KEY,
+-                           *(f'products:{normalize_product_id(pk)}' for pk in product_ids)])
+-    except (ConnectionError, TimeoutError):
+-        logger.warning('Product cache invalidation failed')

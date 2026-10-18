@@ -2,7 +2,8 @@ import logging
 from django.core.cache import cache
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
-from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
+from config.cache_responses import cached_json_response
 from .models import DeliveryOption
 from .serializers import DeliveryOptionSerializer
 from rest_framework import generics
@@ -26,14 +27,17 @@ class DeliveryOptionListView(generics.ListAPIView):
             cache_available = False
 
         if data is not None:
-            return Response(data)
+            return cached_json_response(data)
 
         response = super().list(request, *args, **kwargs)
+        if response.status_code != 200:
+            return response
+        payload = JSONRenderer().render(response.data)
 
         if cache_available:
             try:
-                cache.set(key, response.data, timeout=300)
+                cache.set(key, payload, timeout=300)
             except (RedisConnectionError, RedisTimeoutError):
                 logger.warning('delivery-option cache write failed')
 
-        return response
+        return cached_json_response(payload)

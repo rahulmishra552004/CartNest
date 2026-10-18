@@ -1,7 +1,9 @@
 from unittest.mock import patch
+from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
+from django.core.cache import cache
 from rest_framework.test import APITestCase
 
 from cart.models import CartItem
@@ -9,7 +11,7 @@ from deliveryoptions.models import DeliveryOption
 from products.models import Product
 from vendors.models import Vendor
 
-from .models import Order, OrderItem, get_payment_summary, get_products
+from .models import CheckoutRequest, Order, OrderItem, get_payment_summary, get_products
 
 
 class CheckoutTests(APITestCase):
@@ -50,6 +52,37 @@ class CheckoutTests(APITestCase):
 
     def setUp(self):
         self.client.force_authenticate(self.user)
+        self.idempotency_key = str(uuid4())
+        self.client.credentials(HTTP_IDEMPOTENCY_KEY=self.idempotency_key)
+
+    def test_checkout_requires_idempotency_key(self):
+        self.client.credentials()
+        response = self.client.post('/api/orders/', {}, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Idempotency-Key', response.data)
+        self.assertFalse(Order.objects.exists())
+
+    def test_replay_uses_cache_then_database_without_deducting_stock_twice(self):
+        with patch('orders_and_paymentsummary.views.send_order_confirmation.delay') as enqueue:
+            with self.captureOnCommitCallbacks(execute=True):
+                first = self.client.post('/api/orders/', {}, format='json')
+            self.assertEqual(first.status_code, 201)
+            with self.captureOnCommitCallbacks(execute=True):
+                replay = self.client.post('/api/orders/', {}, format='json')
+            self.assertEqual(replay.data['id'], first.data['id'])
+            cache.delete(f'checkout-result:user:{self.user.pk}:key:{self.idempotency_key}:expand:False')
+            with self.captureOnCommitCallbacks(execute=True):
+                fallback = self.client.post('/api/orders/', {}, format='json')
+            self.assertEqual(fallback.status_code, 201)
+            self.assertEqual(fallback.data['id'], first.data['id'])
+            enqueue.assert_called_once()
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(CheckoutRequest.objects.count(), 1)
+        self.product.refresh_from_db()
+        self.second_product.refresh_from_db()
+        self.assertEqual(self.product.inventory_stock, 8)
+        self.assertEqual(self.second_product.inventory_stock, 9)
+        self.assertFalse(CartItem.objects.filter(user=self.user).exists())
 
     def test_helpers_reuse_loaded_cart_without_queries(self):
         items = list(

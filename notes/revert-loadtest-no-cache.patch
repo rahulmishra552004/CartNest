@@ -1,0 +1,395 @@
+--- a/ecommerce_backend/config/settings.py
++++ b/ecommerce_backend/config/settings.py
+@@ -164,8 +164,6 @@
+         'rest_framework.authentication.SessionAuthentication',
+     ],
+ }
+-
+-API_CACHING_ENABLED = True
+ 
+ REDIS_URL = os.environ.get(
+     "REDIS_URL",
+--- a/ecommerce_backend/config/loadtest.py
++++ b/ecommerce_backend/config/loadtest.py
+@@ -18,13 +18,6 @@
+ CACHES['default']['KEY_PREFIX'] += ':loadtest'
+ REDIS_URL = os.environ.get('LOADTEST_REDIS_URL', 'redis://127.0.0.1:6379/2')
+ CACHES['default']['LOCATION'] = REDIS_URL
+-
+-# Temporary no-cache baseline; opt back in with LOADTEST_ENABLE_CACHE=1.
+-API_CACHING_ENABLED = os.environ.get('LOADTEST_ENABLE_CACHE', '0') == '1'
+-if not API_CACHING_ENABLED:
+-    CACHES['default']['BACKEND'] = 'django.core.cache.backends.dummy.DummyCache'
+-    CACHES['default'].pop('OPTIONS', None)
+-    SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+ 
+ # Both producer and worker/Beat must use these settings.
+ CELERY_BROKER_URL = os.environ.get('LOADTEST_CELERY_BROKER_URL', 'redis://127.0.0.1:6379/3')
+--- a/ecommerce_backend/config/loadtest_middleware.py
++++ b/ecommerce_backend/config/loadtest_middleware.py
+@@ -1,6 +1,3 @@
+-from django.conf import settings
+-
+-
+ class LoadtestMarkerMiddleware:
+     """Identify the isolated backend to the load generator."""
+ 
+@@ -10,5 +7,4 @@
+     def __call__(self, request):
+         response = self.get_response(request)
+         response['X-Loadtest-Database'] = 'isolated'
+-        response['X-Loadtest-Caching'] = 'enabled' if settings.API_CACHING_ENABLED else 'disabled'
+         return response
+--- a/ecommerce_backend/products/views.py
++++ b/ecommerce_backend/products/views.py
+@@ -1,7 +1,6 @@
+ import logging
+ import random
+ import time
+-from django.conf import settings
+ from django.db import transaction
+ from django.db.models import Q
+ from django.core.cache import cache
+@@ -59,7 +58,7 @@
+ 
+     def list(self, request, *args, **kwargs):
+         search = self.request.query_params.get('search', '').strip()
+-        if search or not settings.API_CACHING_ENABLED:
++        if search:
+             return super().list(request, *args, **kwargs)
+ 
+         try:
+@@ -122,14 +121,14 @@
+     def retrieve(self, request, *args, **kwargs):
+         product_id = self._normalize_product_lookup(kwargs['pk'])
+         key = f"products:{product_id}"
+-        cache_available = settings.API_CACHING_ENABLED
+-        data = None
+-        if cache_available:
+-            try:
+-                data = cache.get(key)
+-            except (RedisConnectionError, RedisTimeoutError):
+-                logger.warning(f"product : {product_id} cache read error")
+-                cache_available = False
++        cache_available = True
++
++        try:
++            data = cache.get(key)
++        except (RedisConnectionError, RedisTimeoutError):
++            logger.warning(f"product : {product_id} cache read error")
++            data = None
++            cache_available = False
+ 
+         if data is not None:
+             self._record_recent_view(request, product_id)
+--- a/ecommerce_backend/products/catalog_cache.py
++++ b/ecommerce_backend/products/catalog_cache.py
+@@ -4,7 +4,6 @@
+ import time
+ from uuid import uuid4
+ 
+-from django.conf import settings
+ from django.core.cache import cache
+ from redis.exceptions import ConnectionError, TimeoutError
+ 
+@@ -74,8 +73,6 @@
+ 
+ def invalidate_inventory(*product_ids):
+     """Post-commit checkout invalidation: retain the list, expire details."""
+-    if not settings.API_CACHING_ENABLED:
+-        return
+     try:
+         cache.add(INVENTORY_VERSION_KEY, 0, timeout=None)
+         cache.incr(INVENTORY_VERSION_KEY)
+@@ -90,8 +87,6 @@
+ 
+ def invalidate_products(*product_ids):
+     """Vendor/import invalidation: prevent reuse even by in-flight rebuilds."""
+-    if not settings.API_CACHING_ENABLED:
+-        return
+     try:
+         cache.set(CATALOG_EPOCH_KEY, uuid4().hex, timeout=None)
+     except (ConnectionError, TimeoutError):
+--- a/ecommerce_backend/products/cache_locks.py
++++ b/ecommerce_backend/products/cache_locks.py
+@@ -1,5 +1,4 @@
+ import uuid
+-from django.conf import settings
+ from django.core.cache import cache
+ from config.redis_client import redis_client as r
+ 
+@@ -11,8 +10,6 @@
+ """)
+ 
+ def acquire_cache_lock(cache_key, ttl=10):
+-    if not settings.API_CACHING_ENABLED:
+-        return None
+     lock_key = cache.make_key(f"lock:{cache_key}")
+     token = uuid.uuid4().hex
+ 
+@@ -26,8 +23,6 @@
+     return token if acquired else None
+ 
+ def release_cache_lock(cache_key, token):
+-    if not settings.API_CACHING_ENABLED:
+-        return False
+     lock_key = cache.make_key(f"lock:{cache_key}")
+     return bool(
+         release_lock_script(
+--- a/ecommerce_backend/deliveryoptions/views.py
++++ b/ecommerce_backend/deliveryoptions/views.py
+@@ -1,5 +1,4 @@
+ import logging
+-from django.conf import settings
+ from django.core.cache import cache
+ from redis.exceptions import ConnectionError as RedisConnectionError
+ from redis.exceptions import TimeoutError as RedisTimeoutError
+@@ -16,8 +15,6 @@
+     serializer_class = DeliveryOptionSerializer
+ 
+     def list(self, request, *args, **kwargs):
+-        if not settings.API_CACHING_ENABLED:
+-            return super().list(request, *args, **kwargs)
+         expanded = request.query_params.get('expand') == 'estimatedDeliveryTime'
+         key = f"delivery-options:v1:expanded:{int(expanded)}"
+         cache_available = True
+--- a/ecommerce_backend/orders_and_paymentsummary/views.py
++++ b/ecommerce_backend/orders_and_paymentsummary/views.py
+@@ -51,14 +51,13 @@
+             f"key:{idempotency_key}:expand:{expand_products}"
+         )
+ 
+-        cache_available = settings.API_CACHING_ENABLED
+-        cached_data = None
+-        if cache_available:
+-            try:
+-                cached_data = cache.get(cache_key)
+-            except (RedisConnectionError, RedisTimeoutError):
+-                logger.warning('Checkout result cache read failed')
+-                cache_available = False
++        cache_available = True
++        try:
++            cached_data = cache.get(cache_key)
++        except (RedisConnectionError, RedisTimeoutError):
++            logger.warning('Checkout result cache read failed')
++            cached_data = None
++            cache_available = False
+         if cached_data is not None:
+             return Response(cached_data, status=201)
+ 
+@@ -179,8 +178,6 @@
+             logger.exception('order confirmation mail could not be queued for %s', order_id)
+ 
+     def _cache_checkout_response(self, key, data):
+-        if not settings.API_CACHING_ENABLED:
+-            return
+         try:
+             cache.set(key, data, timeout=60*60)
+         except (RedisConnectionError, RedisTimeoutError):
+--- a/LOAD_TESTING.md
++++ b/LOAD_TESTING.md
+@@ -81,23 +81,6 @@
+ to the PostgreSQL helper for compatibility.
+ 
+ ## Start services
+-
+-**Response and session caching are temporarily disabled by default for load
+-tests.** `config.loadtest` and `config.loadtest_capacity` use `DummyCache` and
+-PostgreSQL-only sessions. Product lists/details, both delivery-option variants,
+-and checkout replay responses bypass caches; catalog locks and five-second
+-refresh coalescing are bypassed too. Idempotency still works through PostgreSQL.
+-Redis history/rankings remain enabled, so Redis must still run. Development
+-settings continue to use their existing caches.
+-
+-Responses expose `X-Loadtest-Caching: disabled` so you can verify the mode.
+-Restart all API workers before beginning the no-cache run. Existing Redis
+-entries are left in place but are not used as response/session caches. Before
+-re-enabling with `LOADTEST_ENABLE_CACHE=1`, stop the API and clear old response
+-and cached-session entries, or restore the isolated baseline for a fresh
+-comparison. The scoped reversal instructions are in
+-`notes/loadtest-no-cache-revert.md`. Preserve history/ranking keys if re-enabling
+-without a baseline reset.
+ 
+ For functional smoke testing only:
+ 
+@@ -258,16 +241,14 @@
+    ID, adequate stock, and unique accounts, then run checkout users.
+ 6. Search admission, session churn, and checkout replay: run each explicitly.
+ 
+-When response caching is enabled, checkout-driven catalog invalidation retains rendered list bytes and uses
++Checkout-driven catalog invalidation now retains rendered list bytes and uses
+ inventory versions to coalesce rebuilds over five seconds. One request refreshes
+ under the existing lock; competitors can reuse an outdated snapshot only while
+ less than ten seconds old. Vendor edits/imports bypass that window and invalidate
+ the list immediately. Product details still invalidate after checkout. This trades
+ briefly stale catalog stock for fewer rebuilds, with authoritative stock validation
+ remaining in checkout. No Celery worker is involved. Restart all API workers to
+-load the new cache metadata protocol before comparing throughput. These cache
+-experiments do not apply to the current no-cache mode; measure database-backed
+-request throughput with caching disabled.
++load the new cache metadata protocol before comparing throughput.
+ 
+ After stopping HTTP traffic, allow the worker to drain if Celery was enabled,
+ then verify (also set `LOADTEST_ENABLE_CELERY=1` on the audit command for that run):
+--- a/README.md
++++ b/README.md
+@@ -174,12 +174,6 @@
+ policy, and persistence settings. They are not separate servers.
+ 
+ Load-test settings use Redis `/2` for cache/state and `/3` for the Celery
+-broker. Response/session caching is temporarily disabled by default for load
+-tests: API reads query PostgreSQL and sessions use the database backend. Redis
+-history/rankings remain active; development caching is unchanged. See the
+-load-testing guide and `notes/loadtest-no-cache-revert.md` before re-enabling.
+-
+-The isolated Celery configuration uses that
+ broker, with queue `ecommerce_loadtest`. Confirmation publishing and processing
+ are currently disabled for load tests; set `LOADTEST_ENABLE_CELERY=1` on the API,
+ worker, and Beat to enable them. Run their worker and Beat with
+--- a/ecommerce_backend/README.md
++++ b/ecommerce_backend/README.md
+@@ -64,9 +64,6 @@
+ 
+ `CELERY_BROKER_URL` defaults to `redis://127.0.0.1:6379/1` for development.
+ Load tests use cache Redis `/2`, broker `/3`, and queue `ecommerce_loadtest`.
+-Response/session caching is temporarily disabled by default in load-test
+-settings (`DummyCache` and PostgreSQL sessions); history/rankings still use Redis.
+-See `LOAD_TESTING.md` in the project root for cache re-enable and cleanup steps.
+ Celery confirmation work is disabled by default for load tests; opt back in with
+ `LOADTEST_ENABLE_CELERY=1` on the API, worker, and Beat. When enabled,
+ their worker and Beat must use `DJANGO_SETTINGS_MODULE=config.loadtest`. Tests
+--- a/ecommerce_backend/config/test_no_cache.py
++++ /dev/null
+@@ -1,132 +0,0 @@
+-"""Verify the load-test bypass independently of Redis availability."""
+-from unittest.mock import patch
+-from uuid import uuid4
+-
+-from django.conf import settings
+-from django.contrib.auth import get_user_model
+-from django.contrib.sessions.models import Session
+-from django.test import Client, override_settings
+-from rest_framework.test import APITestCase
+-
+-from cart.models import CartItem
+-from deliveryoptions.models import DeliveryOption
+-from orders_and_paymentsummary.models import Order
+-from products.models import Product
+-from products.cache_locks import acquire_cache_lock, release_cache_lock
+-from products.catalog_cache import invalidate_inventory, invalidate_products
+-from vendors.models import Vendor
+-
+-
+-@override_settings(
+-    API_CACHING_ENABLED=False,
+-    ORDER_CONFIRMATIONS_ENABLED=False,
+-    CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+-                        'KEY_PREFIX': 'no-cache-test:loadtest'}},
+-    SESSION_ENGINE='django.contrib.sessions.backends.db',
+-    MIDDLEWARE=['config.loadtest_middleware.LoadtestMarkerMiddleware', *settings.MIDDLEWARE],
+-)
+-class NoCacheTests(APITestCase):
+-    @classmethod
+-    def setUpTestData(cls):
+-        User = get_user_model()
+-        cls.customer = User.objects.create_user(username='no-cache-customer', password='LoadtestPass123!')
+-        owner = User.objects.create_user(username='no-cache-vendor', role='vendor')
+-        vendor = Vendor.objects.create(user=owner, store_name='No-cache store')
+-        cls.product = Product.objects.create(vendor=vendor, name='Original shirt',
+-                                             price_cents=1000, inventory_stock=10)
+-        cls.delivery = DeliveryOption.objects.create(
+-            id='1', delivery_days=1, price_cents=100, estimated_delivery_time_ms=86400000,
+-        )
+-
+-    def setUp(self):
+-        self.cached_clients = []
+-        for name in ('products.views.cache', 'products.catalog_cache.cache',
+-                     'deliveryoptions.views.cache', 'orders_and_paymentsummary.views.cache'):
+-            blocker = patch(name)
+-            self.cached_clients.append(blocker.start())
+-            self.addCleanup(blocker.stop)
+-        for name in ('products.views.read_catalog', 'products.views.acquire_cache_lock',
+-                     'products.cache_locks.r.execute_command'):
+-            blocker = patch(name, side_effect=AssertionError('Cache/lock used in no-cache mode'))
+-            blocker.start()
+-            self.addCleanup(blocker.stop)
+-        recent = patch('products.views.record_product_view')
+-        ranking = patch('products.views.update_most_viewed')
+-        self.recent = recent.start()
+-        self.ranking = ranking.start()
+-        self.addCleanup(recent.stop)
+-        self.addCleanup(ranking.stop)
+-
+-    def tearDown(self):
+-        for client in self.cached_clients:
+-            self.assertEqual(client.mock_calls, [], 'A response cache was accessed')
+-
+-    def test_repeated_lists_query_database_and_show_changes_immediately(self):
+-        with self.assertNumQueries(1):
+-            first = self.client.get('/api/products/')
+-        self.assertEqual(first['X-Loadtest-Caching'], 'disabled')
+-        self.assertEqual(first.json()[0]['inventory_stock'], 10)
+-        Product.objects.filter(pk=self.product.pk).update(inventory_stock=9)
+-        with self.assertNumQueries(1):
+-            second = self.client.get('/api/products/')
+-        self.assertEqual(second.json()[0]['inventory_stock'], 9)
+-
+-    def test_repeated_details_query_database_and_keep_view_tracking(self):
+-        self.client.force_authenticate(self.customer)
+-        url = f'/api/products/{self.product.pk}/'
+-        with self.assertNumQueries(1):
+-            first = self.client.get(url)
+-        Product.objects.filter(pk=self.product.pk).update(name='Changed shirt')
+-        with self.assertNumQueries(1):
+-            second = self.client.get(url)
+-        self.assertEqual(first.json()['name'], 'Original shirt')
+-        self.assertEqual(second.json()['name'], 'Changed shirt')
+-        self.assertEqual(self.recent.call_count, 2)
+-        self.assertEqual(self.ranking.call_count, 2)
+-
+-    def test_delivery_options_query_database_and_preserve_expansion(self):
+-        with self.assertNumQueries(1):
+-            normal = self.client.get('/api/delivery-options/')
+-        DeliveryOption.objects.filter(pk='1').update(price_cents=200)
+-        with self.assertNumQueries(1):
+-            expanded = self.client.get('/api/delivery-options/', {'expand': 'estimatedDeliveryTime'})
+-        self.assertNotIn('estimatedDeliveryTimeMs', normal.json()[0])
+-        self.assertEqual(expanded.json()[0]['priceCents'], 200)
+-        self.assertEqual(expanded.json()[0]['estimatedDeliveryTimeMs'], 86400000)
+-
+-    def test_checkout_replays_from_postgres_without_double_stock_deduction(self):
+-        self.client.force_authenticate(self.customer)
+-        CartItem.objects.create(user=self.customer, product=self.product, delivery_option=self.delivery)
+-        key = str(uuid4())
+-        with self.captureOnCommitCallbacks(execute=True):
+-            first = self.client.post('/api/orders/', {}, format='json', HTTP_IDEMPOTENCY_KEY=key)
+-        with self.captureOnCommitCallbacks(execute=True):
+-            replay = self.client.post('/api/orders/', {}, format='json', HTTP_IDEMPOTENCY_KEY=key)
+-        self.assertEqual(first.status_code, 201)
+-        self.assertEqual(replay.status_code, 201)
+-        self.assertEqual(first.json()['id'], replay.json()['id'])
+-        self.assertEqual(Order.objects.count(), 1)
+-        self.product.refresh_from_db()
+-        self.assertEqual(self.product.inventory_stock, 9)
+-        self.assertFalse(CartItem.objects.filter(user=self.customer).exists())
+-
+-    def test_invalidation_and_cache_locks_do_no_work(self):
+-        invalidate_inventory(self.product.pk)
+-        invalidate_products(self.product.pk)
+-        self.assertIsNone(acquire_cache_lock('products:list'))
+-        self.assertFalse(release_cache_lock('products:list', 'unused'))
+-
+-    def test_real_csrf_login_uses_database_sessions_without_cache(self):
+-        client = Client(enforce_csrf_checks=True, HTTP_HOST='127.0.0.1')
+-        csrf = client.get('/api/auth/csrf/').json()['csrfToken']
+-        response = client.post('/api/auth/login/',
+-                               {'username': self.customer.username, 'password': 'LoadtestPass123!'},
+-                               content_type='application/json', HTTP_X_CSRFTOKEN=csrf)
+-        self.assertEqual(response.status_code, 200)
+-        session_id = client.cookies['sessionid'].value
+-        self.assertTrue(Session.objects.filter(session_key=session_id).exists())
+-        self.assertEqual(client.get('/api/auth/me/').json()['username'], self.customer.username)
+-        logout = client.post('/api/auth/logout/', {}, content_type='application/json',
+-                             HTTP_X_CSRFTOKEN=response.json()['csrfToken'])
+-        self.assertEqual(logout.status_code, 200)
+-        self.assertFalse(Session.objects.filter(session_key=session_id).exists())

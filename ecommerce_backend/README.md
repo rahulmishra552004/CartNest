@@ -62,11 +62,11 @@ Django's cache keeps its own pool. Both use one-second Redis timeouts.
 Sessions use `django.contrib.sessions.backends.cached_db` with cache alias
 `default`, preserving database-backed sessions while caching access in Redis.
 
-`CELERY_BROKER_URL` defaults to `redis://127.0.0.1:6379/1`. Test/load-test settings
-currently inherit this broker and default queue; cache prefixes do not isolate
-Celery tasks. Configure matching isolated workers/queues and Beat before running
-background jobs across environments. Redis database numbers share one server's
-memory, eviction policy, and persistence configuration.
+`CELERY_BROKER_URL` defaults to `redis://127.0.0.1:6379/1` for development.
+Load tests use cache Redis `/2`, broker `/3`, and queue `ecommerce_loadtest`.
+Their worker and Beat must use `DJANGO_SETTINGS_MODULE=config.loadtest`. Tests
+execute tasks eagerly with in-memory mail. Redis database numbers share one
+server's memory, eviction policy, and persistence configuration.
 
 ## Applications
 
@@ -92,7 +92,11 @@ for Redis keys, history, rankings, and invalidation.
   reuse the key. PostgreSQL's `CheckoutRequest` uniquely links `(user, key)` to
   its order. Completed retries return the order with HTTP 201. Redis caches
   responses for one hour, separately for each expansion choice.
-- Product-list cache lifetime is 300 seconds; detail caches use 300–360 seconds
+- Product-list, product-detail, and delivery-option caching store rendered JSON
+  bytes for direct JSON responses, with legacy data entries accepted until expiry.
+  Delivery expansions use separate keys, and detail hits still update tracking.
+  The product-list lifetime is 300 seconds;
+  detail caches use 300–360 seconds
   of jitter. List rebuilds use a ten-second token-owned lock, a cache recheck,
   roughly one second of polling, and Lua-based safe release. Waiting or failed
   Redis operations can fall back to PostgreSQL.
@@ -110,9 +114,9 @@ for Redis keys, history, rankings, and invalidation.
   five minutes ago or never attempted. A send can still be duplicated if recording its success
   fails; this is not an exactly-once delivery system.
 
-The frontend does not yet send the checkout idempotency header and its current
-place-order action receives HTTP 400. History/ranking frontend work is also
-pending. See the root README for API details and remaining limitations.
+The frontend sends checkout idempotency keys and reuses them after uncertain
+failures. History/ranking frontend work is pending. See the root README for
+API details and the load-testing guide for isolated Celery setup.
 
 ## Validation
 
@@ -123,15 +127,12 @@ python manage.py migrate --check
 python manage.py test --settings=config.test
 ```
 
-The 10 existing regression tests are in `cart/tests.py` and
-`orders_and_paymentsummary/tests.py`. They cover cart constraints/isolation,
-stock validation, totals, order snapshots, stock deduction, and rollback.
-They do not test real concurrent transactions, browser CSRF flows, vendor
-permissions, or Redis failure/invalidation paths.
-Checkout test requests still lack the required idempotency header, so the suite
-needs updating before its results represent the new flow. Test settings require
-Redis; background tasks also need explicit isolation from development. Tests
-were not run for this documentation update.
+The regression tests cover cart constraints/isolation, stock validation,
+totals, snapshots, deduction, rollback, required checkout headers, cached and
+database-backed idempotency replay, and isolated runtime cleanup. They do not
+test true concurrent transactions, full browser CSRF flows, or real email
+providers. Test settings require Redis and use eager tasks with in-memory mail,
+so tests do not publish to development Celery.
 
 ## Data-changing utilities
 
@@ -143,7 +144,7 @@ were not run for this documentation update.
   Sources default to the repository's frontend starter catalog and public
   images; override them with `--catalog-dir` and `--image-root` if needed.
 - `setup_loadtest_postgres.py --reset` restores only the load-test baseline.
-  Stop the load-test server and Locust first.
+  Stop the load-test server, Locust, worker, and Beat first.
 - `setup_loadtest_postgres.py --save-baseline` deliberately replaces that
   baseline with current load-test records.
 - `prepare_loadtest_users.py` resets the load-test baseline, prepares dedicated

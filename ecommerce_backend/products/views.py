@@ -7,6 +7,7 @@ from django.core.cache import cache
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -19,8 +20,10 @@ from .recent_views import record_product_view, get_recent_product_ids
 from .most_viewed import update_most_viewed, get_most_viewed_product_ids
 from .cache_locks import acquire_cache_lock, release_cache_lock
 from .identifiers import normalize_product_id
+from config.cache_responses import cached_json_response
 
 logger = logging.getLogger(__name__)
+
 
 class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer
@@ -66,7 +69,7 @@ class ProductViewSet(ModelViewSet):
             return super().list(request, *args, **kwargs)
 
         if data is not None:
-            return Response(data)
+            return cached_json_response(data)
 
         deadline = time.monotonic()+1
 
@@ -92,7 +95,7 @@ class ProductViewSet(ModelViewSet):
                 return super().list(request, *args, **kwargs)
 
             if data is not None:
-                return Response(data)
+                return cached_json_response(data)
 
         try:
             try:
@@ -102,15 +105,17 @@ class ProductViewSet(ModelViewSet):
                 return super().list(request, *args, **kwargs)
 
             if data is not None:
-                return Response(data)
+                return cached_json_response(data)
 
             response = super().list(request, *args, **kwargs)
 
             if response.status_code == 200:
+                payload = JSONRenderer().render(response.data)
                 try:
-                    cache.set(key, response.data, timeout=300)
+                    cache.set(key, payload, timeout=300)
                 except (RedisConnectionError, RedisTimeoutError):
                     logger.warning('product list cache write failed')
+                return cached_json_response(payload)
 
             return response
 
@@ -136,21 +141,24 @@ class ProductViewSet(ModelViewSet):
         if data is not None:
             self._record_recent_view(request, product_id)
             self._record_most_viewed(request, product_id)
-            return Response(data)
+            return cached_json_response(data)
 
         response = super().retrieve(request, *args, **kwargs)
-        if response.status_code == 200:
-            self._record_most_viewed(request, product_id)
-            self._record_recent_view(request, product_id)
+        if response.status_code != 200:
+            return response
+
+        self._record_most_viewed(request, product_id)
+        self._record_recent_view(request, product_id)
+        payload = JSONRenderer().render(response.data)
 
         if cache_available:
             try:
                 ttl = 300 + random.randint(0, 60)
-                cache.set(key, response.data, timeout=ttl)
+                cache.set(key, payload, timeout=ttl)
             except (RedisConnectionError, RedisTimeoutError):
                 logger.warning(f"product : {product_id} cache write error")
 
-        return response
+        return cached_json_response(payload)
 
     def _record_recent_view(self, request, product_id):
         if not request.user.is_authenticated:

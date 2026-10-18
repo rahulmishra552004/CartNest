@@ -195,6 +195,7 @@ CELERY_BROKER_URL = os.environ.get(
     'redis://127.0.0.1:6379/1',
 )
 
+
 CELERY_BEAT_SCHEDULE = {
     'recover-order-confirmations': {
         'task': 'orders_and_paymentsummary.tasks.recover_order_confirmation',

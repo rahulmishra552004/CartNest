@@ -24,9 +24,11 @@ env/
 ecommerce_backend/media.loadtest/
 test_accounts.csv
 loadtest_data.json
+loadtest-audit*.json
 .loadtest-db-password
 .db-password
 .postgres-migration-*
+.loadtest-restore-*
 ecommerce_backend/loadtest-export.json
 ecommerce_backend/loadtest-postgres-baseline.dump
 ecommerce_backend/loadtest-postgres-baseline.dump.tmp

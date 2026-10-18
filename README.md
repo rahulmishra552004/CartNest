@@ -34,9 +34,8 @@ making changes.
 - PostgreSQL for development, isolated Locust workloads, and automated tests.
 
 **Frontend integration status:** recently viewed products and rankings are
-backend-only. The storefront's checkout request does not yet send the required
-idempotency header, so its current place-order action receives HTTP 400. Use an
-authenticated API client with the header until frontend integration is added.
+backend-only. Storefront checkout sends an idempotency key, prevents duplicate
+in-flight clicks, and reuses the key after an uncertain response or failed refresh.
 
 ## Stack and repository layout
 
@@ -174,10 +173,11 @@ Celery uses `CELERY_BROKER_URL`, defaulting to `redis://127.0.0.1:6379/1`.
 The `/0` and `/1` databases share the same Redis process, memory limit, eviction
 policy, and persistence settings. They are not separate servers.
 
-**Celery isolation is not implemented:** test and load-test settings inherit
-the development broker and default queue. Cache prefixes do not isolate Celery
-messages. Configure separate broker namespaces or queues and matching worker/
-Beat settings before processing tasks from different environments concurrently.
+Load-test settings use Redis `/2` for cache/state and `/3` for the Celery
+broker, with queue `ecommerce_loadtest`. Run their worker and Beat with
+`DJANGO_SETTINGS_MODULE=config.loadtest`; cache prefixes alone do not isolate
+Celery. Test settings use eager tasks and an in-memory email backend. Redis
+database numbers still share server resources.
 
 See [POSTGRES_DEVELOPMENT.md](POSTGRES_DEVELOPMENT.md) for configuration details.
 
@@ -328,10 +328,19 @@ Django adds the configured prefix and cache version to these logical keys.
 Non-empty product searches bypass caching. Cache hits return serialized data;
 misses query PostgreSQL and populate the cache. Empty lists are valid hits.
 
+The unfiltered product-list, product-detail, and delivery-option caches store
+rendered JSON bytes and return them directly as `application/json`, avoiding
+JSON rendering on warm requests. Delivery expansions retain separate keys, and
+product-detail cache hits still update history and rankings.
+Legacy Python-data entries remain readable until expiry or invalidation; the
+next rebuild writes bytes. The existing key, five-minute lifetime, rebuild lock,
+and post-commit invalidation remain in use; detail TTL jitter is also preserved.
+
 Redis connection and timeout failures log warnings and fall back to PostgreSQL.
 When a read fails, that request skips its cache write. Product create, update,
 and delete operations invalidate caches only after a successful database
 commit; checkout does the same after inventory changes.
+
 
 The product-list cache uses `SET NX EX` with a random ownership token and a
 ten-second lock lifetime. Waiting requests poll the cache every 50 ms for
@@ -401,17 +410,17 @@ python manage.py migrate --check
 python manage.py test --settings=config.test
 ```
 
-The 10 existing regression tests were written to cover cart additions, stock validation,
-per-user isolation, the positive-quantity constraint, payment totals, checkout
-snapshots and stock deduction, empty-cart rejection, and transaction rollback.
-They also check that summary/snapshot helpers can reuse loaded cart rows without
-extra queries. They do not simulate concurrent PostgreSQL transactions.
+The regression suite covers cart additions, stock validation, per-user
+isolation, constraints, payment totals, checkout snapshots/deduction, rejection,
+and rollback. Checkout tests send idempotency keys and verify both cache-backed
+and database-backed replay without duplicate stock deduction. Runtime-cleanup
+tests verify cache/queue scoping. Redis must be available; test settings execute
+Celery eagerly with an in-memory mail backend. Tests do not simulate concurrent
+PostgreSQL transactions. Load-generator recovery tests run separately:
 
-**The checkout tests have not been adapted to the required idempotency header.**
-Some now fail or stop at header validation instead of exercising their intended
-checkout behavior. Redis must be available for the current test settings.
-Celery task publishing/execution also needs deliberate isolation before running
-the newer background flow against a temporary test database.
+```bash
+python -m unittest loadtest_tests
+```
 
 From the frontend directory:
 
@@ -420,16 +429,11 @@ npm run lint
 npm run build
 ```
 
-The full test suite and frontend lint/build were not rerun for this documentation
-update. Earlier passing results predate the idempotency and Celery changes and
-should not be treated as current validation.
-
-For Locust, run a separate backend on port 8001 with `config.loadtest`, then
-target that server. Follow [LOAD_TESTING.md](LOAD_TESTING.md) for scenarios,
-account preparation, and baseline resets. Never target the development database
-with reset commands.
-`CheckoutUser` currently omits `Idempotency-Key` and receives HTTP 400; search
-workloads can also receive the intentional throttling response, HTTP 429.
+For Locust, run an isolated backend on port 8001. Follow
+[LOAD_TESTING.md](LOAD_TESTING.md) for resource setup, explicit search/replay/session
+scenarios, baseline reset, capacity-server configuration, and post-run auditing.
+The default workload uses idempotent checkout and authenticated history/rankings;
+search throttling is measured separately with accepted and rejected counts.
 
 ## Catalog import and local data
 
@@ -457,8 +461,7 @@ and images from `ecommerce_frontend/public`. Use `--catalog-dir` and
 ## Remaining limitations
 
 - Registration and vendor catalog management have APIs but no frontend screens.
-- Recently viewed and most-viewed APIs have no frontend integration. Frontend
-  checkout still needs idempotency-key generation and reuse on retries.
+- Recently viewed and most-viewed APIs have no frontend integration.
 - Tracking progress is static; there is no fulfillment-state model or real
   payment-provider integration.
 - Frontend loading/error handling is limited outside login, and tracking
@@ -467,7 +470,6 @@ and images from `ecommerce_frontend/public`. Use `--catalog-dir` and
 - Cart stock is validated but not reserved.
 - Cache invalidation for admin/direct writes is incomplete. Concurrent
   cache fills and invalidation are not coordinated.
-- Test/load-test Celery broker queues and Beat are not isolated from development.
 - Email uses the console backend. A successful send followed by a failed
   timestamp commit can still produce duplicates; real SMTP needs a timeout.
 - Authentication, vendor permissions, and Redis failure/invalidation paths

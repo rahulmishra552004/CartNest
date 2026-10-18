@@ -1,6 +1,6 @@
 """Reset test activity, seed unique customers, and save the reset baseline.
 
-Stop Django and Locust before running. Never touches the normal database.
+Stop Django, Locust, the load-test worker, and Beat before running.
 """
 import argparse
 import json
@@ -25,8 +25,12 @@ def main():
     from django.conf import settings
     from django.contrib.auth import get_user_model
     from django.db import transaction
+    from django.utils import timezone
     from cart.models import CartItem
     from deliveryoptions.models import DeliveryOption
+    from orders_and_paymentsummary.models import (
+        CheckoutRequest, Order, OrderItem, get_payment_summary, get_product, get_products,
+    )
     from products.models import Product
 
     config = settings.DATABASES['default']
@@ -46,17 +50,35 @@ def main():
             user.is_active = True
             user.is_staff = False
             user.is_superuser = False
+            user.email = f'locust_customer_{index:05d}@example.invalid'
             user.save()
-            CartItem.objects.get_or_create(
-                user=user, product_id=products[(index - 1) % len(products)],
-                defaults={'quantity': 1, 'delivery_option': delivery},
-            )
+            # All scenarios start with an empty cart; read scenarios seed their
+            # own data explicitly rather than silently affecting checkout.
+            user.cart_items.all().delete()
+            # Historical fixtures make order-history reads useful from the first
+            # run. They precede the saved stock baseline and send no email.
+            history, _ = CheckoutRequest.objects.get_or_create(user=user, key='loadtest-seed-history')
+            if history.order_id is None:
+                product = Product.objects.get(pk=products[(index - 1) % len(products)])
+                item = CartItem(user=user, product=product, quantity=1, delivery_option=delivery)
+                order = Order.objects.create(
+                    user=user, products=get_products([item]),
+                    total_cost_cents=get_payment_summary([item])['total_cost_cents'],
+                    confirmation_email_sent_at=timezone.now(),
+                )
+                OrderItem.objects.create(
+                    order=order, user=user, vendor=product.vendor,
+                    delivery_option=delivery, product=get_product(product), quantity=1,
+                )
+                history.order = order
+                history.save(update_fields=['order'])
             accounts.append({'username': user.username, 'password': password})
     save_baseline(config)
     data = {'accounts': accounts, 'product_ids': [str(p) for p in products],
             'delivery_option_id': str(delivery.pk)}
     destination = Path(__file__).resolve().parent.parent / 'loadtest_data.json'
     destination.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
+    destination.chmod(0o600)
     print(f'Prepared {len(accounts)} customers in the test DB and baseline; credentials in {destination.name}.')
 
 
