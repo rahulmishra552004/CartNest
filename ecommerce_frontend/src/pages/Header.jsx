@@ -7,6 +7,7 @@ function AccountIcon({ name, className = '' }) {
   const paths = {
     profile: <><circle cx="12" cy="8" r="3" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></>,
     orders: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V2h6v2M9 10h6M9 14h6M9 18h3" /></>,
+    recent: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
     dashboard: <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></>,
     about: <><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 7h.01" /></>,
     logout: <><path d="M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M9 12h12M17 8l4 4-4 4" /></>,
@@ -114,6 +115,10 @@ export function Header({ cart, user }) {
                 <NavLink to="/orders" className={accountLinkClass}>
                   <AccountIcon name="orders" />
                   <span>Order history</span>
+                </NavLink>
+                <NavLink to="/recently-viewed" className={accountLinkClass}>
+                  <AccountIcon name="recent" />
+                  <span>Recently viewed</span>
                 </NavLink>
                 <NavLink to="/about" className={accountLinkClass}>
                   <AccountIcon name="about" />

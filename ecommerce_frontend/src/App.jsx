@@ -1,4 +1,6 @@
 import { HomePage } from './pages/home/HomePage.jsx';
+import { ProductDetailsPage } from './pages/home/ProductDetailsPage.jsx';
+import { RecentlyViewedPage } from './pages/recently-viewed/RecentlyViewedPage.jsx';
 import { CheckoutPage } from './pages/checkout/CheckoutPage.jsx';
 import { OrdersPage } from './pages/orders/OrdersPage.jsx';
 import { TrackingPage } from './pages/tracking/TrackingPage.jsx';
@@ -14,7 +16,7 @@ import { VendorRegistrationPage } from './pages/registration/VendorRegistrationP
 import './App.css'
 import { Routes, Route, Navigate } from 'react-router';
 import axios from 'axios';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -37,12 +39,12 @@ function App() {
       setOrders(response.data);
     }
   }
-  const handleSessionExpired = () => {
+  const handleSessionExpired = useCallback(() => {
     version.current += 1;
     setUser(null);
     setCart([]);
     setOrders([]);
-  }
+  }, []);
   const handleLogout = async () => {
     await axios.post('/api/auth/logout/');
     handleSessionExpired();
@@ -115,6 +117,16 @@ function App() {
             getCartData={getCartData}
             user={user}
           />}
+        />
+        <Route
+          path="/products/:productId"
+          element={<ProductDetailsPage cart={cart} user={user} getCartData={getCartData} />}
+        />
+        <Route
+          path="/recently-viewed"
+          element={user
+            ? <RecentlyViewedPage cart={cart} user={user} getCartData={getCartData} onSessionExpired={handleSessionExpired} />
+            : <Navigate to="/login" replace />}
         />
         <Route
           path="/checkout"

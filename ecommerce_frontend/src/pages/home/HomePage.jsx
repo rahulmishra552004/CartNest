@@ -28,7 +28,7 @@ export function HomePage({ cart, getCartData, user }) {
       <div className="home-page">
         <div className="products-grid">
 
-          <ProductsGrid products={products} getCartData={getCartData}/>
+          <ProductsGrid products={products} getCartData={getCartData} user={user} />
 
         </div>
       </div>
