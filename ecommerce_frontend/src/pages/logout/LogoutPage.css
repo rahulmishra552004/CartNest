@@ -1,0 +1,131 @@
+.logout-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(245, 247, 246);
+}
+
+.logout-card {
+  box-sizing: border-box;
+  width: min(100%, 444px);
+  padding: 36px 32px;
+  background: white;
+  border: 1px solid rgb(220, 220, 220);
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.logout-logo-link {
+  display: inline-block;
+}
+
+.logout-logo {
+  display: block;
+  width: 150px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.logout-success-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 32px auto 20px;
+  border-radius: 50%;
+  background: #eaf5ee;
+  color: rgb(25, 135, 84);
+}
+
+.logout-success-icon svg {
+  width: 32px;
+  height: 32px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logout-card h1 {
+  margin: 0 0 12px;
+  color: rgb(8, 79, 45);
+  font-size: 26px;
+  line-height: 1.3;
+}
+
+.logout-description {
+  color: rgb(95, 105, 100);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.logout-login-link {
+  display: block;
+  margin-top: 28px;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 200ms ease;
+}
+
+.logout-home-link {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 4px;
+  color: rgb(8, 79, 45);
+  font-size: 14px;
+  text-underline-offset: 4px;
+  transition: color 200ms ease;
+}
+
+.logout-home-link:hover {
+  color: rgb(25, 135, 84);
+}
+
+.logout-card a:focus-visible {
+  outline: 2px solid rgb(25, 135, 84);
+  outline-offset: 4px;
+  border-radius: 5px;
+}
+
+.logout-spinner {
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  margin: 32px auto 24px;
+  border: 4px solid #eaf5ee;
+  border-top-color: rgb(25, 135, 84);
+  border-radius: 50%;
+  animation: logout-spin 900ms linear infinite;
+}
+
+@keyframes logout-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 400px) {
+  .logout-page {
+    padding: 16px;
+  }
+
+  .logout-card {
+    padding: 28px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logout-spinner {
+    animation: none;
+  }
+
+  .logout-card a {
+    transition: none;
+  }
+}

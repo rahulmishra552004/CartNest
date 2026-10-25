@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import './LoginPage.css';
+import { BrandLogo } from '../../components/BrandLogo.jsx';
 
 export function LoginPage({ onLogin }){
 	const navigate = useNavigate();
@@ -38,12 +39,9 @@ export function LoginPage({ onLogin }){
 
 	return (
 	      <main className="login-page">
+		<title>Sign in | CartNest</title>
 		<form className="login-card" onSubmit={handleSubmit}>
-			  <img
-			    className="login-logo"
-			    src="/images/logo.png"
-			    alt="Store"
-			  />
+			  <BrandLogo className="login-logo" />
 
 		  <h1>Sign in</h1>
 

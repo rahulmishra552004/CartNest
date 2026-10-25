@@ -51,8 +51,6 @@ def vendor_registration_view(request):
         return JsonResponse(
                 {
                     'detail' : 'vendor created successfully',
-                    'user' : registration_serializer.data,
-                    'vendor' : vendor_serializer.data,
                 },
                 status = status.HTTP_201_CREATED
             )
@@ -91,7 +89,6 @@ def customer_registration_view(request):
         return JsonResponse(
                 {
                     'detail' : 'user created successfully',
-                    'user' : serializer.data
                 },
                 status = status.HTTP_201_CREATED,
             )
@@ -156,6 +153,7 @@ def login_view(request):
         'user' : {
             'id' : user.id,
             'username' : user.get_username(),
+            'email' : user.email,
             'role' : user.role
             },
         'csrfToken' : get_token(request)
@@ -179,5 +177,6 @@ def current_user_view(request):
     return JsonResponse({
         'id' : request.user.pk,
         'username' : request.user.get_username(),
+        'email' : request.user.email,
         'role' : request.user.role
         })

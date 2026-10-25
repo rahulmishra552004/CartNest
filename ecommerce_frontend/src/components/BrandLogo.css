@@ -1,0 +1,10 @@
+.brand-logo {
+  display: block;
+  flex-shrink: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.brand-logo-light {
+  filter: brightness(0) invert(1);
+}

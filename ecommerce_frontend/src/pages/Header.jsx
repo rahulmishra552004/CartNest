@@ -1,7 +1,8 @@
 import './Header.css';
 import { Link } from 'react-router';
+import { BrandLogo } from '../components/BrandLogo.jsx';
 
-export function Header({ cart, user, onLogout }) {
+export function Header({ cart, user }) {
   let cartQuantity = 0;
   cart.forEach((cartItem) => {
     cartQuantity += cartItem.quantity;
@@ -10,11 +11,9 @@ export function Header({ cart, user, onLogout }) {
   return (
     <div className="header">
       <div className="left-section">
-        <Link to="/" className="header-link">
-          <img className="logo"
-            src="/media/logo-white.png" />
-          <img className="mobile-logo"
-            src="/media/mobile-logo-white.png" />
+        <Link to="/" className="header-link" aria-label="CartNest home">
+          <BrandLogo className="logo" light />
+          <BrandLogo className="mobile-logo" iconOnly light />
         </Link>
       </div>
 
@@ -28,13 +27,31 @@ export function Header({ cart, user, onLogout }) {
 
       <div className="right-section">
         {user ? (
-          <button
-            type="button"
-            className="auth-link header-link"
-            onClick={onLogout}
-          >
-            Logout
-          </button>
+          <div className="account-dropdown">
+	          Account {"\u25BE"}
+              <div className="account-dropdown-menu">
+                <Link to="/profile" className="account-dropdown-menu-link">
+                  Profile
+                </Link>
+                {
+                  user.role==="vendor" && 
+                    (
+                      <div className="account-dropdown-menu-link">
+                        Dashboard
+                      </div>
+                    )
+                }
+                <div className="account-dropdown-menu-link">
+                  History
+                </div>
+                <Link to="/logout" className="account-dropdown-menu-link">
+                  Logout
+                </Link>
+                <Link to="/about" className="account-dropdown-menu-link">
+                  About
+                </Link>
+              </div>
+	        </div>
         ) : (
           <Link className="auth-link header-link" to="/login">
             Login

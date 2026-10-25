@@ -3,23 +3,42 @@ import { CheckoutPage } from './pages/checkout/CheckoutPage.jsx';
 import { OrdersPage } from './pages/orders/OrdersPage.jsx';
 import { TrackingPage } from './pages/tracking/TrackingPage.jsx';
 import { LoginPage } from './pages/login/LoginPage.jsx';
+import { LogoutPage } from './pages/logout/LogoutPage.jsx';
+import { AboutPage } from './pages/about/AboutPage.jsx';
+import { ProfilePage } from './pages/profile/ProfilePage.jsx';
+import { CustomerRegistrationPage } from './pages/registration/CustomerRegistrationPage.jsx';
 import './App.css'
 import { Routes, Route, Navigate } from 'react-router';
 import axios from 'axios';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 function App() {
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
   const [user, setUser] = useState(undefined);
 
+  const version = useRef(0);
+
   const getCartData = async () => {
+    const currentVersion = version.current;
     const response = await axios('/api/cart-items/?expand=product')
-    setCart(response.data);
+    if(currentVersion === version.current){
+      setCart(response.data);
+    }
   }
   const getOrdersData = async () => {
+    const currentVersion = version.current;
     const response = await axios('/api/orders/?expand=products')
-    setOrders(response.data);
+    if(currentVersion === version.current){
+      setOrders(response.data);
+    }
+  }
+  const handleLogout = async () => {
+    await axios.post('/api/auth/logout/');
+    version.current += 1;
+    setUser(null);
+    setCart([]);
+    setOrders([]);
   }
   const getCurrentUser = async () => {
     try {
@@ -28,13 +47,6 @@ function App() {
     } catch {
       setUser(null);
     }
-  }
-
-  const handleLogout = async () => {
-    await axios.post('/api/auth/logout/');
-    setUser(null);
-    setCart([]);
-    setOrders([]);
   }
 
   useEffect(() => {
@@ -56,6 +68,10 @@ function App() {
     <>
       <Routes>
         <Route
+          path="/about"
+          element={<AboutPage cart={cart} user={user} />}
+        />
+        <Route
           path="/login"
           element={
             user
@@ -64,12 +80,25 @@ function App() {
           }
         />
         <Route
+          path="/logout"
+          element={
+            <LogoutPage onLogout={handleLogout}/>
+          }
+        />
+        <Route
+          path="/customer_registration"
+          element={
+            user 
+            ? <Navigate to="/" replace />
+            : <CustomerRegistrationPage/>
+          }
+        />
+        <Route
           path="/"
           element={<HomePage
             cart={cart}
             getCartData={getCartData}
             user={user}
-            onLogout={handleLogout}
           />}
         />
         <Route
@@ -81,7 +110,6 @@ function App() {
                 cart={cart}
                 getCartData={getCartData}
                 getOrdersData={getOrdersData}
-                onLogout={handleLogout}
                 />
             )
             : <Navigate to="/login" replace />
@@ -97,7 +125,6 @@ function App() {
               orders={orders}
               getCartData={getCartData}
               user={user}
-              onLogout={handleLogout}
             />
             )
             : <Navigate to="/login" replace />
@@ -112,8 +139,22 @@ function App() {
               cart={cart}
               orders={orders}
               user={user}
-              onLogout={handleLogout}
             />
+            )
+            : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            user
+            ? (
+                <ProfilePage
+                  cart={cart}
+                  orders={orders}
+                  user={user}
+                  getCartData={getCartData}
+                />
             )
             : <Navigate to="/login" replace />
           }

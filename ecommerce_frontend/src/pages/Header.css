@@ -25,13 +25,15 @@
   }
 }
 
-.header .header-link {
+.header .header-link,
+.header .account-dropdown {
   display: inline-block;
   padding: 6px 9.5px;
   border-radius: 2px;
   cursor: pointer;
   text-decoration: none;
   border: 1px solid rgba(0, 0, 0, 0);
+  color: inherit;
 }
 
 .header .header-link:hover {
@@ -39,6 +41,7 @@
 }
 
 .header .logo {
+  width: auto;
   height: 26px;
   margin-top: 1px;
 }
@@ -54,6 +57,7 @@
 
   .header .mobile-logo {
     display: block;
+    width: auto;
     height: 26px;
     margin-top: 1px;
   }
@@ -61,6 +65,7 @@
 
 .header .middle-section {
   flex: 1;
+  min-width: 0;
   max-width: 850px;
   margin-left: 10px;
   margin-right: 10px;
@@ -97,10 +102,17 @@
 }
 
 .header .right-section {
-  width: 180px;
+  width: auto;
   flex-shrink: 0;
   display: flex;
   justify-content: end;
+}
+
+.header .auth-link, 
+.header .account-dropdown {
+  display: flex;
+  align-items: center;
+  font-weight: 700;
 }
 
 .header .orders-link {
@@ -146,4 +158,50 @@
 
   width: 26px;
   text-align: center;
+}
+
+.header .account-dropdown {
+  position: relative;
+  flex: 1;
+}
+
+.header .account-dropdown-menu {
+  width: 170px;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  opacity: 100;
+  visibility: hidden;
+  background-color: white;
+  border-color: green;
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 3px;
+  color: black;
+}
+
+.header .account-dropdown:hover .account-dropdown-menu{
+  opacity: 100;
+  visibility: visible;
+}
+
+.header .account-dropdown-menu-link{
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding-left: 20%;
+  box-sizing: border-box;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 200ms ease, opacity 200ms ease;
+}
+
+.header .account-dropdown-menu-link:hover {
+  background-color: #eaf5ee;
+  color: #084f2d;
 }

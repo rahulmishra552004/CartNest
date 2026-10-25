@@ -4,14 +4,14 @@ import { formatCurrency } from '../../utils/money.js';
 import dayjs from 'dayjs';
 import { OrderDetailsGrid } from './OrderDetailsGrid.jsx';
 
-export function OrdersPage({ cart, orders, getCartData, user, onLogout }) {
+export function OrdersPage({ cart, orders, getCartData, user }) {
   return (
     <>
       <title>
-        Orders
+        Orders | CartNest
       </title>
 
-      <Header cart={cart} user={user} onLogout={onLogout} />
+      <Header cart={cart} user={user} />
 
       <div className="orders-page">
         <div className="page-title">Your Orders</div>

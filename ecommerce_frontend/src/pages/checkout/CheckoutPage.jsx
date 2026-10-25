@@ -1,11 +1,13 @@
 import './Checkout.css';
 import './checkout-header.css';
 import axios from 'axios';
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router';
 import { OrderSummary } from './OrderSummary';
 import { PaymentSummary } from './PaymentSummary';
+import { BrandLogo } from '../../components/BrandLogo.jsx';
 
-export function CheckoutPage({ cart, getCartData, getOrdersData, onLogout }) {
+export function CheckoutPage({ cart, getCartData, getOrdersData }) {
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [paymentSummary, setPaymentSummary] = useState([]);
 
@@ -33,16 +35,16 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, onLogout }) {
   return (
     <>
       <title>
-        Checkout
+        Checkout | CartNest
       </title>
 
       <div className="checkout-header">
         <div className="header-content">
           <div className="checkout-header-left-section">
-            <a href="/">
-              <img className="logo" src="/media/logo.png" />
-              <img className="mobile-logo" src="/media/mobile-logo.png" />
-            </a>
+            <Link to="/" aria-label="CartNest home">
+              <BrandLogo className="logo" />
+              <BrandLogo className="mobile-logo" iconOnly />
+            </Link>
           </div>
 
           <div className="checkout-header-middle-section">
@@ -51,13 +53,12 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, onLogout }) {
           </div>
 
           <div className="checkout-header-right-section">
-            <button
-              type="button"
-              className="checkout-logout-button"
-              onClick={onLogout}
+            <Link
+              to="/logout"
+              className="checkout-logout-link"
             >
               Logout
-            </button>
+            </Link>
             <img src="/media/icons/checkout-lock-icon.png" />
           </div>
         </div>

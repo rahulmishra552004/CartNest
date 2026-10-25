@@ -1,0 +1,10 @@
+Use case: logo-brand.
+Asset type: minimal ecommerce website logo, horizontal lockup.
+Primary request: Create an original, polished minimal logo for the brand "CartNest" matching an existing clean green ecommerce website.
+Text (verbatim): "CartNest" (capital C and N, one word, no space). This is the only text.
+Subject: A beautifully simple shopping cart mark subtly incorporating two nested curved lines in its basket to suggest a welcoming nest. The silhouette should read as a cart first. Two simple small wheels. No bird, no eggs, no roof, no extra decorative objects. Place the icon to the left of the wordmark.
+Style: Flat, crisp vector-like graphic, restrained geometric shapes, consistent rounded strokes, professional typography. Friendly modern sans-serif wordmark with clear letterforms, medium-bold weight, carefully balanced spacing. Readable at small website-header size.
+Color palette: Deep forest green #084F2D for wordmark and primary icon, with a subtle secondary green #198754 inside the icon. Match a forest-green and white shopping website.
+Composition: Single horizontal logo, centered, generous but not excessive clear margins, icon height balanced with the wordmark, clean compact lockup.
+Background: genuinely transparent alpha background.
+Constraints: no gradients, shadows, mockups, texture, 3D effects, badges, slogans, watermarks, extra text, or multiple concepts. Deliver one finished logo.
