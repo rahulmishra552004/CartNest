@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import dayjs from 'dayjs';
 import { Header } from '../Header.jsx';
 import { OrderDetailsGrid } from '../orders/OrderDetailsGrid.jsx';
@@ -7,6 +7,7 @@ import '../orders/OrdersPage.css';
 import './ProfilePage.css';
 
 export function ProfilePage({ cart, orders, user, getCartData }) {
+  const { state } = useLocation();
   const accountType = user.role === 'vendor' ? 'Vendor' : 'Customer';
   const cartQuantity = cart.reduce((quantity, item) => quantity + item.quantity, 0);
   const latestOrder = [...orders].sort((a, b) => b.orderTimeMs - a.orderTimeMs)[0];
@@ -28,6 +29,10 @@ export function ProfilePage({ cart, orders, user, getCartData }) {
             <h1>My profile</h1>
             <p>Your account and latest order, in one place.</p>
           </div>
+
+          {typeof state?.profileMessage === 'string' && (
+            <div className="profile-success-message" role="status">{state.profileMessage}</div>
+          )}
 
           <div className="profile-layout">
             <section className="profile-card profile-summary" aria-labelledby="profile-name">
@@ -70,12 +75,19 @@ export function ProfilePage({ cart, orders, user, getCartData }) {
                   <dt>Account type</dt>
                   <dd>{accountType}</dd>
                 </div>
+                {user.role === 'vendor' && (
+                  <div>
+                    <dt>Store name</dt>
+                    <dd>{user.store_name || 'Not provided'}</dd>
+                  </div>
+                )}
               </dl>
 
               <div className="profile-actions">
-                <Link to="/" className="button-primary profile-shop-link">
-                  Continue shopping
+                <Link to="/profile/edit" className="button-primary profile-action-link">
+                  Update profile
                 </Link>
+                <Link to="/profile/change-password" className="button-secondary profile-action-link">Change password</Link>
                 <Link to="/about" className="profile-contact-link">Contact us</Link>
               </div>
             </section>

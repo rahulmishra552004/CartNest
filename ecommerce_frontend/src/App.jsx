@@ -6,6 +6,9 @@ import { LoginPage } from './pages/login/LoginPage.jsx';
 import { LogoutPage } from './pages/logout/LogoutPage.jsx';
 import { AboutPage } from './pages/about/AboutPage.jsx';
 import { ProfilePage } from './pages/profile/ProfilePage.jsx';
+import { UpdateProfilePage } from './pages/profile/UpdateProfilePage.jsx';
+import { ChangePasswordPage } from './pages/profile/ChangePasswordPage.jsx';
+import { VendorUpgradePage } from './pages/profile/VendorUpgradePage.jsx';
 import { CustomerRegistrationPage } from './pages/registration/CustomerRegistrationPage.jsx';
 import { VendorRegistrationPage } from './pages/registration/VendorRegistrationPage.jsx';
 import './App.css'
@@ -34,12 +37,15 @@ function App() {
       setOrders(response.data);
     }
   }
-  const handleLogout = async () => {
-    await axios.post('/api/auth/logout/');
+  const handleSessionExpired = () => {
     version.current += 1;
     setUser(null);
     setCart([]);
     setOrders([]);
+  }
+  const handleLogout = async () => {
+    await axios.post('/api/auth/logout/');
+    handleSessionExpired();
   }
   const getCurrentUser = async () => {
     try {
@@ -152,6 +158,26 @@ function App() {
             )
             : <Navigate to="/login" replace />
           }
+        />
+        <Route
+          path="/profile/edit"
+          element={user
+            ? <UpdateProfilePage cart={cart} user={user} onUserUpdated={setUser} onSessionExpired={handleSessionExpired} />
+            : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/profile/change-password"
+          element={user
+            ? <ChangePasswordPage cart={cart} user={user} onSessionExpired={handleSessionExpired} />
+            : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/profile/register-vendor"
+          element={!user
+            ? <Navigate to="/login" replace />
+            : user.role === 'customer'
+              ? <VendorUpgradePage cart={cart} user={user} onUserUpdated={setUser} onSessionExpired={handleSessionExpired} />
+              : <Navigate to="/profile" replace />}
         />
         <Route
           path="/profile"

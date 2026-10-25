@@ -1,0 +1,195 @@
+.account-settings-content {
+  max-width: 680px;
+}
+
+.account-settings-content .profile-breadcrumb {
+  flex-wrap: wrap;
+}
+
+.account-settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.account-settings-card > h2,
+.account-settings-card-heading h2 {
+  margin: 0;
+}
+
+.account-settings-card-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.account-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.account-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-form-field label {
+  color: #253d30;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.account-form-field input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #afb9b3;
+  border-radius: 7px;
+  background: white;
+  color: #212121;
+  font-size: 16px;
+}
+
+.account-form-field input[aria-invalid="true"] {
+  border-color: #a52323;
+}
+
+.account-form-hint,
+.account-field-error {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.account-form-hint {
+  color: #5f6964;
+}
+
+.account-form-error,
+.account-field-error {
+  color: #961414;
+  overflow-wrap: anywhere;
+}
+
+.account-form-error,
+.account-form-success {
+  padding: 13px 15px;
+  border: 1px solid #f0c3c3;
+  border-radius: 8px;
+  background: #fff0f0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.account-form-success {
+  border-color: #bcdcc8;
+  background: #eaf5ee;
+  color: #084f2d;
+}
+
+.account-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding-top: 22px;
+  border-top: 1px solid #e6ebe8;
+  font-size: 14px;
+}
+
+.account-action {
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.account-action:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 4px;
+}
+
+.account-form-fields:disabled input,
+.account-form-fields:disabled button {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.account-vendor-invitation {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 24px;
+  padding: 24px 28px;
+  border: 1px solid #cfe3d6;
+  border-radius: 10px;
+  background: #eaf5ee;
+}
+
+.account-vendor-invitation h2 {
+  margin: 0 0 8px;
+  color: #084f2d;
+  font-size: 20px;
+}
+
+.account-vendor-invitation p,
+.account-current-user span {
+  color: #5f6964;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.account-vendor-link {
+  align-self: flex-start;
+  color: #084f2d;
+  font-size: 14px;
+  font-weight: 700;
+  text-underline-offset: 4px;
+}
+
+.account-vendor-link:hover {
+  color: #198754;
+}
+
+.account-current-user {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid #e6ebe8;
+  border-radius: 8px;
+  background: #f8faf9;
+  overflow-wrap: anywhere;
+}
+
+.account-current-user strong {
+  color: #084f2d;
+  font-size: 15px;
+}
+
+.account-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 450px) {
+  .account-vendor-invitation {
+    padding: 24px 20px;
+  }
+
+  .account-form-actions .account-action {
+    width: 100%;
+  }
+}

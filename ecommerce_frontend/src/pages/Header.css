@@ -28,16 +28,30 @@
 
 .header .header-link {
   display: inline-block;
+  box-sizing: border-box;
+  min-height: 40px;
   padding: 6px 9.5px;
-  border-radius: 2px;
+  border-radius: 9px;
   cursor: pointer;
   text-decoration: none;
   border: 1px solid rgba(0, 0, 0, 0);
   color: inherit;
+  transition: background-color 180ms ease, border-color 180ms ease,
+    box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
-.header .header-link:hover {
-  border: 1px solid white;
+.header .header-link:focus-visible,
+.header .account-trigger:focus-visible,
+.header .search-button:focus-visible {
+  outline: 2px solid rgb(186, 255, 190);
+  outline-offset: 3px;
+}
+
+.header .header-link:active,
+.header .account-trigger:active {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(0);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .header .logo {
@@ -93,6 +107,12 @@
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
   flex-shrink: 0;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.header .search-button:active {
+  background: #a2ecaa;
+  box-shadow: inset 0 1px 4px rgba(8, 79, 45, 0.15);
 }
 
 .header .search-icon {
@@ -179,22 +199,17 @@
   font-weight: 600;
   list-style: none;
   cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease;
+  transition: background-color 180ms ease, border-color 180ms ease,
+    box-shadow 180ms ease, transform 180ms ease;
 }
 
 .header .account-trigger::-webkit-details-marker {
   display: none;
 }
 
-.header .account-trigger:hover,
 .header .account-dropdown[open] .account-trigger {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
-}
-
-.header .account-trigger:focus-visible {
-  outline: 2px solid rgb(186, 255, 190);
-  outline-offset: 3px;
 }
 
 .header .account-avatar {
@@ -315,10 +330,10 @@
   font-weight: 500;
   text-decoration: none;
   color: inherit;
-  transition: background-color 160ms ease, color 160ms ease;
+  transition: background-color 180ms ease, color 180ms ease,
+    box-shadow 180ms ease, transform 180ms ease;
 }
 
-.header a.account-dropdown-menu-link:hover,
 .header .account-link-active {
   background-color: #eaf5ee;
   color: #084f2d;
@@ -350,9 +365,58 @@
   color: #b13b3b;
 }
 
-.header a.account-logout-link:hover {
-  background: #fff1f1;
-  color: #9d2929;
+.header a.account-dropdown-menu-link:active {
+  transform: translateX(0);
+  box-shadow: inset 0 1px 3px rgba(8, 79, 45, 0.08);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .header .header-link:hover,
+  .header .account-trigger:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(186, 255, 190, 0.3);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .header .auth-link:hover,
+  .header .orders-link:hover,
+  .header .cart-link:hover {
+    color: #d8ffdf;
+  }
+
+  .header .header-link:active,
+  .header .account-trigger:active {
+    background: rgba(255, 255, 255, 0.16);
+    transform: translateY(0);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .header .search-button:hover {
+    background: #d0ffd5;
+    box-shadow: inset 0 0 0 1px rgba(8, 79, 45, 0.12);
+  }
+
+  .header .search-button:active {
+    background: #a2ecaa;
+  }
+
+  .header a.account-dropdown-menu-link:hover {
+    background: #eaf5ee;
+    color: #084f2d;
+    box-shadow: inset 0 0 0 1px rgba(25, 135, 84, 0.08);
+    transform: translateX(2px);
+  }
+
+  .header a.account-logout-link:hover {
+    background: #fff1f1;
+    color: #9d2929;
+    box-shadow: inset 0 0 0 1px rgba(177, 59, 59, 0.1);
+  }
+
+  .header a.account-dropdown-menu-link:active {
+    transform: translateX(0);
+  }
 }
 
 @keyframes account-menu-appear {
@@ -390,8 +454,16 @@
   }
 
   .header .account-trigger,
+  .header .header-link,
+  .header .search-button,
   .header .account-chevron,
   .header .account-dropdown-menu-link {
     transition: none;
+  }
+
+  .header .header-link:hover,
+  .header .account-trigger:hover,
+  .header a.account-dropdown-menu-link:hover {
+    transform: none;
   }
 }

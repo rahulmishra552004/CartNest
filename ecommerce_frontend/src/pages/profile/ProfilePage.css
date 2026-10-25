@@ -151,11 +151,22 @@
   font-size: 14px;
 }
 
-.profile-shop-link {
+.profile-action-link {
   padding: 12px 18px;
   font-weight: 700;
   text-decoration: none;
   transition: background-color 200ms ease;
+}
+
+.profile-success-message {
+  margin-bottom: 24px;
+  padding: 14px 18px;
+  border: 1px solid #bcdcc8;
+  border-radius: 8px;
+  background: #eaf5ee;
+  color: #084f2d;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .profile-orders.orders-page {

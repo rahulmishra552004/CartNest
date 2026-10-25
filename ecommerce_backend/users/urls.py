@@ -6,6 +6,7 @@ from .views import (
         current_user_view,
         customer_registration_view,
         vendor_registration_view,
+        change_password_view,
     )
 
 urlpatterns = [
@@ -14,15 +15,20 @@ urlpatterns = [
         path('auth/logout/', logout_view, name='logout'),
         path('auth/me/', current_user_view, name='current_user'),
         path(
-                'auth/register_customer/',
-                 customer_registration_view,
-                 name='customer_registeration'
-            ),
+            'auth/register_customer/',
+             customer_registration_view,
+             name='customer_registeration'
+        ),
         path(
-                'auth/register_vendor/',
-                vendor_registration_view,
-                name = 'vendor_registeration'
-            ),
+            'auth/register_vendor/',
+            vendor_registration_view,
+            name = 'vendor_registeration'
+        ),
+        path(
+            'auth/change_password/',
+            change_password_view,
+            name = 'change_password'
+        ),
     ]
 
 

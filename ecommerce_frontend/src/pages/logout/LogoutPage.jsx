@@ -33,9 +33,6 @@ export function LogoutPage({ onLogout }){
           <Link to="/login" className="button-primary logout-login-link">
             Sign in again
           </Link>
-          <Link to="/" className="logout-home-link">
-            Continue browsing
-          </Link>
         </section>
       </main>
     )

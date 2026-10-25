@@ -73,20 +73,6 @@
   transition: background-color 200ms ease;
 }
 
-.logout-home-link {
-  display: inline-block;
-  margin-top: 18px;
-  padding: 4px;
-  color: rgb(8, 79, 45);
-  font-size: 14px;
-  text-underline-offset: 4px;
-  transition: color 200ms ease;
-}
-
-.logout-home-link:hover {
-  color: rgb(25, 135, 84);
-}
-
 .logout-card a:focus-visible {
   outline: 2px solid rgb(25, 135, 84);
   outline-offset: 4px;
