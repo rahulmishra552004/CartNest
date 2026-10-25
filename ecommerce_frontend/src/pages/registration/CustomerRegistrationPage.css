@@ -148,6 +148,10 @@
   text-underline-offset: 3px;
 }
 
+.registration-footer p + p {
+  margin-top: 8px;
+}
+
 .registration-link:hover {
   color: rgb(15, 85, 52);
 }

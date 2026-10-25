@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import './LoginPage.css';
 import { BrandLogo } from '../../components/BrandLogo.jsx';
@@ -80,6 +80,10 @@ export function LoginPage({ onLogin }){
 		  >
 		    {isSubmitting ? 'Signing in...' : 'Sign in'}
 		  </button>
+		  <div className="login-registration-links">
+		    <p>New to CartNest? <Link className="link-primary" to="/customer_registration">Create an account</Link></p>
+		    <p>Want to sell? <Link className="link-primary" to="/vendor_registration">Register as a vendor</Link></p>
+		  </div>
 		</form>
 	      </main>
 	    );

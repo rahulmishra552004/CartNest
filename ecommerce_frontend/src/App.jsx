@@ -7,6 +7,7 @@ import { LogoutPage } from './pages/logout/LogoutPage.jsx';
 import { AboutPage } from './pages/about/AboutPage.jsx';
 import { ProfilePage } from './pages/profile/ProfilePage.jsx';
 import { CustomerRegistrationPage } from './pages/registration/CustomerRegistrationPage.jsx';
+import { VendorRegistrationPage } from './pages/registration/VendorRegistrationPage.jsx';
 import './App.css'
 import { Routes, Route, Navigate } from 'react-router';
 import axios from 'axios';
@@ -91,6 +92,14 @@ function App() {
             user 
             ? <Navigate to="/" replace />
             : <CustomerRegistrationPage/>
+          }
+        />
+        <Route
+          path="/vendor_registration"
+          element={
+            user
+            ? <Navigate to="/" replace />
+            : <VendorRegistrationPage />
           }
         />
         <Route

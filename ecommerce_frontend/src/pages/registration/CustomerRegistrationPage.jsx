@@ -159,7 +159,10 @@ export function CustomerRegistrationPage() {
             {isSubmitting ? 'Creating account…' : 'Create account'}
           </button>
         </fieldset>
-        <p className="registration-footer">Already have an account? <Link className="registration-link" to="/login">Sign in</Link></p>
+        <div className="registration-footer">
+          <p>Already have an account? <Link className="registration-link" to="/login">Sign in</Link></p>
+          <p>Want to sell? <Link className="registration-link" to="/vendor_registration">Create a vendor account</Link></p>
+        </div>
       </form>
     </main>
   );
