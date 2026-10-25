@@ -1,6 +1,7 @@
 import { HomePage } from './pages/home/HomePage.jsx';
 import { ProductDetailsPage } from './pages/home/ProductDetailsPage.jsx';
 import { RecentlyViewedPage } from './pages/recently-viewed/RecentlyViewedPage.jsx';
+import { TrendingProductsPage } from './pages/trending/TrendingProductsPage.jsx';
 import { CheckoutPage } from './pages/checkout/CheckoutPage.jsx';
 import { OrdersPage } from './pages/orders/OrdersPage.jsx';
 import { TrackingPage } from './pages/tracking/TrackingPage.jsx';
@@ -117,6 +118,10 @@ function App() {
             getCartData={getCartData}
             user={user}
           />}
+        />
+        <Route
+          path="/trending"
+          element={<TrendingProductsPage cart={cart} user={user} getCartData={getCartData} />}
         />
         <Route
           path="/products/:productId"

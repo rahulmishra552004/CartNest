@@ -3,6 +3,7 @@ import './HomePage.css';
 import axios from 'axios'
 import { useEffect, useState } from 'react';
 import { ProductsGrid } from './ProductsGrid.jsx';
+import { CatalogNavigation } from './CatalogNavigation.jsx';
 
 export function HomePage({ cart, getCartData, user }) {
 
@@ -25,13 +26,14 @@ export function HomePage({ cart, getCartData, user }) {
 
       <Header cart={cart} user={user} />
 
-      <div className="home-page">
-        <div className="products-grid">
-
-          <ProductsGrid products={products} getCartData={getCartData} user={user} />
-
+      <main className="home-page catalog-home-page">
+        <div className="catalog-home-content">
+          <CatalogNavigation />
+          <div className="products-grid">
+            <ProductsGrid products={products} getCartData={getCartData} user={user} />
+          </div>
         </div>
-      </div>
+      </main>
     </>
   )
 }

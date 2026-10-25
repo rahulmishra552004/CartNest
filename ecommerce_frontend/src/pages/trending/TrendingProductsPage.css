@@ -1,0 +1,90 @@
+.trending-page {
+  box-sizing: border-box;
+  min-height: calc(100vh - 60px);
+  padding: 24px 24px 64px;
+  background: #f5f7f6;
+}
+
+.trending-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.trending-page .catalog-navigation {
+  padding: 0 0 28px;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.trending-heading {
+  margin-bottom: 28px;
+}
+
+.trending-eyebrow {
+  color: #198754;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.trending-heading h1 {
+  margin: 10px 0;
+  color: #084f2d;
+  font-size: 32px;
+}
+
+.trending-heading p,
+.trending-state p {
+  color: #5f6964;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.trending-page .products-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 20px;
+}
+
+.trending-state {
+  padding: 56px 24px;
+  border: 1px solid #e2e9e5;
+  border-radius: 12px;
+  background: white;
+  color: #5f6964;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.trending-state h2 {
+  margin: 0 0 10px;
+  color: #084f2d;
+  font-size: 22px;
+}
+
+.trending-state .trending-error {
+  color: #961414;
+}
+
+.trending-action {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.trending-page a:focus-visible,
+.trending-page button:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 4px;
+  border-radius: 5px;
+}
+
+@media (max-width: 450px) {
+  .trending-page {
+    padding: 20px 16px 40px;
+  }
+}

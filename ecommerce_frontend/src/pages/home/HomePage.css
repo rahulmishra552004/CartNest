@@ -2,78 +2,43 @@
   margin-top: 60px;
 }
 
+.catalog-home-page {
+  box-sizing: border-box;
+  min-height: calc(100vh - 60px);
+  padding: 24px 24px 64px;
+  background: #f5f7f6;
+}
+
+.catalog-home-content {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.catalog-home-page .catalog-navigation {
+  padding: 0 0 28px;
+  border-bottom: 0;
+  background: transparent;
+}
+
 .home-page .products-grid {
   display: grid;
-
-  /* - In CSS Grid, 1fr means a column will take up the
-       remaining space in the grid.
-     - If we write 1fr 1fr ... 1fr; 8 times, this will
-       divide the grid into 8 columns, each taking up an
-       equal amount of the space.
-     - repeat(8, 1fr); is a shortcut for repeating "1fr"
-       8 times (instead of typing out "1fr" 8 times).
-       repeat(...) is a special property that works with
-       display: grid; */
-  grid-template-columns: repeat(8, 1fr);
-}
-
-/* @media is used to create responsive design (making the
-   website look good on any screen size). This @media
-   means when the screen width is 2000px or less, we
-   will divide the grid into 7 columns instead of 8. */
-@media (max-width: 2000px) {
-  .home-page .products-grid {
-    grid-template-columns: repeat(7, 1fr);
-  }
-}
-
-/* This @media means when the screen width is 1600px or
-   less, we will divide the grid into 6 columns. */
-@media (max-width: 1600px) {
-  .home-page .products-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
-
-@media (max-width: 1300px) {
-  .home-page .products-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-@media (max-width: 1000px) {
-  .home-page .products-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 800px) {
-  .home-page .products-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 575px) {
-  .home-page .products-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 208px), 1fr));
+  gap: 20px;
 }
 
 @media (max-width: 450px) {
-  .home-page .products-grid {
-    grid-template-columns: 1fr;
+  .catalog-home-page {
+    padding: 20px 16px 40px;
   }
 }
 
 .home-page .product-container {
-  padding-top: 40px;
-  padding-bottom: 25px;
-  padding-left: 25px;
-  padding-right: 25px;
-
-  border-right: 1px solid rgb(240, 240, 240);
-  border-bottom: 1px solid rgb(240, 240, 240);
-
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid #e2e9e5;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 4px 16px rgba(8, 45, 28, 0.04);
   display: flex;
   flex-direction: column;
 }

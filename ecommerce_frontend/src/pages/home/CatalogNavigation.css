@@ -1,0 +1,114 @@
+.catalog-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e9e5;
+  background: white;
+}
+
+.catalog-navigation-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.catalog-sort {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  color: #5f6964;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.catalog-sort select {
+  box-sizing: border-box;
+  min-height: 42px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cfdad3;
+  border-radius: 8px;
+  background: white;
+  color: #253d30;
+  font-size: 14px;
+  box-shadow: none;
+  transition: border-color 160ms ease;
+}
+
+.catalog-sort select:hover {
+  border-color: #198754;
+}
+
+.catalog-sort select:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 3px;
+}
+
+.catalog-navigation-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #5f6964;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.catalog-navigation-link svg {
+  width: 18px;
+  height: 18px;
+}
+
+.catalog-navigation-link:hover {
+  background: #f0f7f2;
+  color: #084f2d;
+}
+
+.catalog-navigation-link-active {
+  border-color: #cfe3d6;
+  background: #eaf5ee;
+  color: #084f2d;
+}
+
+.catalog-navigation-link:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 3px;
+}
+
+@media (max-width: 450px) {
+  .catalog-navigation {
+    padding: 16px;
+  }
+
+  .catalog-navigation-link {
+    padding: 10px 12px;
+  }
+
+  .catalog-sort {
+    justify-content: space-between;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .catalog-sort select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-navigation-link,
+  .catalog-sort select {
+    transition: none;
+  }
+}
