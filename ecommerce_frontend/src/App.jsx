@@ -18,26 +18,45 @@ import './App.css'
 import { Routes, Route, Navigate } from 'react-router';
 import axios from 'axios';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { accountError } from './pages/profile/accountErrors.js';
 
 function App() {
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
   const [user, setUser] = useState(undefined);
+  const [cartLoading, setCartLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [cartError, setCartError] = useState('');
+  const [ordersError, setOrdersError] = useState('');
 
   const version = useRef(0);
 
   const getCartData = async () => {
     const currentVersion = version.current;
-    const response = await axios('/api/cart-items/?expand=product')
-    if(currentVersion === version.current){
-      setCart(response.data);
+    setCartLoading(true);
+    setCartError('');
+    try {
+      const response = await axios('/api/cart-items/?expand=product');
+      if (currentVersion === version.current) setCart(response.data);
+    } catch (requestError) {
+      if (currentVersion === version.current) setCartError(accountError(requestError));
+      throw requestError;
+    } finally {
+      if (currentVersion === version.current) setCartLoading(false);
     }
   }
   const getOrdersData = async () => {
     const currentVersion = version.current;
-    const response = await axios('/api/orders/?expand=products')
-    if(currentVersion === version.current){
-      setOrders(response.data);
+    setOrdersLoading(true);
+    setOrdersError('');
+    try {
+      const response = await axios('/api/orders/?expand=products');
+      if (currentVersion === version.current) setOrders(response.data);
+    } catch (requestError) {
+      if (currentVersion === version.current) setOrdersError(accountError(requestError));
+      throw requestError;
+    } finally {
+      if (currentVersion === version.current) setOrdersLoading(false);
     }
   }
   const handleSessionExpired = useCallback(() => {
@@ -45,6 +64,10 @@ function App() {
     setUser(null);
     setCart([]);
     setOrders([]);
+    setCartLoading(false);
+    setOrdersLoading(false);
+    setCartError('');
+    setOrdersError('');
   }, []);
   const handleLogout = async () => {
     await axios.post('/api/auth/logout/');
@@ -65,8 +88,8 @@ function App() {
 
   useEffect(() => {
     if(user){
-      getCartData();
-      getOrdersData();
+      getCartData().catch(() => {});
+      getOrdersData().catch(() => {});
     }
   }, [user]);
 
@@ -142,6 +165,8 @@ function App() {
                 cart={cart}
                 getCartData={getCartData}
                 getOrdersData={getOrdersData}
+                isLoading={cartLoading}
+                error={cartError}
                 />
             )
             : <Navigate to="/login" replace />
@@ -157,6 +182,9 @@ function App() {
               orders={orders}
               getCartData={getCartData}
               user={user}
+              isLoading={ordersLoading}
+              error={ordersError}
+              onRetry={getOrdersData}
             />
             )
             : <Navigate to="/login" replace />

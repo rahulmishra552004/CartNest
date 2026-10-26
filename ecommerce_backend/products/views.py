@@ -11,7 +11,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from .serializers import ProductSerializer
 from .models import Product
 from .permissions import IsVendorOwnerOrReadOnly
@@ -36,13 +36,31 @@ class ProductViewSet(ModelViewSet):
         if self.action in ('update', 'partial_update'):
             queryset = queryset.select_for_update()
 
-        search = self.request.query_params.get('search', '').strip()
+        if self.action == 'list':
+            search = self.request.query_params.get('search', '').strip()
 
-        if search:
-            queryset = queryset.filter(
-                    Q(name__icontains=search) |
-                    Q(keywords__icontains=search)
-                    )
+            if search:
+                queryset = queryset.filter(
+                        Q(name__icontains=search) |
+                        Q(keywords__icontains=search)
+                        )
+
+            sort_options = {
+                'price_asc': 'price_cents',
+                'price_desc': '-price_cents',
+                'rating_desc': '-rating_stars',
+                'name_asc': 'name',
+                'name_desc': '-name',
+            }
+
+            sort = self.request.query_params.get('sort', '').strip() or 'name_asc';
+
+            if sort not in sort_options:
+                raise ValidationError({
+                    'sort': 'invalid sort option'
+                })
+
+            queryset = queryset.order_by(sort_options[sort], 'id')
 
         return queryset
 
@@ -57,7 +75,8 @@ class ProductViewSet(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         search = self.request.query_params.get('search', '').strip()
-        if search:
+        sort = self.request.query_params.get('sort', '').strip()
+        if search or sort:
             return super().list(request, *args, **kwargs)
 
         key = 'products:list'

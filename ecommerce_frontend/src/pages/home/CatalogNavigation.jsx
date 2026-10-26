@@ -1,9 +1,7 @@
 import { NavLink } from 'react-router';
-import { useState } from 'react';
 import './CatalogNavigation.css';
 
-export function CatalogNavigation() {
-  const [sort, setSort] = useState('default');
+export function CatalogNavigation({ sort, onSortChange }) {
   const linkClass = ({ isActive }) => `catalog-navigation-link${isActive ? ' catalog-navigation-link-active' : ''}`;
 
   return (
@@ -19,17 +17,19 @@ export function CatalogNavigation() {
           Recently viewed
         </NavLink>
       </div>
-      <label className="catalog-sort">
-        <span>Sort by</span>
-        <select name="sort" value={sort} onChange={(event) => setSort(event.target.value)}>
-          <option value="default">Default</option>
-          <option value="price_asc">Price: Low to high</option>
-          <option value="price_desc">Price: High to low</option>
-          <option value="rating_desc">Highest rated</option>
-          <option value="name_asc">Name: A–Z</option>
-          <option value="name_desc">Name: Z–A</option>
-        </select>
-      </label>
+      {onSortChange && (
+        <label className="catalog-sort">
+          <span>Sort by</span>
+          <select name="sort" value={sort} onChange={(event) => onSortChange(event.target.value)}>
+            <option value="default">Default</option>
+            <option value="price_asc">Price: Low to high</option>
+            <option value="price_desc">Price: High to low</option>
+            <option value="rating_desc">Highest rated</option>
+            <option value="name_asc">Name: A–Z</option>
+            <option value="name_desc">Name: Z–A</option>
+          </select>
+        </label>
+      )}
     </nav>
   );
 }

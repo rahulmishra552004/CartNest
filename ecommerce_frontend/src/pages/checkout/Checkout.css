@@ -15,9 +15,36 @@
 }
 
 .checkout-page .page-title {
+  margin-top: 0;
   font-weight: 700;
   font-size: 22px;
   margin-bottom: 18px;
+}
+
+.checkout-page-shell-state {
+  box-sizing: border-box;
+  min-height: calc(100vh - 60px);
+  margin-top: 60px;
+  padding: 40px 24px 64px;
+  background: #f5f7f6;
+}
+
+.checkout-page-shell-state .checkout-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.checkout-page-shell-state .page-title {
+  margin-bottom: 24px;
+  color: #084f2d;
+  font-size: 30px;
+}
+
+@media (max-width: 450px) {
+  .checkout-page-shell-state {
+    padding: 28px 16px 40px;
+  }
 }
 
 .checkout-page .checkout-grid {
