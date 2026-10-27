@@ -7,6 +7,7 @@ import { EmptyState } from '../../components/EmptyState.jsx';
 
 export function OrdersPage({ cart, orders, getCartData, user, isLoading = false, error = '', onRetry }) {
   const showState = isLoading || error || orders.length === 0;
+
   return (
     <>
       <title>

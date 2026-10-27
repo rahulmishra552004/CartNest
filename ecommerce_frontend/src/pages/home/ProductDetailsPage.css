@@ -35,6 +35,10 @@
   box-shadow: 0 4px 16px rgba(8, 45, 28, 0.04);
 }
 
+.product-details-page .product-actions {
+  display: contents;
+}
+
 .product-details-page .product-image-container {
   grid-row: 1 / span 7;
   height: 340px;

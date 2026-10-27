@@ -134,18 +134,8 @@ function App() {
             : <VendorRegistrationPage />
           }
         />
-        <Route
-          path="/"
-          element={<HomePage
-            cart={cart}
-            getCartData={getCartData}
-            user={user}
-          />}
-        />
-        <Route
-          path="/trending"
-          element={<TrendingProductsPage cart={cart} user={user} getCartData={getCartData} />}
-        />
+        <Route path="/" element={<HomePage cart={cart} getCartData={getCartData} user={user} />} />
+        <Route path="/trending" element={<TrendingProductsPage cart={cart} user={user} getCartData={getCartData} />} />
         <Route
           path="/products/:productId"
           element={<ProductDetailsPage cart={cart} user={user} getCartData={getCartData} />}

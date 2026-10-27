@@ -13,7 +13,6 @@ export function TrendingProductsPage({ cart, user, getCartData }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
-
   useEffect(() => {
     const controller = new AbortController();
     async function loadTrendingProducts() {

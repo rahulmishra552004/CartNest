@@ -6,6 +6,15 @@ body {
   margin: 0;
 }
 
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
 /* Remove the default margins of <p> elements. */
 p {
   margin: 0;

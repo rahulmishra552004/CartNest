@@ -63,6 +63,8 @@ export function Product({ product, getCartData, user, linkToDetails = true }) {
 
       {!linkToDetails && <p className="product-stock">{soldOut ? 'Currently out of stock' : `${product.inventory_stock} available`}</p>}
 
+      <div className="product-spacer"></div>
+
       <div className="product-quantity-container">
         <select
           aria-label={`Quantity for ${product.name}`}
@@ -77,17 +79,17 @@ export function Product({ product, getCartData, user, linkToDetails = true }) {
         </select>
       </div>
 
-      <div className="product-spacer"></div>
+      <div className="product-actions">
+        <div className={`added-to-cart${added ? ' is-visible' : ''}`} role="status">
+          {added && <><img src="/media/icons/checkmark.png" alt="" />Added to cart</>}
+        </div>
 
-      <div className={`added-to-cart${added ? ' is-visible' : ''}`} role="status">
-        {added && <><img src="/media/icons/checkmark.png" alt="" />Added to cart</>}
+        {user ? (
+          <button className="add-to-cart-button button-primary" onClick={addToCart} disabled={isAdding || soldOut}>
+            {soldOut ? 'Out of stock' : isAdding ? 'Adding…' : 'Add to Cart'}
+          </button>
+        ) : <Link className="add-to-cart-button button-primary" to="/login">Sign in to add to cart</Link>}
       </div>
-
-      {user ? (
-        <button className="add-to-cart-button button-primary" onClick={addToCart} disabled={isAdding || soldOut}>
-          {soldOut ? 'Out of stock' : isAdding ? 'Adding…' : 'Add to Cart'}
-        </button>
-      ) : <Link className="add-to-cart-button button-primary" to="/login">Sign in to add to cart</Link>}
       {error && <p className="product-error" role="alert">{error}</p>}
     </div>
   );

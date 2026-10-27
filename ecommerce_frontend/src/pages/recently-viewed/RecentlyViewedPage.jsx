@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import axios from 'axios';
 import { Header } from '../Header.jsx';
+import { CatalogNavigation } from '../home/CatalogNavigation.jsx';
 import { ProductsGrid } from '../home/ProductsGrid.jsx';
 import { accountError } from '../profile/accountErrors.js';
 import '../home/HomePage.css';
@@ -12,7 +13,6 @@ export function RecentlyViewedPage({ cart, user, getCartData, onSessionExpired }
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [refresh, setRefresh] = useState(0);
-
   useEffect(() => {
     const controller = new AbortController();
     async function loadProducts() {
@@ -44,13 +44,15 @@ export function RecentlyViewedPage({ cart, user, getCartData, onSessionExpired }
       <Header cart={cart} user={user} />
       <main className="home-page recently-viewed-page">
         <div className="recently-viewed-content">
-          <nav className="recently-viewed-breadcrumb" aria-label="Breadcrumb">
-            <Link to="/">Home</Link><span aria-hidden="true">/</span><span aria-current="page">Recently viewed</span>
-          </nav>
-          <div className="recently-viewed-heading">
-            <div><h1>Recently viewed</h1><p>Pick up where you left off. Your most recent finds, all in one place.</p></div>
+          <CatalogNavigation />
+          <header className="recently-viewed-heading">
+            <div>
+              <span className="recently-viewed-eyebrow">Your browsing history</span>
+              <h1>Recently viewed</h1>
+              <p>Pick up where you left off. Your most recent finds, all in one place.</p>
+            </div>
             {!isLoading && !error && products.length > 0 && <span className="recently-viewed-count">{products.length} {products.length === 1 ? 'product' : 'products'}</span>}
-          </div>
+          </header>
           {isLoading ? (
             <div className="recently-viewed-state" role="status">Loading your recently viewed products…</div>
           ) : error ? (

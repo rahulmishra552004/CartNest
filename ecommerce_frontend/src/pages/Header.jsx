@@ -1,6 +1,6 @@
 import './Header.css';
-import { useEffect, useRef } from 'react';
-import { Link, NavLink } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, Link, NavLink, useNavigate, useSearchParams } from 'react-router';
 import { BrandLogo } from '../components/BrandLogo.jsx';
 
 function AccountIcon({ name, className = '' }) {
@@ -22,7 +22,12 @@ function AccountIcon({ name, className = '' }) {
 }
 
 export function Header({ cart, user }) {
+  const location = useLocation();
   const accountMenuRef = useRef(null);
+  const [searchInput, setSearchInput] = useState('');
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchSearchParam = searchParams.get('search')
 
   useEffect(() => {
     function handleOutsideInteraction(event) {
@@ -41,6 +46,8 @@ export function Header({ cart, user }) {
     };
   }, []);
 
+  useEffect(() => setSearchInput(searchSearchParam ?? ''), [searchSearchParam])
+  
   function closeAccountMenu() {
     if (accountMenuRef.current) accountMenuRef.current.open = false;
   }
@@ -52,6 +59,25 @@ export function Header({ cart, user }) {
       accountMenuRef.current.querySelector('summary').focus();
     }
   }
+
+  function handleSearchClick(value) {
+      const nextParams = new URLSearchParams();
+      
+      const search = value.trim();
+      if (search) nextParams.set('search', search);
+      
+      if (location.pathname === '/') {
+        const productSort = searchParams.get('sort');
+        if (productSort) nextParams.set('sort', productSort);
+      }
+
+      const query = nextParams.toString();
+
+      navigate({
+        pathname: '/',
+        search: query ? `?${query}` : '',
+      });
+    }
 
   const accountInitial = user?.username?.trim().charAt(0).toUpperCase() || 'C';
   const accountType = user?.role === 'vendor' ? 'Vendor' : 'Customer';
@@ -65,19 +91,26 @@ export function Header({ cart, user }) {
   return (
     <div className="header">
       <div className="left-section">
-        <Link to="/" className="header-link" aria-label="CartNest home">
+        <Link to="/" className="header-link" aria-label="CartNest home" onClick={() => {setSearchInput('')}} >
           <BrandLogo className="logo" light />
           <BrandLogo className="mobile-logo" iconOnly light />
         </Link>
       </div>
 
-      <div className="middle-section">
-        <input className="search-bar" type="text" placeholder="Search" />
+      <form
+        className="middle-section"
+        role="search"
+        onSubmit={(event) => {
+          event.preventDefault();
+          handleSearchClick(searchInput);
+        }}
+      >
+        <input className="search-bar" type="text" placeholder="Search" aria-label="Search products" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} />
 
-        <button className="search-button">
-          <img className="search-icon" src="/media/icons/search-icon.png" />
+        <button className="search-button" type="submit">
+          <img className="search-icon" src="/media/icons/search-icon.png" alt="Search" />
         </button>
-      </div>
+      </form>
 
       <div className="right-section">
         {user ? (
