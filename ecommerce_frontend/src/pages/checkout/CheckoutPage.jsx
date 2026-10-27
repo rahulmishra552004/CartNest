@@ -12,7 +12,6 @@ import { accountError } from '../profile/accountErrors.js';
 export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = false, error = '' }) {
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [paymentSummary, setPaymentSummary] = useState(null);
-  const [checkoutLoading, setCheckoutLoading] = useState(true);
   const [checkoutError, setCheckoutError] = useState('');
   const [retry, setRetry] = useState(0);
 
@@ -34,7 +33,6 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = fal
     if (isLoading || error || cart.length === 0) return;
     const controller = new AbortController();
     async function loadCheckout() {
-      setCheckoutLoading(true);
       setCheckoutError('');
       try {
         const [payment, delivery] = await Promise.all([
@@ -46,15 +44,13 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = fal
         setDeliveryOptions(delivery.data);
       } catch (requestError) {
         if (!controller.signal.aborted) setCheckoutError(accountError(requestError));
-      } finally {
-        if (!controller.signal.aborted) setCheckoutLoading(false);
       }
     }
     loadCheckout();
     return () => controller.abort();
   }, [cart, isLoading, error, retry]);
 
-  const showState = isLoading || error || cart.length === 0 || checkoutLoading || checkoutError || !paymentSummary;
+  const showState = error || (!isLoading && cart.length === 0) || checkoutError;
 
   return (
     <>
@@ -91,22 +87,18 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = fal
       <main className={`checkout-page-shell${showState ? ' checkout-page-shell-state' : ''}`}>
         <div className="checkout-page">
           <h1 className="page-title">{cart.length === 0 ? 'Your cart' : 'Review your order'}</h1>
-          {isLoading ? (
-            <EmptyState icon="cart" title="Getting your cart ready" description="Loading the items you’ve picked out…" role="status" />
-          ) : error ? (
+          {error ? (
             <EmptyState icon="cart" title="We couldn’t load your cart" description={error} role="alert" primaryAction={{ label: 'Try again', onClick: () => getCartData().catch(() => {}) }} secondaryAction={{ label: 'Browse products', to: '/' }} />
-          ) : cart.length === 0 ? (
+          ) : !isLoading && cart.length === 0 ? (
             <EmptyState icon="cart" eyebrow="Make room for a new favorite" title="Your cart is empty" description="Add a few favorites from the shop, then come back when you’re ready to check out." primaryAction={{ label: 'Explore products', to: '/' }} secondaryAction={{ label: 'See what’s trending', to: '/trending' }} />
           ) : checkoutError ? (
             <EmptyState icon="cart" title="We couldn’t prepare checkout" description={checkoutError} role="alert" primaryAction={{ label: 'Try again', onClick: () => setRetry((value) => value + 1) }} />
-          ) : checkoutLoading || !paymentSummary ? (
-            <EmptyState icon="cart" title="Preparing your checkout" description="Checking delivery options and your order total…" role="status" />
-          ) : (
+          ) : paymentSummary ? (
             <div className="checkout-grid">
               <OrderSummary cart={cart} deliveryOptions={deliveryOptions} getCartData={getCartData} getPaymentSummary={getPaymentSummary} />
-              <PaymentSummary paymentSummary={paymentSummary} getCartData={getCartData} getOrdersData={getOrdersData} />
+              <PaymentSummary cart={cart} paymentSummary={paymentSummary} getCartData={getCartData} getOrdersData={getOrdersData} />
             </div>
-          )}
+          ) : null}
         </div>
       </main>
     </>
