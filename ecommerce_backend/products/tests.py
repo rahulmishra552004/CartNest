@@ -3,12 +3,51 @@ from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.test import override_settings
+from django.test import SimpleTestCase, override_settings
 from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import TimeoutError as RedisTimeoutError
 from rest_framework.test import APITestCase
 
 from vendors.models import Vendor
+from .cache_invalidation import invalidate_products
+from .cache_keys import PRODUCT_LIST_CACHE_KEY, product_detail_cache_key
 from .models import Product
+
+
+class ProductCacheInvalidationTests(SimpleTestCase):
+    def test_invalidates_list_and_normalized_product_details(self):
+        product_id = uuid4()
+
+        with patch('products.cache_invalidation.cache.delete') as delete, \
+                patch('products.cache_invalidation.cache.delete_many') as delete_many:
+            invalidate_products(str(product_id).upper())
+
+        delete.assert_called_once_with(PRODUCT_LIST_CACHE_KEY)
+        delete_many.assert_called_once_with([
+            product_detail_cache_key(product_id),
+        ])
+
+    def test_list_is_invalidated_when_no_product_ids_are_given(self):
+        with patch('products.cache_invalidation.cache.delete') as delete, \
+                patch('products.cache_invalidation.cache.delete_many') as delete_many:
+            invalidate_products()
+
+        delete.assert_called_once_with(PRODUCT_LIST_CACHE_KEY)
+        delete_many.assert_not_called()
+
+    def test_redis_failures_do_not_escape(self):
+        product_id = uuid4()
+
+        with patch(
+            'products.cache_invalidation.cache.delete',
+            side_effect=RedisConnectionError('cache unavailable'),
+        ), patch(
+            'products.cache_invalidation.cache.delete_many',
+            side_effect=RedisTimeoutError('cache timeout'),
+        ), self.assertLogs('products.cache_invalidation', level='WARNING') as logs:
+            invalidate_products(product_id)
+
+        self.assertEqual(len(logs.output), 2)
 
 
 
@@ -28,16 +67,16 @@ class RenderedCatalogTests(APITestCase):
         )
 
     def setUp(self):
-        self.detail_key = f'products:{self.product.pk}'
+        self.detail_key = product_detail_cache_key(self.product.pk)
         self.detail_url = f'/api/products/{self.product.pk}/'
-        cache.delete_many(['products:list', self.detail_key])
+        cache.delete_many([PRODUCT_LIST_CACHE_KEY, self.detail_key])
         acquire = patch('products.views.acquire_cache_lock', return_value='test-token')
         release = patch('products.views.release_cache_lock')
         self.acquire = acquire.start()
         self.release = release.start()
         self.addCleanup(acquire.stop)
         self.addCleanup(release.stop)
-        self.addCleanup(cache.delete_many, ['products:list', self.detail_key])
+        self.addCleanup(cache.delete_many, [PRODUCT_LIST_CACHE_KEY, self.detail_key])
         recent = patch('products.views.record_product_view')
         ranking = patch('products.views.update_most_viewed')
         self.recent = recent.start()
@@ -48,7 +87,7 @@ class RenderedCatalogTests(APITestCase):
     def test_warm_cache_returns_identical_json_without_queries_or_rendering(self):
         first = self.client.get('/api/products/')
         self.assertEqual(first.status_code, 200)
-        payload = cache.get('products:list')
+        payload = cache.get(PRODUCT_LIST_CACHE_KEY)
         self.assertIsInstance(payload, bytes)
         self.assertEqual(first.content, payload)
         product = first.json()[0]
@@ -60,13 +99,13 @@ class RenderedCatalogTests(APITestCase):
                 second = self.client.get('/api/products/')
         self.assertEqual(second.content, first.content)
         self.assertEqual(second['Content-Type'], 'application/json')
-        self.acquire.assert_called_once_with('products:list', ttl=10)
-        self.release.assert_called_once_with('products:list', 'test-token')
+        self.acquire.assert_called_once_with(PRODUCT_LIST_CACHE_KEY, ttl=10)
+        self.release.assert_called_once_with(PRODUCT_LIST_CACHE_KEY, 'test-token')
 
     def test_legacy_and_empty_entries_remain_readable(self):
         for cached, expected in (([{'id': 'legacy'}], [{'id': 'legacy'}]), (b'[]', [])):
             with self.subTest(cached=cached):
-                cache.set('products:list', cached)
+                cache.set(PRODUCT_LIST_CACHE_KEY, cached)
                 with self.assertNumQueries(0):
                     response = self.client.get('/api/products/')
                 self.assertEqual(response.status_code, 200)
@@ -83,7 +122,7 @@ class RenderedCatalogTests(APITestCase):
                     response = self.client.get('/api/products/')
                 self.assertEqual(response.content, b'[]')
                 if token:
-                    self.release.assert_called_once_with('products:list', token)
+                    self.release.assert_called_once_with(PRODUCT_LIST_CACHE_KEY, token)
                 else:
                     self.release.assert_not_called()
 
@@ -100,33 +139,31 @@ class RenderedCatalogTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()[0]['id'], str(self.product.pk))
         self.assertEqual(response['Content-Type'], 'application/json')
-        self.release.assert_called_once_with('products:list', 'test-token')
+        self.release.assert_called_once_with(PRODUCT_LIST_CACHE_KEY, 'test-token')
 
     def test_search_bypasses_rendered_list_cache(self):
         self.client.get('/api/products/')
-        original = cache.get('products:list')
+        original = cache.get(PRODUCT_LIST_CACHE_KEY)
         response = self.client.get('/api/products/', {'search': 'no-matching-product'})
         self.assertEqual(response.json(), [])
-        self.assertEqual(cache.get('products:list'), original)
+        self.assertEqual(cache.get(PRODUCT_LIST_CACHE_KEY), original)
 
-    def test_vendor_update_invalidates_bytes_and_next_read_rebuilds(self):
-        original = self.client.get('/api/products/').content
-        self.client.get(self.detail_url)
+    def test_product_write_methods_are_disabled(self):
         self.client.force_authenticate(self.owner)
-        with self.captureOnCommitCallbacks(execute=True):
-            response = self.client.patch(f'/api/products/{self.product.pk}/',
-                                         {'inventory_stock': 9}, format='json')
-        self.assertEqual(response.status_code, 200)
-        self.assertIsNone(cache.get('products:list'))
-        self.assertIsNone(cache.get(self.detail_key))
-        self.client.force_authenticate(user=None)
-        rebuilt = self.client.get('/api/products/')
-        self.assertEqual(rebuilt.json()[0]['inventory_stock'], 9)
-        self.assertNotEqual(rebuilt.content, original)
-        self.assertEqual(cache.get('products:list'), rebuilt.content)
-        detail = self.client.get(self.detail_url)
-        self.assertEqual(detail.json()['inventory_stock'], 9)
-        self.assertEqual(cache.get(self.detail_key), detail.content)
+
+        requests = (
+            ('post', '/api/products/'),
+            ('put', self.detail_url),
+            ('patch', self.detail_url),
+            ('delete', self.detail_url),
+        )
+        for method, url in requests:
+            with self.subTest(method=method):
+                response = getattr(self.client, method)(url, {}, format='json')
+                self.assertEqual(response.status_code, 405)
+
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.inventory_stock, 10)
 
     def test_detail_hit_skips_queries_and_rendering_but_still_tracks_views(self):
         self.client.force_authenticate(self.owner)

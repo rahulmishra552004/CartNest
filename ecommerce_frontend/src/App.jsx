@@ -69,10 +69,10 @@ function App() {
     setCartError('');
     setOrdersError('');
   }, []);
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     await axios.post('/api/auth/logout/');
     handleSessionExpired();
-  }
+  }, [handleSessionExpired]);
   const getCurrentUser = async () => {
     try {
       const response = await axios('/api/auth/me/');

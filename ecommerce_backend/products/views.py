@@ -1,40 +1,36 @@
 import logging
 import random
 import time
-from django.db import transaction
 from django.db.models import Q
 from django.core.cache import cache
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import NotFound, ValidationError
 from .serializers import ProductSerializer
 from .models import Product
-from .permissions import IsVendorOwnerOrReadOnly
 from .throttles import ProductSearchThrottle
 from .recent_views import record_product_view, get_recent_product_ids
 from .most_viewed import update_most_viewed, get_most_viewed_product_ids
 from .cache_locks import acquire_cache_lock, release_cache_lock
+from .cache_keys import PRODUCT_LIST_CACHE_KEY, product_detail_cache_key
 from .identifiers import normalize_product_id
 from config.cache_responses import cached_json_response
 
 logger = logging.getLogger(__name__)
 
 
-class ProductViewSet(ModelViewSet):
+class ProductViewSet(ReadOnlyModelViewSet):
     serializer_class = ProductSerializer
-    permission_classes = [IsVendorOwnerOrReadOnly]
+    permission_classes = [AllowAny]
     throttle_classes = [ProductSearchThrottle]
 
     def get_queryset(self):
         queryset = Product.objects.all()
-
-        if self.action in ('update', 'partial_update'):
-            queryset = queryset.select_for_update()
 
         if self.action == 'list':
             search = self.request.query_params.get('search', '').strip()
@@ -64,9 +60,6 @@ class ProductViewSet(ModelViewSet):
 
         return queryset
 
-    def perform_create(self, serializer):
-        serializer.save(vendor=self.request.user.vendor)
-
     def _normalize_product_lookup(self, product_id):
         try:
             return normalize_product_id(product_id)
@@ -79,7 +72,7 @@ class ProductViewSet(ModelViewSet):
         if search or sort:
             return super().list(request, *args, **kwargs)
 
-        key = 'products:list'
+        key = PRODUCT_LIST_CACHE_KEY
 
         try:
             data = cache.get(key)
@@ -147,7 +140,7 @@ class ProductViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         product_id = self._normalize_product_lookup(kwargs['pk'])
-        key = f"products:{product_id}"
+        key = product_detail_cache_key(product_id)
         cache_available = True
 
         try:
@@ -193,30 +186,6 @@ class ProductViewSet(ModelViewSet):
             update_most_viewed(product_id)
         except (RedisConnectionError, RedisTimeoutError):
             logger.warning('most viewed write failed')
-
-    def create(self, request, *args, **kwargs):
-        with transaction.atomic():
-            response = super().create(request, *args, **kwargs)
-            transaction.on_commit(invalidate_products)
-
-        return response
-
-    def update(self, request, *args, **kwargs):
-        product_id = self._normalize_product_lookup(kwargs['pk'])
-        with transaction.atomic():
-            response = super().update(request, *args, **kwargs)
-            transaction.on_commit(lambda: invalidate_products(product_id))
-
-        return response
-
-    def destroy(self, request, *args, **kwargs):
-        product_id = self._normalize_product_lookup(kwargs['pk'])
-
-        with transaction.atomic():
-            response = super().destroy(request, *args, **kwargs)
-            transaction.on_commit(lambda: invalidate_products(product_id))
-
-        return response
 
     @action(
         detail = False,
@@ -284,19 +253,3 @@ class ProductViewSet(ModelViewSet):
             many = True
         )
         return Response(serializer.data)
-
-def invalidate_products(*product_ids):
-    try:
-        cache.delete('products:list')
-    except(RedisConnectionError, RedisTimeoutError):
-        logger.warning('product-list cache delete failed')
-
-    keys = []
-    for product_id in product_ids:
-        keys.append(f"products:{normalize_product_id(product_id)}")
-
-    if keys:
-        try:
-            cache.delete_many(keys)
-        except (RedisConnectionError, RedisTimeoutError):
-            logger.warning('products cache delete failed')

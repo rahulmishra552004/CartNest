@@ -9,8 +9,11 @@ export function OrderSummary({ cart, deliveryOptions, getCartData, getPaymentSum
     <div className="order-summary">
       {deliveryOptions.length > 0 && cart.map((cartItem) => {
         async function deleteItemFromCart() {
-          await axios.delete(`/api/cart-items/${cartItem.productId}/`)
-          getCartData();
+          await axios.delete(`/api/cart-items/${cartItem.productId}/`);
+          await Promise.all([
+            getCartData(),
+            getPaymentSummary(),
+          ]);
         }
         let matchingDelivereyOption =
           deliveryOptions.find((deliveryOption) => {

@@ -227,6 +227,18 @@
   padding-top: 18px;
 }
 
+.checkout-page .checkout-error {
+  margin: 14px 0 0;
+  padding: 11px 12px;
+  color: rgb(145, 28, 28);
+  background-color: rgb(255, 241, 241);
+  border: 1px solid rgb(238, 176, 176);
+  border-left: 4px solid rgb(198, 40, 40);
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 .checkout-page .place-order-button {
   width: 100%;
   padding-top: 12px;
@@ -235,4 +247,8 @@
 
   margin-top: 20px;
   margin-bottom: 19px;
+}
+
+.checkout-page .checkout-error + .place-order-button {
+  margin-top: 12px;
 }

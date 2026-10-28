@@ -3,7 +3,7 @@
 A full-stack ecommerce learning project with a React storefront, a Django REST
 Framework API, PostgreSQL, Redis, and Celery background jobs.
 
-Last reviewed against the source code: **2026-10-18**.
+Last reviewed against the source code: **2026-10-28**.
 
 The active development copy is `~/projects/ecommerce_project` in Ubuntu WSL.
 This README is the main project reference; verify the relevant source when
@@ -17,8 +17,8 @@ making changes.
   checkout, order-history, and tracking pages.
 - Customer registration and vendor registration APIs. Vendor registration
   creates the user and store profile in one transaction.
-- Product creation by vendors, with updates and deletion restricted to the
-  product's vendor owner.
+- Read-only public product API; catalog changes currently use Django admin or
+  the catalog import command.
 - Per-user carts with add-or-increase quantities, delivery selection, stock
   validation, and payment summaries.
 - Atomic checkout with PostgreSQL row locks, stock deduction, order and
@@ -202,8 +202,8 @@ credentials; Django rotates the token after login. Unsafe API requests require
 the current CSRF token. The configured development browser origin is
 `http://localhost:5173`.
 
-Registration is currently available through the API; there are no registration
-screens or vendor-management screens in the frontend.
+Customer and vendor registration screens are available. Vendor product-management
+screens and product-write API endpoints are not currently enabled.
 
 ## API reference
 
@@ -222,8 +222,6 @@ cart, payment-summary, and order endpoints; writes also require CSRF protection.
 | GET | `/api/products/{id}/` | Public product detail |
 | GET | `/api/products/recently-viewed/` | Signed-in user's ten most recent distinct products |
 | GET | `/api/products/most-viewed/` | Public top ten products by detail requests today (UTC) |
-| POST | `/api/products/` | Vendor with profile; create own product |
-| PUT, PATCH, DELETE | `/api/products/{id}/` | Owning vendor only |
 | GET | `/api/delivery-options/` | Public delivery choices |
 | GET, POST | `/api/cart-items/` | List own cart / add or increase quantity |
 | GET, PUT, PATCH, DELETE | `/api/cart-items/{productId}/` | Read or change own cart item |
@@ -237,8 +235,9 @@ the server forces the customer role. Vendor registration also accepts
 Passwords go through Django validation and are hashed with `create_user()`.
 Registration does not automatically log the user in.
 
-Product creation assigns the vendor from the authenticated user's profile.
-The product representation includes `id`, `image`, `name`, `rating`,
+The product API is read-only. Catalog changes currently use Django admin or the
+`import_catalog` management command. The product representation includes
+`id`, `image`, `name`, `rating`,
 `priceCents`, `keywords`, `inventory_stock`, and read-only `vendor`.
 The API mostly uses camelCase, with these product fields retaining their
 current names. Product prices must be nonnegative. Product UUIDs are normalized

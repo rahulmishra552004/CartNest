@@ -13,6 +13,10 @@ function responseMessage(value) {
 }
 
 function getCheckoutErrorMessage(error) {
+  if (!axios.isAxiosError(error)) {
+    return 'The browser could not complete checkout. Check your orders before trying again.';
+  }
+
   if (!error.response) {
     return 'We could not confirm whether your order was placed. Retry safely using the same request.';
   }

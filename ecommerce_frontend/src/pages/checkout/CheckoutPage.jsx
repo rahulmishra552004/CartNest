@@ -19,6 +19,7 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = fal
   cart.forEach((cartItem) => {
     cartQuantity += cartItem.quantity;
   })
+  const hasCartItems = cart.length > 0;
 
   const getPaymentSummary = useCallback(async () => {
     try {
@@ -30,7 +31,7 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = fal
   }, []);
 
   useEffect(() => {
-    if (isLoading || error || cart.length === 0) return;
+    if (error || !hasCartItems) return;
     const controller = new AbortController();
     async function loadCheckout() {
       setCheckoutError('');
@@ -48,7 +49,7 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = fal
     }
     loadCheckout();
     return () => controller.abort();
-  }, [cart, isLoading, error, retry]);
+  }, [hasCartItems, error, retry]);
 
   const showState = error || (!isLoading && cart.length === 0) || checkoutError;
 

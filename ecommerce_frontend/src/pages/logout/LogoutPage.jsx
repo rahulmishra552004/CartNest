@@ -1,17 +1,23 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router'
 import './LogoutPage.css';
 import { BrandLogo } from '../../components/BrandLogo.jsx';
 
 export function LogoutPage({ onLogout }){
   const [isLoading, setIsLoading] = useState(true);
+  const logoutStarted = useRef(false);
+
   useEffect(() => {
-    const Logout = (async () => {
+    if (logoutStarted.current) return;
+    logoutStarted.current = true;
+
+    async function logout() {
       await onLogout();
       setIsLoading(false);
-    })
-    Logout();
-  }, []);
+    }
+
+    logout();
+  }, [onLogout]);
 
   if (!isLoading){
     return (

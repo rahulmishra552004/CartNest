@@ -1,6 +1,6 @@
 import logging
 from kombu.exceptions import OperationalError
-from products.views import invalidate_products
+from products.cache_invalidation import invalidate_products
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins, viewsets

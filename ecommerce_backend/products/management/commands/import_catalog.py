@@ -9,8 +9,8 @@ from django.db import transaction
 from redis.exceptions import RedisError
 
 from deliveryoptions.models import DeliveryOption
+from products.cache_keys import PRODUCT_LIST_CACHE_KEY, product_detail_cache_key
 from products.models import Product
-from products.identifiers import normalize_product_id
 from vendors.models import Vendor
 
 
@@ -110,7 +110,7 @@ class Command(BaseCommand):
                         'inventory_stock': initial_stock,
                     },
                 )
-                product_ids.append(normalize_product_id(product.pk))
+                product_ids.append(product.pk)
 
             transaction.on_commit(lambda: self._invalidate_cache(product_ids))
 
@@ -121,10 +121,10 @@ class Command(BaseCommand):
 
     def _invalidate_cache(self, product_ids):
         keys = [
-            'products:list',
+            PRODUCT_LIST_CACHE_KEY,
             'delivery-options:v1:expanded:0',
             'delivery-options:v1:expanded:1',
-            *(f'products:{product_id}' for product_id in product_ids),
+            *(product_detail_cache_key(product_id) for product_id in product_ids),
         ]
         try:
             cache.delete_many(keys)

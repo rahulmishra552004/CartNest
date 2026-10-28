@@ -1,6 +1,6 @@
 # Ecommerce Django Backend
 
-Last reviewed against the source code: **2026-10-18**.
+Last reviewed against the source code: **2026-10-28**.
 
 The canonical architecture, API, authentication, checkout, caching, and
 limitations reference is the [project README](../README.md).
@@ -74,16 +74,16 @@ server's memory, eviction policy, and persistence configuration.
 | --- | --- |
 | `users` | Custom customer/vendor users, registration, session login/logout, CSRF |
 | `vendors` | Store profiles created through vendor registration |
-| `products` | Catalog, owner-controlled writes, caches/locks, search throttling, history/rankings |
+| `products` | Read-only catalog API, caches/locks, search throttling, history/rankings |
 | `deliveryoptions` | Public cached delivery choices |
 | `cart` | User-isolated carts, stock validation, coordinated transactional writes |
 | `orders_and_paymentsummary` | Totals, checkout/idempotency, snapshots, confirmation tasks/recovery |
 
 Checkout rejects empty carts and insufficient stock. It locks the user, cart
 rows, and products, then saves orders/items, deducts stock, and clears the cart
-in one transaction. Product caches are invalidated after commit. Vendor updates
-also lock their product row before loading it. Product UUIDs are canonicalized
-for Redis keys, history, rankings, and invalidation.
+in one transaction. Product caches are invalidated after commit. Product UUIDs
+are canonicalized for Redis keys, history, rankings, and invalidation. Catalog
+changes currently use Django admin or the `import_catalog` management command.
 
 ## Checkout and Redis features
 
@@ -127,9 +127,10 @@ python manage.py migrate --check
 python manage.py test --settings=config.test
 ```
 
-The regression tests cover cart constraints/isolation, stock validation,
-totals, snapshots, deduction, rollback, required checkout headers, cached and
-database-backed idempotency replay, and isolated runtime cleanup. They do not
+The regression tests cover read-only product routes, product-cache invalidation,
+cart constraints/isolation, stock validation, totals, snapshots, deduction,
+rollback, required checkout headers, cached and database-backed idempotency
+replay, and isolated runtime cleanup. They do not
 test true concurrent transactions, full browser CSRF flows, or real email
 providers. Test settings require Redis and use eager tasks with in-memory mail,
 so tests do not publish to development Celery.
