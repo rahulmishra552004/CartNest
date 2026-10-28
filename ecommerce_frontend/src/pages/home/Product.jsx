@@ -10,8 +10,8 @@ export function Product({ product, getCartData, user, linkToDetails = true }) {
   const [added, setAdded] = useState(false);
   const [error, setError] = useState('');
   const productUrl = `/products/${encodeURIComponent(product.id)}`;
-  const soldOut = product.inventory_stock === 0;
-  const quantityLimit = Math.min(10, Math.max(1, product.inventory_stock ?? 10));
+  const soldOut = product.inventoryStock === 0;
+  const quantityLimit = Math.min(10, Math.max(1, product.inventoryStock ?? 10));
   const NameTag = linkToDetails ? 'div' : 'h1';
 
   async function addToCart() {
@@ -61,7 +61,7 @@ export function Product({ product, getCartData, user, linkToDetails = true }) {
         ${formatCurrency(product.priceCents)}
       </div>
 
-      {!linkToDetails && <p className="product-stock">{soldOut ? 'Currently out of stock' : `${product.inventory_stock} available`}</p>}
+      {!linkToDetails && <p className="product-stock">{soldOut ? 'Currently out of stock' : `${product.inventoryStock} available`}</p>}
 
       <div className="product-spacer"></div>
 

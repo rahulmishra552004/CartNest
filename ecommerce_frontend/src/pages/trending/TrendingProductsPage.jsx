@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import axios from 'axios';
-import { Header } from '../Header.jsx';
+import { CustomerHeader } from '../header/CustomerHeader.jsx';
 import { CatalogNavigation } from '../home/CatalogNavigation.jsx';
 import { ProductsGrid } from '../home/ProductsGrid.jsx';
 import { accountError } from '../profile/accountErrors.js';
@@ -36,7 +36,7 @@ export function TrendingProductsPage({ cart, user, getCartData }) {
   return (
     <>
       <title>Trending products | CartNest</title>
-      <Header cart={cart} user={user} />
+      <CustomerHeader cart={cart} user={user} />
       <main className="home-page trending-page">
         <div className="trending-content">
           <CatalogNavigation />

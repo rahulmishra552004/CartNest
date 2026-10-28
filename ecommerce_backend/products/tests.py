@@ -94,6 +94,8 @@ class RenderedCatalogTests(APITestCase):
         self.assertEqual(product['id'], str(self.product.pk))
         self.assertEqual(product['rating'], {'stars': 4.5, 'count': 12})
         self.assertEqual(product['priceCents'], 1200)
+        self.assertEqual(product['inventoryStock'], 10)
+        self.assertNotIn('inventory_stock', product)
         with patch('products.views.JSONRenderer.render', side_effect=AssertionError('Re-rendered cache hit')):
             with self.assertNumQueries(0):
                 second = self.client.get('/api/products/')
@@ -164,6 +166,21 @@ class RenderedCatalogTests(APITestCase):
 
         self.product.refresh_from_db()
         self.assertEqual(self.product.inventory_stock, 10)
+
+    def test_vendor_api_writes_inventory_stock_with_camel_case_field(self):
+        self.client.force_authenticate(self.owner)
+
+        response = self.client.patch(
+            f'/api/vendor/products/{self.product.pk}/',
+            {'inventoryStock': 7},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['inventoryStock'], 7)
+        self.assertNotIn('inventory_stock', response.json())
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.inventory_stock, 7)
 
     def test_detail_hit_skips_queries_and_rendering_but_still_tracks_views(self):
         self.client.force_authenticate(self.owner)

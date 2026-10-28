@@ -14,6 +14,10 @@ import { ChangePasswordPage } from './pages/profile/ChangePasswordPage.jsx';
 import { VendorUpgradePage } from './pages/profile/VendorUpgradePage.jsx';
 import { CustomerRegistrationPage } from './pages/registration/CustomerRegistrationPage.jsx';
 import { VendorRegistrationPage } from './pages/registration/VendorRegistrationPage.jsx';
+import { VendorCatalogPage } from './pages/vendor/catalog/VendorCatalogPage.jsx';
+import { VendorAddProductPage } from './pages/vendor/catalog/VendorAddProductPage.jsx';
+import { VendorProductDetailsPage } from './pages/vendor/catalog/VendorProductDetailsPage.jsx';
+import { VendorOrdersPage } from './pages/vendor/orders/VendorOrdersPage.jsx';
 import './App.css'
 import { Routes, Route, Navigate } from 'react-router';
 import axios from 'axios';
@@ -105,6 +109,10 @@ function App() {
           element={<AboutPage cart={cart} user={user} />}
         />
         <Route
+          path="/vendor/about"
+          element={<AboutPage cart={cart} user={user} headerVariant="vendor" />}
+        />
+        <Route
           path="/login"
           element={
             user
@@ -135,6 +143,10 @@ function App() {
           }
         />
         <Route path="/" element={<HomePage cart={cart} getCartData={getCartData} user={user} />} />
+        <Route path="/vendor/catalog" element={<VendorCatalogPage user={user} />} />
+        <Route path="/vendor/catalog/new" element={<VendorAddProductPage user={user} />} />
+        <Route path="/vendor/catalog/:productId" element={<VendorProductDetailsPage user={user} />} />
+        <Route path="/vendor/orders" element={<VendorOrdersPage user={user} />} />
         <Route path="/trending" element={<TrendingProductsPage cart={cart} user={user} getCartData={getCartData} />} />
         <Route
           path="/products/:productId"
@@ -223,7 +235,21 @@ function App() {
                   cart={cart}
                   orders={orders}
                   user={user}
-                  getCartData={getCartData}
+                />
+            )
+            : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/vendor/profile"
+          element={
+            user
+            ? (
+                <ProfilePage
+                  cart={cart}
+                  orders={orders}
+                  user={user}
+                  headerVariant="vendor"
                 />
             )
             : <Navigate to="/login" replace />

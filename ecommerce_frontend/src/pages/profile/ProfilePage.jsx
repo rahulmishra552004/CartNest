@@ -1,21 +1,20 @@
 import { Link, useLocation } from 'react-router';
-import dayjs from 'dayjs';
-import { Header } from '../Header.jsx';
-import { OrderDetailsGrid } from '../orders/OrderDetailsGrid.jsx';
-import { formatCurrency } from '../../utils/money.js';
-import '../orders/OrdersPage.css';
+import { CustomerHeader } from '../header/CustomerHeader.jsx';
+import { VendorHeader } from '../header/VendorHeader.jsx';
 import './ProfilePage.css';
 
-export function ProfilePage({ cart, orders, user, getCartData }) {
+export function ProfilePage({ cart, orders, user, headerVariant = 'customer' }) {
   const { state } = useLocation();
   const accountType = user.role === 'vendor' ? 'Vendor' : 'Customer';
   const cartQuantity = cart.reduce((quantity, item) => quantity + item.quantity, 0);
-  const latestOrder = [...orders].sort((a, b) => b.orderTimeMs - a.orderTimeMs)[0];
+  const aboutPath = headerVariant === 'vendor' ? '/vendor/about' : '/about';
 
   return (
     <>
       <title>My profile | CartNest</title>
-      <Header cart={cart} user={user} />
+      {headerVariant === 'vendor'
+        ? <VendorHeader user={user} />
+        : <CustomerHeader cart={cart} user={user} />}
 
       <main className="profile-page">
         <div className="profile-content">
@@ -27,7 +26,7 @@ export function ProfilePage({ cart, orders, user, getCartData }) {
 
           <div className="profile-heading">
             <h1>My profile</h1>
-            <p>Your account and latest order, in one place.</p>
+            <p>Your account details and settings, in one place.</p>
           </div>
 
           {typeof state?.profileMessage === 'string' && (
@@ -88,45 +87,11 @@ export function ProfilePage({ cart, orders, user, getCartData }) {
                   Update profile
                 </Link>
                 <Link to="/profile/change-password" className="button-secondary profile-action-link">Change password</Link>
-                <Link to="/about" className="profile-contact-link">Contact us</Link>
+                <Link to={aboutPath} className="profile-contact-link">Contact us</Link>
               </div>
             </section>
           </div>
 
-          <section className="profile-orders orders-page" aria-labelledby="profile-orders-title">
-            <div className="profile-orders-heading">
-              <h2 id="profile-orders-title">Latest order</h2>
-              {orders.length > 0 && <Link to="/orders">View all orders</Link>}
-            </div>
-
-            {latestOrder ? (
-              <div className="profile-order-container">
-                <div className="order-header">
-                  <div className="order-header-left-section">
-                    <div className="order-date">
-                      <div className="order-header-label">Order placed</div>
-                      <div>{dayjs(latestOrder.orderTimeMs).format('MMMM D, YYYY')}</div>
-                    </div>
-                    <div className="order-total">
-                      <div className="order-header-label">Total</div>
-                      <div>${formatCurrency(latestOrder.totalCostCents)}</div>
-                    </div>
-                  </div>
-                  <div className="order-header-right-section">
-                    <div className="order-header-label">Order ID</div>
-                    <div>{latestOrder.id}</div>
-                  </div>
-                </div>
-                <OrderDetailsGrid order={latestOrder} getCartData={getCartData} />
-              </div>
-            ) : (
-              <div className="profile-card profile-empty-orders">
-                <h3>No orders yet</h3>
-                <p>Once you place an order, you’ll find it here.</p>
-                <Link to="/" className="profile-contact-link">Explore products</Link>
-              </div>
-            )}
-          </section>
         </div>
       </main>
     </>

@@ -1,5 +1,5 @@
 import './HomePage.css';
-import { Header } from '../Header.jsx';
+import { CustomerHeader } from '../header/CustomerHeader.jsx';
 import axios from 'axios'
 import { useEffect, useState } from 'react';
 import { ProductsGrid } from './ProductsGrid.jsx';
@@ -15,7 +15,7 @@ const loadingProduct = {
   name: '',
   priceCents: 0,
   rating: { stars: 0, count: 0 },
-  inventory_stock: 0,
+  inventoryStock: 0,
 };
 
 export function HomePage({ cart, getCartData, user }) {
@@ -76,7 +76,7 @@ export function HomePage({ cart, getCartData, user }) {
         CartNest
       </title>
 
-      <Header cart={cart} user={user} />
+      <CustomerHeader cart={cart} user={user} />
 
       <main className="home-page catalog-home-page">
         <div className="catalog-home-content">

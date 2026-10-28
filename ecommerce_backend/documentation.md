@@ -38,6 +38,7 @@ Returns a list of products.
       "count": "number"
     },
     "priceCents": "number",
+    "inventoryStock": "number",
     "keywords": ["string"]
   }
 ]

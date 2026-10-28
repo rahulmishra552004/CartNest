@@ -1,12 +1,15 @@
 import { Link } from 'react-router';
-import { Header } from '../Header.jsx';
+import { CustomerHeader } from '../header/CustomerHeader.jsx';
+import { VendorHeader } from '../header/VendorHeader.jsx';
 import './AboutPage.css';
 
-export function AboutPage({ cart, user }) {
+export function AboutPage({ cart, user, headerVariant = 'customer' }) {
   return (
     <>
       <title>About us | CartNest</title>
-      <Header cart={cart} user={user} />
+      {headerVariant === 'vendor'
+        ? <VendorHeader user={user} />
+        : <CustomerHeader cart={cart} user={user} />}
 
       <main className="about-page">
         <div className="about-content">

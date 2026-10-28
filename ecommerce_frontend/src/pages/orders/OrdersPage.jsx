@@ -1,4 +1,4 @@
-import { Header } from '../Header.jsx';
+import { CustomerHeader } from '../header/CustomerHeader.jsx';
 import './OrdersPage.css';
 import { formatCurrency } from '../../utils/money.js';
 import dayjs from 'dayjs';
@@ -14,7 +14,7 @@ export function OrdersPage({ cart, orders, getCartData, user, isLoading = false,
         Orders | CartNest
       </title>
 
-      <Header cart={cart} user={user} />
+      <CustomerHeader cart={cart} user={user} />
 
       <main className={showState ? 'orders-empty-page' : 'orders-page'}>
         <div className={showState ? 'orders-empty-content' : undefined}>

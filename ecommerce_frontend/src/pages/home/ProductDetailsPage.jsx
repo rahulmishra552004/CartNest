@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import axios from 'axios';
-import { Header } from '../Header.jsx';
+import { CustomerHeader } from '../header/CustomerHeader.jsx';
 import { Product } from './Product.jsx';
 import { accountError } from '../profile/accountErrors.js';
 import './HomePage.css';
@@ -37,7 +37,7 @@ export function ProductDetailsPage({ cart, user, getCartData }) {
   return (
     <>
       <title>{product ? `${product.name} | CartNest` : 'Product details | CartNest'}</title>
-      <Header cart={cart} user={user} />
+      <CustomerHeader cart={cart} user={user} />
       <main className="home-page product-details-page">
         <div className="product-details-content">
           <nav className="product-details-breadcrumb" aria-label="Breadcrumb"><Link to="/">Shop</Link><span aria-hidden="true">/</span><span aria-current="page">Product details</span></nav>

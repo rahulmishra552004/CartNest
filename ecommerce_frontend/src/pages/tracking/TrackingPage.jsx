@@ -1,5 +1,5 @@
 import './TrackingPage.css';
-import { Header } from '../Header';
+import { CustomerHeader } from '../header/CustomerHeader.jsx';
 import dayjs from 'dayjs';
 
 function getProduct(orders, orderId, productId){
@@ -39,7 +39,7 @@ export function TrackingPage({ cart, orders, user }) {
         Tracking | CartNest
       </title>
 
-      <Header cart={cart} user={user} />
+      <CustomerHeader cart={cart} user={user} />
 
       <div className="tracking-page">
         <div className="order-tracking">

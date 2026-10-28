@@ -18,6 +18,11 @@ class ProductSerializer(serializers.ModelSerializer):
         source = 'price_cents',
         min_value = 0,
     )
+    inventoryStock = serializers.IntegerField(
+        source = 'inventory_stock',
+        min_value = 0,
+    )
+
     class Meta:
         model = Product
         fields = [
@@ -27,7 +32,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'rating',
             'priceCents',
             'keywords',
-            'inventory_stock',
+            'inventoryStock',
             'vendor'
         ]
         read_only_fields = ['vendor']

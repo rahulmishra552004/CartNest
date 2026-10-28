@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import axios from 'axios';
-import { Header } from '../Header.jsx';
+import { CustomerHeader } from '../header/CustomerHeader.jsx';
 import { CatalogNavigation } from '../home/CatalogNavigation.jsx';
 import { ProductsGrid } from '../home/ProductsGrid.jsx';
 import { accountError } from '../profile/accountErrors.js';
@@ -41,7 +41,7 @@ export function RecentlyViewedPage({ cart, user, getCartData, onSessionExpired }
   return (
     <>
       <title>Recently viewed | CartNest</title>
-      <Header cart={cart} user={user} />
+      <CustomerHeader cart={cart} user={user} />
       <main className="home-page recently-viewed-page">
         <div className="recently-viewed-content">
           <CatalogNavigation />
