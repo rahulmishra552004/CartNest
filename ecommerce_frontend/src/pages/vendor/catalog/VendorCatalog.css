@@ -257,6 +257,13 @@
   min-height: 14px;
 }
 
+.vendor-product-card-error {
+  margin: 0 0 10px;
+  color: #8d3030;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .vendor-product-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -300,6 +307,12 @@
 .vendor-delete-button:hover {
   border-color: #cf8f8f;
   background: #fff0f0;
+}
+
+.vendor-update-button:disabled,
+.vendor-delete-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .vendor-product-image-link:focus-visible,

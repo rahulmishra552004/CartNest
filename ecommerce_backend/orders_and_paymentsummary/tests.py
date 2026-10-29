@@ -53,11 +53,14 @@ class CheckoutTests(APITestCase):
     def setUp(self):
         self.client.force_authenticate(self.user)
         self.idempotency_key = str(uuid4())
+        self.order_data = {
+            "deliveryAddress": "123 Demo Street, Test City",
+        }
         self.client.credentials(HTTP_IDEMPOTENCY_KEY=self.idempotency_key)
 
     def test_checkout_requires_idempotency_key(self):
         self.client.credentials()
-        response = self.client.post('/api/orders/', {}, format='json')
+        response = self.client.post('/api/orders/', self.order_data, format='json')
         self.assertEqual(response.status_code, 400)
         self.assertIn('Idempotency-Key', response.data)
         self.assertFalse(Order.objects.exists())
@@ -65,14 +68,14 @@ class CheckoutTests(APITestCase):
     def test_replay_uses_cache_then_database_without_deducting_stock_twice(self):
         with patch('orders_and_paymentsummary.views.send_order_confirmation.delay') as enqueue:
             with self.captureOnCommitCallbacks(execute=True):
-                first = self.client.post('/api/orders/', {}, format='json')
+                first = self.client.post('/api/orders/', self.order_data, format='json')
             self.assertEqual(first.status_code, 201)
             with self.captureOnCommitCallbacks(execute=True):
-                replay = self.client.post('/api/orders/', {}, format='json')
+                replay = self.client.post('/api/orders/', self.order_data, format='json')
             self.assertEqual(replay.data['id'], first.data['id'])
             cache.delete(f'checkout-result:user:{self.user.pk}:key:{self.idempotency_key}:expand:False')
             with self.captureOnCommitCallbacks(execute=True):
-                fallback = self.client.post('/api/orders/', {}, format='json')
+                fallback = self.client.post('/api/orders/', self.order_data, format='json')
             self.assertEqual(fallback.status_code, 201)
             self.assertEqual(fallback.data['id'], first.data['id'])
             enqueue.assert_called_once()
@@ -103,7 +106,7 @@ class CheckoutTests(APITestCase):
         self.assertEqual(response.data["totalCostCents"], 5280)
 
     def test_checkout_saves_items_snapshots_and_stock_atomically(self):
-        response = self.client.post("/api/orders/", {}, format="json")
+        response = self.client.post("/api/orders/", self.order_data, format="json")
         self.assertEqual(response.status_code, 201)
         order = Order.objects.get(pk=response.data["id"])
         self.assertEqual(order.user_id, self.user.pk)
@@ -129,14 +132,14 @@ class CheckoutTests(APITestCase):
 
     def test_empty_cart_is_rejected(self):
         CartItem.objects.filter(user=self.user).delete()
-        response = self.client.post("/api/orders/", {}, format="json")
+        response = self.client.post("/api/orders/", self.order_data, format="json")
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Order.objects.exists())
         self.assertTrue(CartItem.objects.filter(pk=self.other_cart_item.pk).exists())
 
     def test_insufficient_stock_preserves_cart_and_inventory(self):
         Product.objects.filter(pk=self.product.pk).update(inventory_stock=1)
-        response = self.client.post("/api/orders/", {}, format="json")
+        response = self.client.post("/api/orders/", self.order_data, format="json")
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Order.objects.exists())
         self.assertEqual(CartItem.objects.filter(user=self.user).count(), 2)
@@ -151,7 +154,7 @@ class CheckoutTests(APITestCase):
             side_effect=IntegrityError("Simulated order-item insert failure"),
         ):
             with self.assertRaises(IntegrityError):
-                self.client.post("/api/orders/", {}, format="json")
+                self.client.post("/api/orders/", self.order_data, format="json")
 
         self.assertFalse(Order.objects.exists())
         self.assertFalse(OrderItem.objects.exists())

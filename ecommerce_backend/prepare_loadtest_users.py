@@ -65,6 +65,7 @@ def main():
                     user=user, products=get_products([item]),
                     total_cost_cents=get_payment_summary([item])['total_cost_cents'],
                     confirmation_email_sent_at=timezone.now(),
+                    delivery_address='123 Demo Street, Test City',
                 )
                 OrderItem.objects.create(
                     order=order, user=user, vendor=product.vendor,

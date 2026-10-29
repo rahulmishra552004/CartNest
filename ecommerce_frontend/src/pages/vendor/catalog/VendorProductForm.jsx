@@ -1,5 +1,6 @@
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useState } from 'react';
+import axios from 'axios';
 import { accountError, errorMessage } from '../../profile/accountErrors.js';
 
 function productRequestError(requestError) {
@@ -34,8 +35,11 @@ export function VendorProductForm({
   showDeleteAction = false,
   onSubmit,
 }) {
+  const navigate = useNavigate();
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const isBusy = isSubmitting || isDeleting;
 
   function prepareFormData(formElement) {
     const formData = new FormData(formElement);
@@ -62,8 +66,26 @@ export function VendorProductForm({
     }
   }
 
+  async function handleDelete() {
+    const confirmed = window.confirm(`Delete "${product.name}"? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    setError('');
+    setIsDeleting(true);
+
+    try {
+      await axios.delete(`/api/vendor/products/${product.id}/`);
+      navigate('/vendor/catalog', {
+        state: { successMessage: 'Product deleted successfully.' },
+      });
+    } catch (requestError) {
+      setError(productRequestError(requestError));
+      setIsDeleting(false);
+    }
+  }
+
   return (
-    <form className="vendor-product-details-card" onSubmit={handleSubmit} aria-busy={isSubmitting}>
+    <form className="vendor-product-details-card" onSubmit={handleSubmit} aria-busy={isBusy}>
       <div className="vendor-details-image-panel">
         <div className="vendor-details-image-container">
           {product?.image ? (
@@ -151,11 +173,18 @@ export function VendorProductForm({
         )}
 
         <div className="vendor-details-actions">
-          <button className="vendor-update-button" type="submit" disabled={isSubmitting}>
+          <button className="vendor-update-button" type="submit" disabled={isBusy}>
             {isSubmitting ? 'Saving…' : primaryActionLabel}
           </button>
           {showDeleteAction && (
-            <button className="vendor-delete-button" type="button" disabled={isSubmitting}>Delete product</button>
+            <button
+              className="vendor-delete-button"
+              type="button"
+              onClick={handleDelete}
+              disabled={isBusy}
+            >
+              {isDeleting ? 'Deleting…' : 'Delete product'}
+            </button>
           )}
           <Link className="vendor-product-form-cancel" to="/vendor/catalog">Cancel</Link>
         </div>

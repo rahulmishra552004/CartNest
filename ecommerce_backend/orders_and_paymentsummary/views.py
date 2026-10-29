@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 class OrderViewSet(
         mixins.ListModelMixin,
         mixins.CreateModelMixin,
-        mixins.RetrieveModelMixin,
         viewsets.GenericViewSet
         ):
     serializer_class = OrderSerializer
@@ -61,6 +60,7 @@ class OrderViewSet(
             return Response(cached_data, status=201)
 
         with transaction.atomic():
+            #lock user row to prevent user to proceed with another order creating, adding another cart item, deadlock condition, adding cart item also locks user.
             get_user_model().objects.select_for_update().get(pk = request.user.pk)
 
             checkout_request, created = CheckoutRequest.objects.get_or_create(

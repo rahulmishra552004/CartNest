@@ -12,7 +12,12 @@ export function VendorCatalogPage({ user }) {
   const navigate = useNavigate();
   const [vendorProducts, setVendorProducts] = useState();
   const [error, setError] = useState('');
-  const [successMessage] = useState(state?.successMessage ?? '');
+  const [successMessage, setSuccessMessage] = useState(state?.successMessage ?? '');
+
+  function handleProductDeleted(productId) {
+    setVendorProducts((products) => products.filter((product) => product.id !== productId));
+    setSuccessMessage('Product deleted successfully.');
+  }
 
   useEffect(() => {
     if (state?.successMessage) {
@@ -84,7 +89,11 @@ export function VendorCatalogPage({ user }) {
             ) : (
               <div className="vendor-products-grid">
                 {vendorProducts?.map((product) => (
-                  <VendorProductCard key={product.id} product={product} />
+                  <VendorProductCard
+                    key={product.id}
+                    product={product}
+                    onDeleted={handleProductDeleted}
+                  />
                 ))}
               </div>
             )}

@@ -64,7 +64,7 @@ export function PaymentSummary({ cart, paymentSummary, getCartData, getOrdersDat
       const idempotencyKey = getIdempotencyKey(cart);
       const response = await axios.post(
         '/api/orders/',
-        {},
+        { deliveryAddress: '123 Demo Street, Test City' },
         {
           headers: {
             'Idempotency-Key': idempotencyKey,

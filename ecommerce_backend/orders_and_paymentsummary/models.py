@@ -86,8 +86,16 @@ class Order(models.Model):
         blank=True,
         editable=False
     )
+    delivery_address = models.CharField(
+        max_length = 256,
+    )
 
 class OrderItem(models.Model):
+    class DeliveryStatus(models.TextChoices):
+        PREPARING = 'preparing', 'Preparing'
+        SHIPPING = 'shipping', 'Shipping'
+        DELIVERED = 'delivered', 'Delivered'
+
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     user = models.ForeignKey(
             settings.AUTH_USER_MODEL,
@@ -109,6 +117,11 @@ class OrderItem(models.Model):
             related_name='order_items',
             on_delete=models.PROTECT
             )
+    delivery_status = models.CharField(
+        max_length = 10,
+        choices = DeliveryStatus.choices,
+        default = DeliveryStatus.PREPARING,
+    )
     product = models.JSONField(default=dict)
     quantity = models.PositiveIntegerField()
 

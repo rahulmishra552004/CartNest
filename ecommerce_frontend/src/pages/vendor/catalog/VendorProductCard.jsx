@@ -1,8 +1,29 @@
 import { Link } from 'react-router';
+import { useState } from 'react';
+import axios from 'axios';
 import { formatCurrency } from '../../../utils/money.js';
+import { accountError } from '../../profile/accountErrors.js';
 
-export function VendorProductCard({ product }) {
+export function VendorProductCard({ product, onDeleted }) {
   const productUrl = `/vendor/catalog/${encodeURIComponent(product.id)}`;
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  async function handleDelete() {
+    const confirmed = window.confirm(`Delete "${product.name}"? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeleteError('');
+    setIsDeleting(true);
+
+    try {
+      await axios.delete(`/api/vendor/products/${product.id}/`);
+      onDeleted(product.id);
+    } catch (requestError) {
+      setDeleteError(accountError(requestError));
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <article className="vendor-product-card">
@@ -32,10 +53,22 @@ export function VendorProductCard({ product }) {
 
         <div className="vendor-product-spacer" />
 
+        {deleteError && (
+          <p className="vendor-product-card-error" role="alert">
+            {deleteError}
+          </p>
+        )}
+
         <div className="vendor-product-actions">
           <Link className="vendor-update-button" to={productUrl} state={{ product }}>Update</Link>
-          <button className="vendor-delete-button" type="button" aria-label={`Delete ${product.name}`}>
-            Delete
+          <button
+            className="vendor-delete-button"
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            aria-label={`Delete ${product.name}`}
+          >
+            {isDeleting ? 'Deleting…' : 'Delete'}
           </button>
         </div>
       </div>

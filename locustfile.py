@@ -15,6 +15,7 @@ from locust.exception import StopUser
 
 DATA = {}
 ACCOUNTS = Queue()
+DUMMY_DELIVERY_ADDRESS = '123 Demo Street, Test City'
 
 
 class FlowFailure(Exception):
@@ -300,7 +301,8 @@ class CheckoutUser(AuthenticatedUser):
         try:
             name = 'Checkout: resolve pending' if pending['submitted'] else 'Checkout: submit'
             pending['submitted'] = True
-            response = self.request('POST', '/api/orders/', expected=201, json={},
+            response = self.request('POST', '/api/orders/', expected=201,
+                                    json={'deliveryAddress': DUMMY_DELIVERY_ADDRESS},
                                     headers={'Idempotency-Key': pending['key']},
                                     name=name,
                                     validate=validate)
@@ -311,7 +313,8 @@ class CheckoutUser(AuthenticatedUser):
             raise
         pending['order_id'] = response.json()['id']
         if self.replay:
-            self.request('POST', '/api/orders/', expected=201, json={},
+            self.request('POST', '/api/orders/', expected=201,
+                         json={'deliveryAddress': DUMMY_DELIVERY_ADDRESS},
                          headers={'Idempotency-Key': pending['key']},
                          name='Checkout: replay', validate=validate)
         self.request('GET', f"/api/orders/{pending['order_id']}/", name='/api/orders/[id]/', validate=validate)
