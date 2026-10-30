@@ -4,6 +4,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { getIdempotencyKey, resetIdempotencyKey } from '../../utils/checkoutIdempotency.js';
 
+const DUMMY_DELIVERY_ADDRESS = {
+  deliveryRecipientName: 'Demo Customer',
+  deliveryAddressLine1: '123 Demo Street',
+  deliveryAddressLine2: '',
+  deliveryCity: 'Test City',
+  deliveryState: 'Test State',
+  deliveryPostalCode: '110001',
+  deliveryCountryCode: 'IN',
+};
+
 function responseMessage(value) {
   if (Array.isArray(value)) {
     return value.join(' ');
@@ -64,7 +74,7 @@ export function PaymentSummary({ cart, paymentSummary, getCartData, getOrdersDat
       const idempotencyKey = getIdempotencyKey(cart);
       const response = await axios.post(
         '/api/orders/',
-        { deliveryAddress: '123 Demo Street, Test City' },
+        DUMMY_DELIVERY_ADDRESS,
         {
           headers: {
             'Idempotency-Key': idempotencyKey,

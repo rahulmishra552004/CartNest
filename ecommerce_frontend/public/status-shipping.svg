@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 130" role="img" aria-labelledby="title description">
+  <title id="title">Order shipping</title>
+  <desc id="description">A green delivery truck carrying a package</desc>
+  <ellipse cx="91" cy="108" rx="68" ry="7" fill="#d7e7dc"/>
+  <path d="M21 44h91v52H21z" fill="#4a9870"/>
+  <path d="M112 59h26l20 22v15h-46z" fill="#377b59"/>
+  <path d="m123 65h12l13 15h-25z" fill="#dff1e7"/>
+  <rect x="30" y="52" width="45" height="35" rx="3" fill="#e5b980"/>
+  <path d="M30 61h45M52.5 52v35" fill="none" stroke="#c1844f" stroke-width="2"/>
+  <path d="M81 68h20M81 77h14" fill="none" stroke="#dff1e7" stroke-linecap="round" stroke-width="3"/>
+  <circle cx="49" cy="98" r="13" fill="#2d4c3b"/>
+  <circle cx="49" cy="98" r="6" fill="#d7e7dc"/>
+  <circle cx="136" cy="98" r="13" fill="#2d4c3b"/>
+  <circle cx="136" cy="98" r="6" fill="#d7e7dc"/>
+  <path d="M9 54h10M5 66h14M12 78h7" fill="none" stroke="#77ad90" stroke-linecap="round" stroke-width="3"/>
+</svg>

@@ -29,7 +29,8 @@ def main():
     from cart.models import CartItem
     from deliveryoptions.models import DeliveryOption
     from orders_and_paymentsummary.models import (
-        CheckoutRequest, Order, OrderItem, get_payment_summary, get_product, get_products,
+        CheckoutRequest, Order, OrderItem, current_time_ms, get_payment_summary,
+        get_product, get_products,
     )
     from products.models import Product
 
@@ -61,15 +62,31 @@ def main():
             if history.order_id is None:
                 product = Product.objects.get(pk=products[(index - 1) % len(products)])
                 item = CartItem(user=user, product=product, quantity=1, delivery_option=delivery)
+                payment_summary = get_payment_summary([item])
+                order_time_ms = current_time_ms()
                 order = Order.objects.create(
-                    user=user, products=get_products([item]),
-                    total_cost_cents=get_payment_summary([item])['total_cost_cents'],
+                    user=user,
+                    order_time_ms=order_time_ms,
+                    products=get_products([item], order_time_ms),
+                    total_cost_cents=payment_summary['total_cost_cents'],
                     confirmation_email_sent_at=timezone.now(),
-                    delivery_address='123 Demo Street, Test City',
+                    delivery_recipient_name='Demo Customer',
+                    delivery_address_line1='123 Demo Street',
+                    delivery_address_line2='',
+                    delivery_city='Test City',
+                    delivery_state='Test State',
+                    delivery_postal_code='110001',
+                    delivery_country_code='IN',
                 )
                 OrderItem.objects.create(
                     order=order, user=user, vendor=product.vendor,
-                    delivery_option=delivery, product=get_product(product), quantity=1,
+                    product=get_product(product), quantity=1,
+                    delivery_days=delivery.delivery_days,
+                    estimated_delivery_time_ms=(
+                        order_time_ms + delivery.estimated_delivery_time_ms
+                    ),
+                    delivery_price_cents=delivery.price_cents,
+                    tax_cents=payment_summary['tax_cents'],
                 )
                 history.order = order
                 history.save(update_fields=['order'])

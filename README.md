@@ -189,7 +189,7 @@ See [POSTGRES_DEVELOPMENT.md](POSTGRES_DEVELOPMENT.md) for configuration details
 | `/login` | Username/password login; redirects signed-in users home |
 | `/checkout` | Protected cart, delivery selection, totals, place order |
 | `/orders` | Protected order history and buy-again actions |
-| `/tracking?orderId=...&productId=...` | Protected order-product view with static progress |
+| `/orders/{orderId}/products/{productId}/tracking` | Protected order-product tracking view |
 
 `App.jsx` owns user, cart, and order state. It restores the user with
 `/api/auth/me/`, then fetches that user's cart and orders. Logout clears all
@@ -228,6 +228,7 @@ cart, payment-summary, and order endpoints; writes also require CSRF protection.
 | GET | `/api/payment-summary/` | Calculate current cart totals |
 | GET, POST | `/api/orders/` | List own orders / check out current cart; POST requires `Idempotency-Key` |
 | GET | `/api/orders/{id}/` | Retrieve own order |
+| GET | `/api/orders/{orderId}/products/{productId}/tracking/` | Retrieve one owned order item for tracking |
 
 Customer registration accepts `username`, `password`, and optional `email`;
 the server forces the customer role. Vendor registration also accepts
@@ -282,7 +283,8 @@ Checkout follows this flow; the database writes occur in one transaction:
 
 Failures roll back inventory, orders, order items, and cart changes together.
 Snapshots preserve order history when the catalog changes. Order items retain
-the user, vendor, order, delivery option, quantity, and product snapshot.
+the user, vendor, order, quantity, product, delivery timing, delivery price,
+and tax snapshots.
 
 Vendor PUT/PATCH requests also lock the product before loading it for update.
 This prevents an unrelated vendor edit from saving stale inventory over a
@@ -461,10 +463,9 @@ and images from `ecommerce_frontend/public`. Use `--catalog-dir` and
 
 - Registration and vendor catalog management have APIs but no frontend screens.
 - Recently viewed and most-viewed APIs have no frontend integration.
-- Tracking progress is static; there is no fulfillment-state model or real
-  payment-provider integration.
-- Frontend loading/error handling is limited outside login, and tracking
-  assumes valid order/product query parameters.
+- Tracking details and progress use the stored order-item snapshot and delivery
+  status, but there is no carrier or real payment-provider integration.
+- Frontend loading/error handling is limited outside login and tracking.
 - Cart POST returns 200 for both creation and increase; PUT acts like PATCH.
 - Cart stock is validated but not reserved.
 - Cache invalidation for admin/direct writes is incomplete. Concurrent

@@ -193,13 +193,12 @@ function App() {
           }
           />
         <Route
-          path="/tracking"
+          path="/orders/:orderId/products/:productId/tracking"
           element={
             user ?
             (
               <TrackingPage
               cart={cart}
-              orders={orders}
               user={user}
             />
             )

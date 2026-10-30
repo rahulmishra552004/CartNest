@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 130" role="img" aria-labelledby="title description">
+  <title id="title">Order delivered</title>
+  <desc id="description">A package beside a front door with a check mark</desc>
+  <ellipse cx="91" cy="112" rx="60" ry="7" fill="#dde7e1"/>
+  <path d="M48 31h74v77H48z" fill="#d6e3da"/>
+  <path d="M61 42h48v66H61z" fill="#6e8879"/>
+  <rect x="69" y="52" width="32" height="31" rx="2" fill="#eaf2ed"/>
+  <circle cx="99" cy="91" r="3" fill="#e9c178"/>
+  <path d="M39 31 85 9l46 22" fill="none" stroke="#4e735f" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+  <path d="M25 62h23v46H25z" fill="#b9cbbf"/>
+  <path d="M112 76h43v33h-43z" fill="#d7a66d"/>
+  <path d="m112 76 13-10h43l-13 10z" fill="#efc996"/>
+  <path d="m155 76 13-10v31l-13 12z" fill="#bf8655"/>
+  <path d="m126 88 6 6 12-14" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+</svg>

@@ -54,7 +54,13 @@ class CheckoutTests(APITestCase):
         self.client.force_authenticate(self.user)
         self.idempotency_key = str(uuid4())
         self.order_data = {
-            "deliveryAddress": "123 Demo Street, Test City",
+            "deliveryRecipientName": "Demo Customer",
+            "deliveryAddressLine1": "123 Demo Street",
+            "deliveryAddressLine2": "",
+            "deliveryCity": "Test City",
+            "deliveryState": "Test State",
+            "deliveryPostalCode": "110001",
+            "deliveryCountryCode": "IN",
         }
         self.client.credentials(HTTP_IDEMPOTENCY_KEY=self.idempotency_key)
 
@@ -111,6 +117,13 @@ class CheckoutTests(APITestCase):
         order = Order.objects.get(pk=response.data["id"])
         self.assertEqual(order.user_id, self.user.pk)
         self.assertEqual(order.total_cost_cents, 5280)
+        self.assertEqual(order.delivery_recipient_name, "Demo Customer")
+        self.assertEqual(order.delivery_address_line1, "123 Demo Street")
+        self.assertEqual(order.delivery_address_line2, "")
+        self.assertEqual(order.delivery_city, "Test City")
+        self.assertEqual(order.delivery_state, "Test State")
+        self.assertEqual(order.delivery_postal_code, "110001")
+        self.assertEqual(order.delivery_country_code, "IN")
         self.assertEqual(len(order.products), 2)
         items = list(OrderItem.objects.filter(order=order))
         self.assertEqual(len(items), 2)
@@ -122,6 +135,19 @@ class CheckoutTests(APITestCase):
             snapshot = snapshots[item.product["id"]]
             self.assertEqual(item.product, snapshot["product"])
             self.assertEqual(item.quantity, snapshot["quantity"])
+            self.assertGreaterEqual(item.delivery_days, 0)
+            self.assertEqual(
+                item.estimated_delivery_time_ms,
+                snapshot["estimatedDeliveryTimeMs"],
+            )
+            self.assertGreaterEqual(item.delivery_price_cents, 0)
+            expected_tax = round(
+                0.1 * (
+                    item.quantity * item.product["priceCents"]
+                    + item.delivery_price_cents
+                )
+            )
+            self.assertEqual(item.tax_cents, expected_tax)
         self.product.refresh_from_db()
         self.second_product.refresh_from_db()
         self.assertEqual(self.product.inventory_stock, 8)
@@ -129,6 +155,31 @@ class CheckoutTests(APITestCase):
         self.assertFalse(CartItem.objects.filter(user=self.user).exists())
         self.other_cart_item.refresh_from_db()
         self.assertEqual(self.other_cart_item.quantity, 4)
+
+    def test_tracking_path_retrieves_only_the_authenticated_users_item(self):
+        checkout = self.client.post("/api/orders/", self.order_data, format="json")
+        tracking_path = (
+            f"/api/orders/{checkout.data['id']}/products/"
+            f"{self.product.pk}/tracking/"
+        )
+
+        response = self.client.get(tracking_path)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["order"]["id"], checkout.data["id"])
+        self.assertEqual(response.data["product"]["id"], str(self.product.pk))
+        order_item = OrderItem.objects.get(
+            order_id=checkout.data["id"],
+            product__id=str(self.product.pk),
+        )
+        self.assertEqual(
+            response.data["estimatedDeliveryTimeMs"],
+            order_item.estimated_delivery_time_ms,
+        )
+
+        self.client.force_authenticate(self.other_user)
+        response = self.client.get(tracking_path)
+        self.assertEqual(response.status_code, 404)
 
     def test_empty_cart_is_rejected(self):
         CartItem.objects.filter(user=self.user).delete()

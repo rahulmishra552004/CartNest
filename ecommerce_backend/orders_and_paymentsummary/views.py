@@ -4,11 +4,22 @@ from products.cache_invalidation import invalidate_products
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins, viewsets
-from .models import Order, OrderItem, get_payment_summary, get_products, get_product, CheckoutRequest
-from .serializers import OrderSerializer
+from rest_framework.generics import RetrieveAPIView
+from .models import (
+    Order,
+    OrderItem,
+    get_payment_summary,
+    get_products,
+    get_product,
+    CheckoutRequest,
+    TAX,
+    current_time_ms,
+)
+from .serializers import OrderSerializer, OrderItemSerializer
 from rest_framework.response import Response
 from cart.models import CartItem
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from products.models import Product
 from django.contrib.auth import get_user_model
@@ -136,12 +147,14 @@ class OrderViewSet(
 
     def perform_create(self, serializer):
         payment_summary = get_payment_summary(self.checkout_cart_items)
-        products = get_products(self.checkout_cart_items)
+        order_time_ms = current_time_ms()
+        products = get_products(self.checkout_cart_items, order_time_ms)
         user = self.request.user
         cart_items = self.checkout_cart_items
 
         order = serializer.save(
                 user = self.request.user,
+                order_time_ms = order_time_ms,
                 total_cost_cents = payment_summary['total_cost_cents'],
                 products=products
                 )
@@ -150,12 +163,21 @@ class OrderViewSet(
         for cart_item in cart_items:
             context={}
             context['quantity'] = cart_item.quantity
-            context['delivery_option_id'] = cart_item.delivery_option.id
             context['user_id'] = user.id
             context['vendor_id'] = cart_item.product.vendor_id
             context['order_id'] = order.id
             context['product'] = get_product(cart_item.product)
-
+            context['delivery_days'] = cart_item.delivery_option.delivery_days
+            context['estimated_delivery_time_ms'] = (
+                order_time_ms
+                + cart_item.delivery_option.estimated_delivery_time_ms
+            )
+            context['delivery_price_cents'] = cart_item.delivery_option.price_cents
+            context['tax_cents'] = round(
+                TAX * (
+                cart_item.quantity * cart_item.product.price_cents +
+                cart_item.delivery_option.price_cents
+            ))
             order_item = OrderItem(**context)
             order_items.append(order_item)
 
@@ -179,6 +201,27 @@ class OrderViewSet(
             cache.set(key, data, timeout=60*60)
         except (RedisConnectionError, RedisTimeoutError):
             logger.warning('Checkout result cache write failed')
+
+class OrderItemRetrieveView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderItemSerializer
+
+    def get_object(self):
+        order_id = self.kwargs['order_id']
+        product_id = str(self.kwargs['product_id'])
+
+        queryset = OrderItem.objects.select_related(
+            'order',
+        )
+        order_item = get_object_or_404(
+            queryset,
+            order_id=order_id,
+            product__id=product_id,
+            user=self.request.user
+        )
+
+        return order_item
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

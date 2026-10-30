@@ -1,10 +1,11 @@
-from deliveryoptions.models import DeliveryOption
 from vendors.models import Vendor
 from django.db import models
 from cart.models import CartItem
 from django.utils import timezone
 import uuid
 from django.conf import settings
+
+TAX = 0.1
 
 def current_time_ms():
     return int(timezone.now().timestamp()*1000)
@@ -13,13 +14,19 @@ def current_time_ms():
 def get_total_cost_cents():
     return 0
 
-def get_products(cart_items):
+def get_products(cart_items, order_time_ms=None):
+    if order_time_ms is None:
+        order_time_ms = current_time_ms()
+
     products_list = []
     for cart_item in cart_items:
         product_dict = {}
         product_dict['productId'] = str(cart_item.product_id)
         product_dict['quantity'] = cart_item.quantity
-        product_dict['estimatedDeliveryTimeMs'] = current_time_ms()+cart_item.delivery_option.estimated_delivery_time_ms
+        product_dict['estimatedDeliveryTimeMs'] = (
+            order_time_ms
+            + cart_item.delivery_option.estimated_delivery_time_ms
+        )
 
         product_dict['product'] = get_product(cart_item.product)
 
@@ -57,7 +64,7 @@ def get_payment_summary(cart_items):
 
 
     payment_summary['total_cost_before_tax_cents'] = payment_summary['product_cost_cents'] + payment_summary['shipping_cost_cents']
-    payment_summary['tax_cents'] = round(0.1 * payment_summary['total_cost_before_tax_cents'])
+    payment_summary['tax_cents'] = round(TAX * payment_summary['total_cost_before_tax_cents'])
     payment_summary['total_cost_cents'] = payment_summary['total_cost_before_tax_cents'] + payment_summary['tax_cents']
 
     return payment_summary
@@ -86,8 +93,27 @@ class Order(models.Model):
         blank=True,
         editable=False
     )
-    delivery_address = models.CharField(
-        max_length = 256,
+    delivery_recipient_name = models.CharField(
+        max_length = 150,
+    )
+    delivery_address_line1 = models.CharField(
+        max_length = 200,
+    )
+    delivery_address_line2 = models.CharField(
+        max_length = 200,
+        blank = True,
+    )
+    delivery_city = models.CharField(
+        max_length = 100,
+    )
+    delivery_state = models.CharField(
+        max_length = 100,
+    )
+    delivery_postal_code = models.CharField(
+        max_length = 20,
+    )
+    delivery_country_code = models.CharField(
+        max_length = 2,
     )
 
 class OrderItem(models.Model):
@@ -98,25 +124,23 @@ class OrderItem(models.Model):
 
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     user = models.ForeignKey(
-            settings.AUTH_USER_MODEL,
-            related_name='order_items',
-            on_delete=models.PROTECT
-            )
+        settings.AUTH_USER_MODEL,
+        related_name='order_items',
+        on_delete=models.PROTECT
+    )
     vendor = models.ForeignKey(
-            Vendor,
-            related_name='order_items',
-            on_delete=models.PROTECT
-            )
+        Vendor,
+        related_name='order_items',
+        on_delete=models.PROTECT
+    )
     order = models.ForeignKey(
-            Order,
-            related_name='order_items',
-            on_delete=models.PROTECT
-            )
-    delivery_option = models.ForeignKey(
-            DeliveryOption,
-            related_name='order_items',
-            on_delete=models.PROTECT
-            )
+        Order,
+        related_name='order_items',
+        on_delete=models.PROTECT
+    )
+    delivery_days = models.PositiveIntegerField()
+    estimated_delivery_time_ms = models.PositiveBigIntegerField()
+    delivery_price_cents = models.PositiveIntegerField()
     delivery_status = models.CharField(
         max_length = 10,
         choices = DeliveryStatus.choices,
@@ -124,6 +148,7 @@ class OrderItem(models.Model):
     )
     product = models.JSONField(default=dict)
     quantity = models.PositiveIntegerField()
+    tax_cents = models.PositiveIntegerField()
 
 class CheckoutRequest(models.Model):
     user = models.ForeignKey(

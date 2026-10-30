@@ -2,9 +2,9 @@ from rest_framework import serializers
 from .models import DeliveryOption
 
 class DeliveryOptionSerializer(serializers.ModelSerializer):
-    deliveryDays = serializers.IntegerField(source = 'delivery_days')
-    priceCents = serializers.IntegerField(source = 'price_cents')
-    estimatedDeliveryTimeMs = serializers.IntegerField(source = 'estimated_delivery_time_ms')
+    deliveryDays = serializers.IntegerField(source = 'delivery_days', read_only=True)
+    priceCents = serializers.IntegerField(source = 'price_cents', read_only=True)
+    estimatedDeliveryTimeMs = serializers.IntegerField(source = 'estimated_delivery_time_ms', read_only=True)
 
     class Meta:
         model = DeliveryOption

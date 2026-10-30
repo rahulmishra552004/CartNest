@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 130" role="img" aria-labelledby="title description">
+  <title id="title">Preparing order</title>
+  <desc id="description">An open box with a folded item and a checklist</desc>
+  <ellipse cx="88" cy="112" rx="57" ry="7" fill="#dce9e0"/>
+  <path d="M47 58h78v47H47z" fill="#cf9b62"/>
+  <path d="m47 58 23-18h78l-23 18z" fill="#ecc38f"/>
+  <path d="m125 58 23-18v45l-23 20z" fill="#bd8350"/>
+  <path d="M47 58 29 43h76l20 15z" fill="#f2d0a5"/>
+  <path d="m125 58 17-21 19 17-29 16z" fill="#e4b77e"/>
+  <path d="M66 52c9-13 27-13 36 0l-8 8H73z" fill="#4f9570"/>
+  <rect x="52" y="74" width="36" height="7" rx="3.5" fill="#f3e3cc"/>
+  <rect x="52" y="86" width="26" height="6" rx="3" fill="#f3e3cc"/>
+  <rect x="113" y="20" width="38" height="45" rx="5" fill="#fff" stroke="#9bbcab" stroke-width="2"/>
+  <path d="m120 32 3 3 6-7M120 44l3 3 6-7M133 33h10M133 45h10M121 56h21" fill="none" stroke="#38835d" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+</svg>
