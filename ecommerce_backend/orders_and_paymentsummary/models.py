@@ -96,6 +96,9 @@ class Order(models.Model):
     delivery_recipient_name = models.CharField(
         max_length = 150,
     )
+    delivery_phone_number = models.CharField(
+        max_length = 20,
+    )
     delivery_address_line1 = models.CharField(
         max_length = 200,
     )

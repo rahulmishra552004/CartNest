@@ -36,8 +36,10 @@ Stop Locust, the isolated server, the load-test worker, and load-test Beat first
 Preparation restores the baseline, applies current migrations, clears only the
 load-test Redis key namespace, and purges only its dedicated queue. Redis and the
 broker must be available; cleanup fails instead of leaving stale checkout state.
-It then prepares customers with unique credentials, empty carts, one historical
-order fixture each, and `@example.invalid` emails, and saves a fresh baseline.
+It then prepares customers with unique credentials, empty carts, a saved default
+delivery address, one historical order fixture each, and `@example.invalid`
+emails, and saves a fresh baseline. Checkout sends each account's saved
+`address_id`, so rerun this script if `loadtest_data.json` predates addresses.
 Historical fixtures precede the saved stock baseline and do not enqueue mail:
 
 ```bash

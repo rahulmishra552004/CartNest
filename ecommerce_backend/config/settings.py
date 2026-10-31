@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'users',
     'orders_and_paymentsummary',
     'vendors',
+    'addresses',
 
     'rest_framework',
     'corsheaders',

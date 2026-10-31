@@ -5,37 +5,39 @@ class OrderSerializer(serializers.ModelSerializer):
     orderTimeMs = serializers.BigIntegerField(read_only=True, source='order_time_ms')
     totalCostCents = serializers.IntegerField(read_only=True, source='total_cost_cents')
     products = serializers.JSONField(read_only=True)
+    #the client picks one of its saved addresses; the view copies it onto the order
+    addressId = serializers.UUIDField(write_only=True)
     deliveryRecipientName = serializers.CharField(
         source = 'delivery_recipient_name',
-        max_length = 150,
+        read_only = True,
+    )
+    deliveryPhoneNumber = serializers.CharField(
+        source = 'delivery_phone_number',
+        read_only = True,
     )
     deliveryAddressLine1 = serializers.CharField(
         source = 'delivery_address_line1',
-        max_length = 200,
+        read_only = True,
     )
     deliveryAddressLine2 = serializers.CharField(
         source = 'delivery_address_line2',
-        required = False,
-        allow_blank = True,
-        default = '',
-        max_length = 200,
+        read_only = True,
     )
     deliveryCity = serializers.CharField(
         source = 'delivery_city',
-        max_length = 100,
+        read_only = True,
     )
     deliveryState = serializers.CharField(
         source = 'delivery_state',
-        max_length = 100,
+        read_only = True,
     )
     deliveryPostalCode = serializers.CharField(
         source = 'delivery_postal_code',
-        max_length = 20,
+        read_only = True,
     )
     deliveryCountryCode = serializers.CharField(
         source = 'delivery_country_code',
-        min_length = 2,
-        max_length = 2,
+        read_only = True,
     )
     class Meta:
         model = Order
@@ -44,7 +46,9 @@ class OrderSerializer(serializers.ModelSerializer):
             'orderTimeMs',
             'totalCostCents',
             'products',
+            'addressId',
             'deliveryRecipientName',
+            'deliveryPhoneNumber',
             'deliveryAddressLine1',
             'deliveryAddressLine2',
             'deliveryCity',
@@ -58,9 +62,6 @@ class OrderSerializer(serializers.ModelSerializer):
             'totalCostCents',
             'products',
        ]
-
-    def validate_deliveryCountryCode(self, value):
-        return value.strip().upper()
 
     def to_representation(self, instance):
         order = super().to_representation(instance)

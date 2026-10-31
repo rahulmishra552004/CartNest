@@ -6,6 +6,7 @@ from django.db import IntegrityError
 from django.core.cache import cache
 from rest_framework.test import APITestCase
 
+from addresses.models import Address
 from cart.models import CartItem
 from deliveryoptions.models import DeliveryOption
 from products.models import Product
@@ -49,20 +50,35 @@ class CheckoutTests(APITestCase):
         cls.other_cart_item = CartItem.objects.create(
             user=cls.other_user, product=cls.product, quantity=4,
         )
+        cls.address = Address.objects.create(
+            user=cls.user, is_default=True,
+            recipient_name="Demo Customer", phone_number="+919876543210",
+            line1="123 Demo Street", line2="", city="Test City",
+            state="Test State", postal_code="110001", country_code="IN",
+        )
+        cls.other_address = Address.objects.create(
+            user=cls.other_user, is_default=True,
+            recipient_name="Other Customer", phone_number="+919999999999",
+            line1="9 Other Road", city="Other City",
+            state="Other State", postal_code="560001", country_code="IN",
+        )
 
     def setUp(self):
         self.client.force_authenticate(self.user)
         self.idempotency_key = str(uuid4())
-        self.order_data = {
-            "deliveryRecipientName": "Demo Customer",
-            "deliveryAddressLine1": "123 Demo Street",
-            "deliveryAddressLine2": "",
-            "deliveryCity": "Test City",
-            "deliveryState": "Test State",
-            "deliveryPostalCode": "110001",
-            "deliveryCountryCode": "IN",
-        }
+        self.order_data = {"addressId": str(self.address.pk)}
         self.client.credentials(HTTP_IDEMPOTENCY_KEY=self.idempotency_key)
+
+    def assert_checkout_rejected_without_changes(self, response):
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("addressId", response.data)
+        self.assertFalse(Order.objects.exists())
+        self.assertFalse(CheckoutRequest.objects.exists())
+        self.assertEqual(CartItem.objects.filter(user=self.user).count(), 2)
+        self.product.refresh_from_db()
+        self.second_product.refresh_from_db()
+        self.assertEqual(self.product.inventory_stock, 10)
+        self.assertEqual(self.second_product.inventory_stock, 10)
 
     def test_checkout_requires_idempotency_key(self):
         self.client.credentials()
@@ -118,6 +134,7 @@ class CheckoutTests(APITestCase):
         self.assertEqual(order.user_id, self.user.pk)
         self.assertEqual(order.total_cost_cents, 5280)
         self.assertEqual(order.delivery_recipient_name, "Demo Customer")
+        self.assertEqual(order.delivery_phone_number, "+919876543210")
         self.assertEqual(order.delivery_address_line1, "123 Demo Street")
         self.assertEqual(order.delivery_address_line2, "")
         self.assertEqual(order.delivery_city, "Test City")
@@ -155,6 +172,34 @@ class CheckoutTests(APITestCase):
         self.assertFalse(CartItem.objects.filter(user=self.user).exists())
         self.other_cart_item.refresh_from_db()
         self.assertEqual(self.other_cart_item.quantity, 4)
+
+    def test_missing_address_is_rejected(self):
+        response = self.client.post("/api/orders/", {}, format="json")
+        self.assert_checkout_rejected_without_changes(response)
+
+    def test_unknown_address_is_rejected(self):
+        response = self.client.post(
+            "/api/orders/", {"addressId": str(uuid4())}, format="json",
+        )
+        self.assert_checkout_rejected_without_changes(response)
+
+    def test_another_users_address_is_rejected(self):
+        response = self.client.post(
+            "/api/orders/", {"addressId": str(self.other_address.pk)}, format="json",
+        )
+        self.assert_checkout_rejected_without_changes(response)
+
+    def test_order_keeps_its_address_after_saved_address_changes(self):
+        response = self.client.post("/api/orders/", self.order_data, format="json")
+        self.assertEqual(response.status_code, 201)
+
+        Address.objects.filter(pk=self.address.pk).update(city="Moved City")
+        order = Order.objects.get(pk=response.data["id"])
+        self.assertEqual(order.delivery_city, "Test City")
+
+        self.address.delete()
+        order.refresh_from_db()
+        self.assertEqual(order.delivery_recipient_name, "Demo Customer")
 
     def test_tracking_path_retrieves_only_the_authenticated_users_item(self):
         checkout = self.client.post("/api/orders/", self.order_data, format="json")

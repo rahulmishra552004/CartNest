@@ -18,6 +18,7 @@ class RecoveryTests(unittest.TestCase):
         chooser.start()
         self.addCleanup(chooser.stop)
         self.user = workload.CheckoutUser(Environment())
+        self.user.account = {'username': 'customer', 'password': 'secret', 'address_id': 'address-a'}
         self.user.product_id = 'product-a'
         self.user.clean_cart = Mock()
         self.user.add_item = Mock()
@@ -34,6 +35,7 @@ class RecoveryTests(unittest.TestCase):
         self.user.checkout()
         self.assertEqual(self.user.request.call_args_list[0].kwargs['headers']['Idempotency-Key'], key)
         self.assertEqual(self.user.request.call_args_list[0].kwargs['name'], 'Checkout: resolve pending')
+        self.assertEqual(self.user.request.call_args_list[0].kwargs['json'], {'addressId': 'address-a'})
         self.user.clean_cart.assert_called_once()
         self.user.add_item.assert_called_once()
         self.assertIsNone(self.user.pending)

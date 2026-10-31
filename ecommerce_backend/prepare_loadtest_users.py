@@ -26,6 +26,7 @@ def main():
     from django.contrib.auth import get_user_model
     from django.db import transaction
     from django.utils import timezone
+    from addresses.models import Address
     from cart.models import CartItem
     from deliveryoptions.models import DeliveryOption
     from orders_and_paymentsummary.models import (
@@ -56,6 +57,20 @@ def main():
             # All scenarios start with an empty cart; read scenarios seed their
             # own data explicitly rather than silently affecting checkout.
             user.cart_items.all().delete()
+            # Checkout sends a saved address ID, so every customer needs one.
+            address = Address.objects.filter(user=user, is_default=True).first()
+            if address is None:
+                address = Address.objects.create(
+                    user=user,
+                    is_default=True,
+                    recipient_name='Demo Customer',
+                    phone_number='+919876543210',
+                    line1='123 Demo Street',
+                    city='Test City',
+                    state='Test State',
+                    postal_code='110001',
+                    country_code='IN',
+                )
             # Historical fixtures make order-history reads useful from the first
             # run. They precede the saved stock baseline and send no email.
             history, _ = CheckoutRequest.objects.get_or_create(user=user, key='loadtest-seed-history')
@@ -71,6 +86,7 @@ def main():
                     total_cost_cents=payment_summary['total_cost_cents'],
                     confirmation_email_sent_at=timezone.now(),
                     delivery_recipient_name='Demo Customer',
+                    delivery_phone_number='+919876543210',
                     delivery_address_line1='123 Demo Street',
                     delivery_address_line2='',
                     delivery_city='Test City',
@@ -90,7 +106,8 @@ def main():
                 )
                 history.order = order
                 history.save(update_fields=['order'])
-            accounts.append({'username': user.username, 'password': password})
+            accounts.append({'username': user.username, 'password': password,
+                             'address_id': str(address.pk)})
     save_baseline(config)
     data = {'accounts': accounts, 'product_ids': [str(p) for p in products],
             'delivery_option_id': str(delivery.pk)}

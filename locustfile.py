@@ -15,15 +15,6 @@ from locust.exception import StopUser
 
 DATA = {}
 ACCOUNTS = Queue()
-DUMMY_DELIVERY_ADDRESS = {
-    'deliveryRecipientName': 'Demo Customer',
-    'deliveryAddressLine1': '123 Demo Street',
-    'deliveryAddressLine2': '',
-    'deliveryCity': 'Test City',
-    'deliveryState': 'Test State',
-    'deliveryPostalCode': '110001',
-    'deliveryCountryCode': 'IN',
-}
 
 
 class FlowFailure(Exception):
@@ -83,6 +74,7 @@ def refill_accounts(environment, **kwargs):
         check(bool(DATA['delivery_option_id']), 'Missing delivery option')
         for account in accounts:
             check(bool(account['username']) and bool(account['password']), 'Invalid credentials')
+            check(bool(account['address_id']), 'Missing saved address; rerun prepare_loadtest_users.py')
     except (OSError, ValueError, KeyError, TypeError) as exc:
         logging.error('Invalid load-test data: %s', exc)
         environment.process_exit_code = 1
@@ -191,7 +183,8 @@ class AuthenticatedUser(IsolatedUser):
             raise StopUser() from exc
 
     def login(self):
-        response = self.request('POST', '/api/auth/login/', json=self.account,
+        credentials = {'username': self.account['username'], 'password': self.account['password']}
+        response = self.request('POST', '/api/auth/login/', json=credentials,
                                 validate=lambda data: check(bool(data['csrfToken']), 'Missing CSRF token'))
         self.headers['X-CSRFToken'] = response.json()['csrfToken']
 
@@ -306,11 +299,12 @@ class CheckoutUser(AuthenticatedUser):
             if pending['order_id']:
                 check(data['id'] == pending['order_id'], 'Retry created a different order')
 
+        order_body = {'addressId': self.account['address_id']}
         try:
             name = 'Checkout: resolve pending' if pending['submitted'] else 'Checkout: submit'
             pending['submitted'] = True
             response = self.request('POST', '/api/orders/', expected=201,
-                                    json=DUMMY_DELIVERY_ADDRESS,
+                                    json=order_body,
                                     headers={'Idempotency-Key': pending['key']},
                                     name=name,
                                     validate=validate)
@@ -322,7 +316,7 @@ class CheckoutUser(AuthenticatedUser):
         pending['order_id'] = response.json()['id']
         if self.replay:
             self.request('POST', '/api/orders/', expected=201,
-                         json=DUMMY_DELIVERY_ADDRESS,
+                         json=order_body,
                          headers={'Idempotency-Key': pending['key']},
                          name='Checkout: replay', validate=validate)
         self.request('GET', f"/api/orders/{pending['order_id']}/", name='/api/orders/[id]/', validate=validate)

@@ -18,6 +18,7 @@ from .models import (
 from .serializers import OrderSerializer, OrderItemSerializer
 from rest_framework.response import Response
 from cart.models import CartItem
+from addresses.models import Address
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
@@ -146,17 +147,35 @@ class OrderViewSet(
             return response
 
     def perform_create(self, serializer):
+        #runs after the user row is locked, so the address can't be mid-edit.
+        #an unknown address raises inside the transaction and rolls back the stock deduction.
+        address_id = serializer.validated_data.pop('addressId')
+        address = Address.objects.filter(pk=address_id, user=self.request.user).first()
+        if address is None:
+            raise ValidationError({
+                'addressId': 'delivery address not found'
+            })
+
         payment_summary = get_payment_summary(self.checkout_cart_items)
         order_time_ms = current_time_ms()
         products = get_products(self.checkout_cart_items, order_time_ms)
         user = self.request.user
         cart_items = self.checkout_cart_items
 
+        #copy the address so later edits or deletes don't change this order
         order = serializer.save(
                 user = self.request.user,
                 order_time_ms = order_time_ms,
                 total_cost_cents = payment_summary['total_cost_cents'],
-                products=products
+                products=products,
+                delivery_recipient_name = address.recipient_name,
+                delivery_phone_number = address.phone_number,
+                delivery_address_line1 = address.line1,
+                delivery_address_line2 = address.line2,
+                delivery_city = address.city,
+                delivery_state = address.state,
+                delivery_postal_code = address.postal_code,
+                delivery_country_code = address.country_code,
                 )
 
         order_items = []
