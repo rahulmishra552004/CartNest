@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from .models import Order, OrderItem
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -160,3 +161,21 @@ class OrderItemSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = ['id', 'product', 'quantity', 'vendor', 'order', 'deliveryDays', 'estimatedDeliveryTimeMs', 'deliveryPriceCents', 'deliveryStatus', 'taxCents']
         read_only_fields = ['id', 'product', 'quantity', 'vendor', 'order', 'deliveryDays', 'estimatedDeliveryTimeMs', 'deliveryPriceCents', 'taxCents']
+
+    def validate_deliveryStatus(self, value):
+        status_rank = {
+            'preparing' : 0,
+            'shipping' : 1,
+            'delivered' : 2,
+        }
+        current_status = self.instance.delivery_status
+        if status_rank[value]-status_rank[current_status] != 1 :
+            raise ValidationError('order status can only move one step forward')
+        return value
+
+    def validate(self, attrs):
+        if not attrs.get('delivery_status'):
+            raise ValidationError({'deliveryStatus': 'deliveryStatus is required to update status'})
+        return attrs
+
+

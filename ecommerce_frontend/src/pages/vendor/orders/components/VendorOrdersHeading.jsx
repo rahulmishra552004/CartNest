@@ -1,4 +1,4 @@
-export function VendorOrdersHeading() {
+export function VendorOrdersHeading({ pendingOrders }) {
   return (
     <header className="vendor-orders-heading">
       <div>
@@ -7,9 +7,9 @@ export function VendorOrdersHeading() {
         <p>Review the orders placed for your products and update each delivery status.</p>
       </div>
 
-      <div className="vendor-orders-total" aria-label="3 sample orders">
-        <span>3</span>
-        <small>Sample orders</small>
+      <div className="vendor-orders-total">
+        <span>{pendingOrders}</span>
+        <small>Pending Orders</small>
       </div>
     </header>
   );
