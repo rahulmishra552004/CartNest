@@ -1,3 +1,5 @@
+import './AddressForm.css';
+
 const LABEL_OPTIONS = ['Home', 'Office', 'Other'];
 
 //input names match the fields /api/addresses/ accepts

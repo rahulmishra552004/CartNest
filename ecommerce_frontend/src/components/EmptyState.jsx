@@ -15,6 +15,7 @@ export function EmptyState({ icon = 'bag', eyebrow, title, description, primaryA
     bag: <><rect x="31" y="39" width="58" height="57" rx="9" /><path d="M45 42V31a15 15 0 0 1 30 0v11M45 62c3 8 9 12 15 12s12-4 15-12" /></>,
     cart: <><path d="M22 32h12l10 43h42l10-31H37M46 86h1M82 86h1" /><circle cx="47" cy="87" r="5" /><circle cx="82" cy="87" r="5" /></>,
     orders: <><path d="m29 43 31-16 31 16v36L60 96 29 79ZM29 43l31 17 31-17M60 60v36M44 35l31 17v13" /></>,
+    address: <><path d="M87 52c0 22-27 42-27 42S33 74 33 52a27 27 0 0 1 54 0Z" /><circle cx="60" cy="52" r="9" /></>,
   };
 
   return (

@@ -12,6 +12,7 @@ import { ProfilePage } from './pages/profile/ProfilePage.jsx';
 import { UpdateProfilePage } from './pages/profile/UpdateProfilePage.jsx';
 import { ChangePasswordPage } from './pages/profile/ChangePasswordPage.jsx';
 import { VendorUpgradePage } from './pages/profile/VendorUpgradePage.jsx';
+import { ManageAddressesPage } from './pages/profile/addresses/ManageAddressesPage.jsx';
 import { CustomerRegistrationPage } from './pages/registration/CustomerRegistrationPage.jsx';
 import { VendorRegistrationPage } from './pages/registration/VendorRegistrationPage.jsx';
 import { VendorCatalogPage } from './pages/vendor/catalog/VendorCatalogPage.jsx';
@@ -215,6 +216,12 @@ function App() {
           path="/profile/change-password"
           element={user
             ? <ChangePasswordPage cart={cart} user={user} onSessionExpired={handleSessionExpired} />
+            : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/profile/addresses"
+          element={user
+            ? <ManageAddressesPage cart={cart} user={user} />
             : <Navigate to="/login" replace />}
         />
         <Route

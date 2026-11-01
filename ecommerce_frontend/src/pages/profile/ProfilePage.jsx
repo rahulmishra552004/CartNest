@@ -87,6 +87,7 @@ export function ProfilePage({ cart, orders, user, headerVariant = 'customer' }) 
                   Update profile
                 </Link>
                 <Link to="/profile/change-password" className="button-secondary profile-action-link">Change password</Link>
+                <Link to="/profile/addresses" className="button-secondary profile-action-link">Manage addresses</Link>
                 <Link to={aboutPath} className="profile-contact-link">Contact us</Link>
               </div>
             </section>

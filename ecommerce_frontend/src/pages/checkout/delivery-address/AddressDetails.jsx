@@ -1,3 +1,5 @@
+import './AddressDetails.css';
+
 function getCountryName(countryCode) {
   try {
     return new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode) || countryCode;
