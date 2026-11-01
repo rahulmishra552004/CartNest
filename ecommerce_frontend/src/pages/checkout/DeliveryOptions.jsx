@@ -20,7 +20,7 @@ export function DeliveryOptions({ cartItem, deliveryOptions, getCartData, getPay
         }
 
         return (
-          <div
+          <label
             key={deliveryOption.id}
             className="delivery-option"
           >
@@ -41,7 +41,7 @@ export function DeliveryOptions({ cartItem, deliveryOptions, getCartData, getPay
                 }
               </div>
             </div>
-          </div>
+          </label>
         );
       })}
     </div>

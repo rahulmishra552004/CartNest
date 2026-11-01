@@ -41,6 +41,36 @@
   line-height: 1.6;
 }
 
+/* one-time message from checkout, e.g. "your order may have been placed" */
+.orders-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding: 12px 14px;
+  border: 1px solid #ecd9a6;
+  border-left: 4px solid #c58a00;
+  border-radius: 8px;
+  background: #fff8e8;
+  color: #5c4300;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.orders-notice-icon {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  color: #a87400;
+}
+
+.orders-notice-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .orders-grid {
   display: grid;
   gap: 24px;
@@ -151,6 +181,67 @@
   font-style: normal;
   line-height: 1.5;
   overflow-wrap: anywhere;
+}
+
+.order-address-recipient {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-bottom: 2px;
+}
+
+.order-address-recipient:empty {
+  display: none;
+}
+
+.order-address-name {
+  color: #20392a;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* same look as the tracking page's status badge, scaled down for inline use */
+.order-address-tag {
+  padding: 2px 9px;
+  border: 1px solid #b9d6c3;
+  border-radius: 999px;
+  color: #246a45;
+  background: #edf7f0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.order-address-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #4f5d55;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.order-address-phone svg {
+  flex: 0 0 13px;
+  width: 13px;
+  height: 13px;
+  color: #66736c;
+}
+
+.order-address-lines {
+  color: #647069;
+}
+
+.orders-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .order-details-grid {

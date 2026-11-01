@@ -1,8 +1,11 @@
 .checkout-header {
+  box-sizing: border-box;
   height: 60px;
   padding-left: 30px;
   padding-right: 30px;
   background-color: white;
+  border-bottom: 1px solid #e3ebe6;
+  box-shadow: 0 2px 10px rgba(8, 45, 28, 0.04);
 
   display: flex;
   justify-content: center;
@@ -79,8 +82,9 @@
   flex-shrink: 0;
   text-align: center;
 
-  font-size: 22px;
-  font-weight: 500;
+  color: #20392a;
+  font-size: 20px;
+  font-weight: 700;
 
   display: flex;
   justify-content: center;
@@ -124,32 +128,18 @@
   height: 32px;
 }
 
-.checkout-header .checkout-logout-link {
-  color: rgb(25, 135, 84);
-  background: transparent;
-  border: 0;
-  margin-right: 12px;
-  padding: 6px;
-  border-radius: 7px;
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
 .checkout-header a:active {
   background: #dcefe2;
   transform: translateY(0);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .checkout-header .checkout-header-left-section > a:hover,
-  .checkout-header .checkout-logout-link:hover {
+  .checkout-header .checkout-header-left-section > a:hover {
     background: #eaf5ee;
     box-shadow: inset 0 0 0 1px rgba(25, 135, 84, 0.1);
     transform: translateY(-1px);
   }
 
-  .checkout-header .checkout-logout-link:hover,
   .checkout-header .return-to-home-link:hover {
     color: #084f2d;
   }
@@ -175,8 +165,7 @@
     transition: none;
   }
 
-  .checkout-header .checkout-header-left-section > a:hover,
-  .checkout-header .checkout-logout-link:hover {
+  .checkout-header .checkout-header-left-section > a:hover {
     transform: none;
   }
 }

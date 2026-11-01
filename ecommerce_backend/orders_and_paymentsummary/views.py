@@ -101,9 +101,12 @@ class OrderViewSet(
                     ).select_related('product__vendor', 'delivery_option')
                 )
 
+            #the code lets the frontend spot this case without matching the message text.
+            #it also happens when an earlier checkout succeeded but its response was lost
             if not cart_items:
                 raise ValidationError({
-                    'detail' : 'no item in cart'
+                    'detail' : 'no item in cart',
+                    'code' : 'cart_empty',
                     })
 
             product_ids = [cart_item.product.id for cart_item in cart_items]
@@ -169,6 +172,7 @@ class OrderViewSet(
                 total_cost_cents = payment_summary['total_cost_cents'],
                 products=products,
                 delivery_recipient_name = address.recipient_name,
+                delivery_label = address.label,
                 delivery_phone_number = address.phone_number,
                 delivery_address_line1 = address.line1,
                 delivery_address_line2 = address.line2,

@@ -11,6 +11,10 @@ class OrderSerializer(serializers.ModelSerializer):
         source = 'delivery_recipient_name',
         read_only = True,
     )
+    deliveryLabel = serializers.CharField(
+        source = 'delivery_label',
+        read_only = True,
+    )
     deliveryPhoneNumber = serializers.CharField(
         source = 'delivery_phone_number',
         read_only = True,
@@ -48,6 +52,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'products',
             'addressId',
             'deliveryRecipientName',
+            'deliveryLabel',
             'deliveryPhoneNumber',
             'deliveryAddressLine1',
             'deliveryAddressLine2',
@@ -81,6 +86,14 @@ class TrackingOrderSerializer(serializers.ModelSerializer):
         source = 'delivery_recipient_name',
         read_only=True,
     )
+    deliveryLabel = serializers.CharField(
+        source = 'delivery_label',
+        read_only=True,
+    )
+    deliveryPhoneNumber = serializers.CharField(
+        source = 'delivery_phone_number',
+        read_only=True,
+    )
     deliveryAddressLine1 = serializers.CharField(
         source = 'delivery_address_line1',
         read_only=True,
@@ -111,6 +124,8 @@ class TrackingOrderSerializer(serializers.ModelSerializer):
             'id',
             'orderTimeMs',
             'deliveryRecipientName',
+            'deliveryLabel',
+            'deliveryPhoneNumber',
             'deliveryAddressLine1',
             'deliveryAddressLine2',
             'deliveryCity',

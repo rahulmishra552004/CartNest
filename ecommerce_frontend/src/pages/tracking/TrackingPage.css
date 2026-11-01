@@ -312,8 +312,57 @@
 }
 
 .tracking-address strong {
-  margin-bottom: 2px;
   color: #2d4135;
+}
+
+.tracking-address-recipient {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 9px;
+  margin-bottom: 2px;
+}
+
+/* the status badge's colors, sized down to sit beside the name */
+.tracking-address-tag {
+  padding: 2px 9px;
+  border: 1px solid #b9d6c3;
+  border-radius: 999px;
+  color: #246a45;
+  background: #edf7f0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.tracking-address-phone {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #e4ece7;
+  color: #2d4135;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracking-address-phone svg {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  color: #5c6d63;
+}
+
+.tracking-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .tracking-order-card {

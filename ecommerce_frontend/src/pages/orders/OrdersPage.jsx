@@ -1,5 +1,7 @@
 import { CustomerHeader } from '../header/CustomerHeader.jsx';
 import './OrdersPage.css';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { formatCurrency } from '../../utils/money.js';
 import dayjs from 'dayjs';
 import { OrderDetailsGrid } from './OrderDetailsGrid.jsx';
@@ -12,8 +14,8 @@ function formatDeliveryAddress(order) {
     order.deliveryPostalCode,
   ].filter(Boolean).join(' ');
 
+  //the recipient's name is shown on its own line, above the address
   const structuredAddress = [
-    order.deliveryRecipientName,
     order.deliveryAddressLine1,
     order.deliveryAddressLine2,
     cityLine,
@@ -24,7 +26,22 @@ function formatDeliveryAddress(order) {
 }
 
 export function OrdersPage({ cart, orders, getCartData, user, isLoading = false, error = '', onRetry }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  //a one-time message passed by checkout, e.g. when the cart turned out to be empty already
+  const [notice] = useState(location.state?.notice ?? '');
   const showState = error || (!isLoading && orders.length === 0);
+
+  //drop the message from the browser history entry, so reloading the page doesn't show it again.
+  //the page stays mounted, so the copy in `notice` stays on screen
+  useEffect(() => {
+    if (location.state?.notice) {
+      navigate(
+        { pathname: location.pathname, search: location.search },
+        { replace: true, state: null },
+      );
+    }
+  }, [location, navigate]);
 
   return (
     <>
@@ -43,6 +60,18 @@ export function OrdersPage({ cart, orders, getCartData, user, isLoading = false,
               <p>Review your purchases, delivery details, and package tracking in one place.</p>
             )}
           </header>
+
+          {notice && (
+            <div className="orders-notice" role="status">
+              <span className="orders-notice-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 11v5.5M12 7.5h.01" />
+                </svg>
+              </span>
+              <p>{notice}</p>
+            </div>
+          )}
 
           {error ? (
             <EmptyState icon="orders" title="We couldn’t load your orders" description={error} role="alert" primaryAction={{ label: 'Try again', onClick: () => onRetry().catch(() => {}) }} secondaryAction={{ label: 'Browse products', to: '/' }} />
@@ -80,7 +109,29 @@ export function OrdersPage({ cart, orders, getCartData, user, isLoading = false,
                       </span>
                       <div className="order-address-copy">
                         <div className="order-header-label">Delivery address</div>
-                        <address>{formatDeliveryAddress(order) || 'Address unavailable'}</address>
+                        <address>
+                          {/* label and phone are blank on orders placed before they were saved */}
+                          <div className="order-address-recipient">
+                            {order.deliveryRecipientName && (
+                              <span className="order-address-name">{order.deliveryRecipientName}</span>
+                            )}
+                            {order.deliveryLabel && (
+                              <span className="order-address-tag">{order.deliveryLabel}</span>
+                            )}
+                            {order.deliveryPhoneNumber && (
+                              <span className="order-address-phone">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z" />
+                                </svg>
+                                <span className="orders-visually-hidden">Phone: </span>
+                                {order.deliveryPhoneNumber}
+                              </span>
+                            )}
+                          </div>
+                          <div className="order-address-lines">
+                            {formatDeliveryAddress(order) || 'Address unavailable'}
+                          </div>
+                        </address>
                       </div>
                     </div>
                   </div>

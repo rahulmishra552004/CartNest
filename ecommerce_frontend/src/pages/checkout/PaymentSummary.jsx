@@ -4,15 +4,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { getIdempotencyKey, resetIdempotencyKey } from '../../utils/checkoutIdempotency.js';
 
-const DUMMY_DELIVERY_ADDRESS = {
-  deliveryRecipientName: 'Demo Customer',
-  deliveryAddressLine1: '123 Demo Street',
-  deliveryAddressLine2: '',
-  deliveryCity: 'Test City',
-  deliveryState: 'Test State',
-  deliveryPostalCode: '110001',
-  deliveryCountryCode: 'IN',
-};
+const CART_ALREADY_EMPTY_NOTICE =
+  'Your cart was already empty, so your order may have been placed. Check your orders below.';
+
+//the server's cart is already empty. Most likely an earlier attempt placed the order but its
+//response never arrived; otherwise the cart was emptied in another tab. Either way checkout can't continue
+function isCartAlreadyEmptyError(error) {
+  return axios.isAxiosError(error)
+    && error.response?.status === 400
+    && error.response.data?.code === 'cart_empty';
+}
 
 function responseMessage(value) {
   if (Array.isArray(value)) {
@@ -37,6 +38,11 @@ function getCheckoutErrorMessage(error) {
 
   switch (status) {
     case 400:
+      //e.g. { addressId: 'delivery address not found' } when the address was deleted in another tab
+      if (data?.addressId) {
+        return 'We couldn’t find your delivery address. Choose another address and try again.';
+      }
+
       return (
         detail
         || responseMessage(data?.['Idempotency-Key'])
@@ -59,10 +65,28 @@ function getCheckoutErrorMessage(error) {
   }
 }
 
-export function PaymentSummary({ cart, paymentSummary, getCartData, getOrdersData }) {
+export function PaymentSummary({ 
+  cart,
+  paymentSummary,
+  getCartData,
+  getOrdersData,
+  selectedAddressId,
+}) {
   const navigate = useNavigate();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [placeOrderError, setPlaceOrderError] = useState('');
+
+  //shared by a placed order and a cart that turned out to be empty already
+  async function goToOrders(notice) {
+    resetIdempotencyKey();
+
+    await Promise.allSettled([
+      getCartData(),
+      getOrdersData(),
+    ]);
+
+    navigate('/orders', notice ? { state: { notice } } : undefined);
+  }
 
   async function placeOrder() {
     if (isPlacingOrder) return;
@@ -71,10 +95,10 @@ export function PaymentSummary({ cart, paymentSummary, getCartData, getOrdersDat
     setPlaceOrderError('');
 
     try {
-      const idempotencyKey = getIdempotencyKey(cart);
+      const idempotencyKey = getIdempotencyKey(cart, selectedAddressId);
       const response = await axios.post(
         '/api/orders/',
-        DUMMY_DELIVERY_ADDRESS,
+        { addressId: selectedAddressId },
         {
           headers: {
             'Idempotency-Key': idempotencyKey,
@@ -86,15 +110,13 @@ export function PaymentSummary({ cart, paymentSummary, getCartData, getOrdersDat
         throw new Error(`Unexpected checkout status: ${response.status}`);
       }
 
-      resetIdempotencyKey();
-
-      await Promise.allSettled([
-        getCartData(),
-        getOrdersData(),
-      ]);
-
-      navigate('/orders');
+      await goToOrders();
     } catch (error) {
+      if (isCartAlreadyEmptyError(error)) {
+        await goToOrders(CART_ALREADY_EMPTY_NOTICE);
+        return;
+      }
+
       setPlaceOrderError(getCheckoutErrorMessage(error));
     } finally {
       setIsPlacingOrder(false);
@@ -137,11 +159,18 @@ export function PaymentSummary({ cart, paymentSummary, getCartData, getOrdersDat
         </p>
       )}
 
+      {!selectedAddressId && (
+        <p className="place-order-hint" id="place-order-hint">
+          Choose a delivery address to place your order.
+        </p>
+      )}
+
       <button
         type="button"
         onClick={placeOrder}
-        disabled={isPlacingOrder}
+        disabled={isPlacingOrder || !selectedAddressId}
         aria-busy={isPlacingOrder}
+        aria-describedby={!selectedAddressId ? 'place-order-hint' : undefined}
         className="place-order-button button-primary"
       >
         {isPlacingOrder

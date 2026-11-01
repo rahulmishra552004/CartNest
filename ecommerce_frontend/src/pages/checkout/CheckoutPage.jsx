@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router';
 import { OrderSummary } from './OrderSummary';
 import { PaymentSummary } from './PaymentSummary';
+import { DeliveryAddress } from './delivery-address/DeliveryAddress.jsx';
 import { BrandLogo } from '../../components/BrandLogo.jsx';
 import { EmptyState } from '../../components/EmptyState.jsx';
 import { accountError } from '../profile/accountErrors.js';
@@ -14,6 +15,7 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = fal
   const [paymentSummary, setPaymentSummary] = useState(null);
   const [checkoutError, setCheckoutError] = useState('');
   const [retry, setRetry] = useState(0);
+  const [selectedAddressId, setSelectedAddressId] = useState();
 
   let cartQuantity = 0;
   cart.forEach((cartItem) => {
@@ -74,12 +76,6 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = fal
           </div>
 
           <div className="checkout-header-right-section">
-            <Link
-              to="/logout"
-              className="checkout-logout-link"
-            >
-              Logout
-            </Link>
             <img src="/media/icons/checkout-lock-icon.png" alt="Secure checkout" />
           </div>
         </div>
@@ -87,7 +83,15 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = fal
 
       <main className={`checkout-page-shell${showState ? ' checkout-page-shell-state' : ''}`}>
         <div className="checkout-page">
-          <h1 className="page-title">{cart.length === 0 ? 'Your cart' : 'Review your order'}</h1>
+          <header className="checkout-page-heading">
+            {!showState && <p className="checkout-eyebrow">Secure checkout</p>}
+            <h1 className="page-title">{cart.length === 0 ? 'Your cart' : 'Review your order'}</h1>
+            {!showState && (
+              <p className="checkout-page-subtitle">
+                Choose where your order is going, check your items, then place your order.
+              </p>
+            )}
+          </header>
           {error ? (
             <EmptyState icon="cart" title="We couldn’t load your cart" description={error} role="alert" primaryAction={{ label: 'Try again', onClick: () => getCartData().catch(() => {}) }} secondaryAction={{ label: 'Browse products', to: '/' }} />
           ) : !isLoading && cart.length === 0 ? (
@@ -96,8 +100,16 @@ export function CheckoutPage({ cart, getCartData, getOrdersData, isLoading = fal
             <EmptyState icon="cart" title="We couldn’t prepare checkout" description={checkoutError} role="alert" primaryAction={{ label: 'Try again', onClick: () => setRetry((value) => value + 1) }} />
           ) : paymentSummary ? (
             <div className="checkout-grid">
-              <OrderSummary cart={cart} deliveryOptions={deliveryOptions} getCartData={getCartData} getPaymentSummary={getPaymentSummary} />
-              <PaymentSummary cart={cart} paymentSummary={paymentSummary} getCartData={getCartData} getOrdersData={getOrdersData} />
+              <div className="checkout-main">
+                <DeliveryAddress selectedAddressId={selectedAddressId} setSelectedAddressId={setSelectedAddressId}/>
+                <section className="checkout-section" aria-labelledby="checkout-items-title">
+                  <div className="checkout-section-heading">
+                    <h2 id="checkout-items-title">Review items and delivery</h2>
+                  </div>
+                  <OrderSummary cart={cart} deliveryOptions={deliveryOptions} getCartData={getCartData} getPaymentSummary={getPaymentSummary} />
+                </section>
+              </div>
+              <PaymentSummary cart={cart} paymentSummary={paymentSummary} getCartData={getCartData} getOrdersData={getOrdersData} selectedAddressId={selectedAddressId}/>
             </div>
           ) : null}
         </div>

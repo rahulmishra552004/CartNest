@@ -158,27 +158,48 @@
   position: relative;
 }
 
+.header .cart-icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
 .header .cart-icon {
-  width: 34px;
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+/* the two "nest" curves, in the search button's light green like the logo's accent */
+.header .cart-icon-nest {
+  stroke: rgb(186, 255, 190);
 }
 
 .header .cart-text {
-  margin-left: 5px;
+  margin-left: 14px;
   font-size: 15px;
   font-weight: 700;
 }
 
 .header .cart-quantity {
-  color: rgb(8, 79, 45);
-  font-size: 14px;
-  font-weight: 700;
-
   position: absolute;
-  top: 7.5px;
-  right: 46px;
+  top: -8px;
+  right: -11px;
 
-  width: 26px;
+  box-sizing: border-box;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  color: rgb(8, 79, 45);
+  background: rgb(186, 255, 190);
+  /* a ring in the header's green separates the badge from the icon */
+  box-shadow: 0 0 0 2px rgb(8, 79, 45);
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .header .account-dropdown {

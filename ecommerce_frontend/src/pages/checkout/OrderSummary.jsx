@@ -2,6 +2,7 @@ import { formatCurrency } from '../../utils/money.js';
 import { Fragment } from 'react';
 import dayjs from 'dayjs';
 import { DeliveryOptions } from './DeliveryOptions.jsx';
+import { CartItemQuantity } from './CartItemQuantity.jsx';
 import axios from 'axios';
 
 export function OrderSummary({ cart, deliveryOptions, getCartData, getPaymentSummary }) {
@@ -38,19 +39,12 @@ export function OrderSummary({ cart, deliveryOptions, getCartData, getPaymentSum
                   <div className="product-price">
                     ${formatCurrency(cartItem.product.priceCents)}
                   </div>
-                  <div className="product-quantity">
-                    <span>
-                      Quantity: <span className="quantity-label">{cartItem.quantity}</span>
-                    </span>
-                    <span className="update-quantity-link link-primary">
-                      Update
-                    </span>
-                    <span className="delete-quantity-link link-primary"
-                      onClick={deleteItemFromCart}
-                    >
-                      Delete
-                    </span>
-                  </div>
+                  <CartItemQuantity
+                    cartItem={cartItem}
+                    getCartData={getCartData}
+                    getPaymentSummary={getPaymentSummary}
+                    onDelete={deleteItemFromCart}
+                  />
                 </div>
 
                 <DeliveryOptions deliveryOptions={deliveryOptions} cartItem={cartItem} getCartData={getCartData} getPaymentSummary={getPaymentSummary} />

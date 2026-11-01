@@ -51,7 +51,7 @@ class CheckoutTests(APITestCase):
             user=cls.other_user, product=cls.product, quantity=4,
         )
         cls.address = Address.objects.create(
-            user=cls.user, is_default=True,
+            user=cls.user, is_default=True, label="Home",
             recipient_name="Demo Customer", phone_number="+919876543210",
             line1="123 Demo Street", line2="", city="Test City",
             state="Test State", postal_code="110001", country_code="IN",
@@ -135,6 +135,9 @@ class CheckoutTests(APITestCase):
         self.assertEqual(order.total_cost_cents, 5280)
         self.assertEqual(order.delivery_recipient_name, "Demo Customer")
         self.assertEqual(order.delivery_phone_number, "+919876543210")
+        self.assertEqual(order.delivery_label, "Home")
+        self.assertEqual(response.data["deliveryLabel"], "Home")
+        self.assertEqual(response.data["deliveryPhoneNumber"], "+919876543210")
         self.assertEqual(order.delivery_address_line1, "123 Demo Street")
         self.assertEqual(order.delivery_address_line2, "")
         self.assertEqual(order.delivery_city, "Test City")
@@ -212,6 +215,8 @@ class CheckoutTests(APITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["order"]["id"], checkout.data["id"])
+        self.assertEqual(response.data["order"]["deliveryLabel"], "Home")
+        self.assertEqual(response.data["order"]["deliveryPhoneNumber"], "+919876543210")
         self.assertEqual(response.data["product"]["id"], str(self.product.pk))
         order_item = OrderItem.objects.get(
             order_id=checkout.data["id"],
@@ -230,8 +235,25 @@ class CheckoutTests(APITestCase):
         CartItem.objects.filter(user=self.user).delete()
         response = self.client.post("/api/orders/", self.order_data, format="json")
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["code"], "cart_empty")
         self.assertFalse(Order.objects.exists())
         self.assertTrue(CartItem.objects.filter(pk=self.other_cart_item.pk).exists())
+
+    def test_new_key_after_a_lost_success_response_cannot_order_twice(self):
+        #the frontend changes the key when the address changes, so a retry after a
+        #lost response arrives with a new key; the emptied cart has to stop it
+        with patch("orders_and_paymentsummary.views.send_order_confirmation.delay"):
+            with self.captureOnCommitCallbacks(execute=True):
+                first = self.client.post("/api/orders/", self.order_data, format="json")
+        self.assertEqual(first.status_code, 201)
+
+        self.client.credentials(HTTP_IDEMPOTENCY_KEY=str(uuid4()))
+        retry = self.client.post("/api/orders/", self.order_data, format="json")
+
+        self.assertEqual(retry.status_code, 400)
+        self.assertEqual(retry.data["code"], "cart_empty")
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(CheckoutRequest.objects.count(), 1)
 
     def test_insufficient_stock_preserves_cart_and_inventory(self):
         Product.objects.filter(pk=self.product.pk).update(inventory_stock=1)
