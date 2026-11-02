@@ -4,6 +4,7 @@ import './VendorCatalog.css';
 import { VendorHeader } from '../../header/VendorHeader.jsx';
 import { VendorCatalogNavigation } from './VendorCatalogNavigation.jsx';
 import { VendorProductCard } from './VendorProductCard.jsx';
+import { EmptyState } from '../../../components/EmptyState.jsx';
 import { accountError } from '../../profile/accountErrors.js';
 import { useState, useEffect } from 'react';
 
@@ -29,6 +30,10 @@ export function VendorCatalogPage({ user }) {
   //an unknown value (e.g. typed by hand) falls back to the default instead of failing the request
   const sortParam = searchParams.get('sort');
   const sort = SORT_OPTIONS.some((option) => option.value === sortParam) ? sortParam : DEFAULT_SORT;
+  //set by the "Search your catalog" box in the vendor header
+  const search = (searchParams.get('search') ?? '').trim();
+  //"Clear search" keeps the chosen sort
+  const clearSearchUrl = sort === DEFAULT_SORT ? '/vendor/catalog' : `/vendor/catalog?sort=${sort}`;
 
   function handleSortChange(value) {
     const nextParams = new URLSearchParams(searchParams);
@@ -51,16 +56,17 @@ export function VendorCatalogPage({ user }) {
     }
   }, [navigate, state?.successMessage]);
   
-  //reloads when the sort changes; the current list stays on screen until the new order arrives
+  //reloads when the sort or search changes; the current list stays on screen until the new one arrives
   useEffect(() => {
-    //choosing another sort cancels this request, so an older answer can't replace the newer list
+    //a newer sort or search cancels this request, so an older answer can't replace the newer list
     const controller = new AbortController();
     const getVendorProducts = async () => {
       setError('');
       try {
         const response = await axios.get('/api/vendor/products/', {
           signal: controller.signal,
-          params: { sort },
+          //like the home page, an empty search isn't sent
+          params: { sort, ...(search === '' ? {} : { search }) },
         });
         if (controller.signal.aborted) return;
         setVendorProducts(response.data);
@@ -72,7 +78,7 @@ export function VendorCatalogPage({ user }) {
     }
     getVendorProducts();
     return () => controller.abort();
-  }, [sort]);
+  }, [sort, search]);
 
   return (
     <>
@@ -134,6 +140,13 @@ export function VendorCatalogPage({ user }) {
                   <Link className="vendor-catalog-error-link" to="/vendor/about">Contact support</Link>
                 </div>
               </section>
+            ) : search && vendorProducts?.length === 0 ? (
+              <EmptyState
+                eyebrow="No matches"
+                title={`No products match “${search}”`}
+                description="Check the spelling or try a shorter word. Search looks at your product names and keywords."
+                primaryAction={{ label: 'Clear search', to: clearSearchUrl }}
+              />
             ) : (
               <div className="vendor-products-grid">
                 {vendorProducts?.map((product) => (

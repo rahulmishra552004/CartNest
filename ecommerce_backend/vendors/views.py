@@ -59,8 +59,16 @@ class VendorProductViewSet(ModelViewSet):
         if self.action in ['update', 'partial_update', 'destroy']:
             queryset = queryset.select_for_update()
 
-        #only the list is sorted: one-product requests ignore ?sort=
+        #only the list is searched and sorted: one-product requests ignore ?search= and ?sort=
         if self.action == 'list':
+            #same matching as the shop's product search: name or keywords, ignoring case
+            search = self.request.query_params.get('search', '').strip()
+            if search:
+                queryset = queryset.filter(
+                    Q(name__icontains = search)
+                    | Q(keywords__icontains = search)
+                )
+
             sort = self.request.query_params.get('sort', '').strip() or 'name_asc'
             if sort not in PRODUCT_SORT_OPTIONS:
                 raise ValidationError({

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { HeaderLayout } from './HeaderLayout.jsx';
 import { HeaderSearch } from './components/HeaderSearch.jsx';
 import { VendorAccountMenu } from './components/VendorAccountMenu.jsx';
@@ -7,6 +7,7 @@ import { AddProductLink } from './components/AddProductLink.jsx';
 import { AlertsLink } from './components/AlertsLink.jsx';
 
 export function VendorHeader({ user }) {
+  const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState('');
@@ -19,6 +20,12 @@ export function VendorHeader({ user }) {
     const search = value.trim();
 
     if (search) nextParams.set('search', search);
+
+    //searching from the catalog keeps its sort, like the shop's search keeps the home page sort
+    if (location.pathname === '/vendor/catalog') {
+      const catalogSort = searchParams.get('sort');
+      if (catalogSort) nextParams.set('sort', catalogSort);
+    }
 
     const query = nextParams.toString();
     navigate({ pathname: '/vendor/catalog', search: query ? `?${query}` : '' });
