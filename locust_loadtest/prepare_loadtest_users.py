@@ -111,7 +111,8 @@ def main():
     save_baseline(config)
     data = {'accounts': accounts, 'product_ids': [str(p) for p in products],
             'delivery_option_id': str(delivery.pk)}
-    destination = Path(__file__).resolve().parent.parent / 'loadtest_data.json'
+    #next to locustfile.py, which reads it from its own folder
+    destination = Path(__file__).resolve().parent / 'loadtest_data.json'
     destination.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
     destination.chmod(0o600)
     print(f'Prepared {len(accounts)} customers in the test DB and baseline; credentials in {destination.name}.')

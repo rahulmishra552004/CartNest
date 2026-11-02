@@ -3,7 +3,7 @@
 A full-stack ecommerce learning project with a React storefront, a Django REST
 Framework API, PostgreSQL, Redis, and Celery background jobs.
 
-Last reviewed against the source code: **2026-10-28**.
+Last reviewed against the source code: **2026-11-03**.
 
 The active development copy is `~/projects/ecommerce_project` in Ubuntu WSL.
 This README is the main project reference; verify the relevant source when
@@ -11,31 +11,39 @@ making changes.
 
 ## Current features
 
-- Public product catalog, API search, and individual product details.
+- Public product catalog with search (name or keywords), five sort orders, and
+  pagination (24 per page), plus product details, today's most-viewed
+  (trending) products, and recently viewed products for signed-in users.
 - Database-backed sessions cached in Redis, login/logout, restored login state
-  after refresh, and protected
-  checkout, order-history, and tracking pages.
-- Customer registration and vendor registration APIs. Vendor registration
-  creates the user and store profile in one transaction.
-- Read-only public product API; catalog changes currently use Django admin or
-  the catalog import command.
+  after refresh, and protected checkout, order-history, tracking, and profile
+  pages.
+- Customer and vendor registration, profile editing, password changes, and
+  upgrading a customer account to a vendor store. Vendor registration creates
+  the user and store profile in one transaction.
+- Saved delivery addresses: up to 10 per user with one default, managed from
+  the profile and chosen at checkout. Each order keeps its own copy of the
+  address.
+- Vendor dashboard: catalog management (add, edit, delete, search, sort), order
+  items with step-by-step delivery status updates, and sales stats for the last
+  7, 30, or 90 days or all time. The public product API stays read-only.
 - Per-user carts with add-or-increase quantities, delivery selection, stock
   validation, and payment summaries.
 - Atomic checkout with PostgreSQL row locks, stock deduction, order and
   order-item snapshots, and cart clearing.
 - Checkout idempotency persisted in PostgreSQL, with completed responses cached
   in Redis and a required `Idempotency-Key` header.
-- Redis caching for the catalog, product details, and delivery options, with
-  product-list rebuild locking and randomized product-detail expiry.
+- Redis caching for the catalog's first page, product details, and delivery
+  options, with product-list rebuild locking and randomized product-detail
+  expiry.
 - Lua-based token-bucket throttling for product searches, recently viewed
   products for signed-in users, and daily most-viewed rankings.
 - Celery order-confirmation tasks with retries, a total attempt limit, and
   periodic recovery through Celery Beat. Emails currently print to the console.
 - PostgreSQL for development, isolated Locust workloads, and automated tests.
 
-**Frontend integration status:** recently viewed products and rankings are
-backend-only. Storefront checkout sends an idempotency key, prevents duplicate
-in-flight clicks, and reuses the key after an uncertain response or failed refresh.
+**Frontend integration status:** every feature above has a frontend screen.
+Storefront checkout sends an idempotency key, prevents duplicate in-flight
+clicks, and reuses the key after an uncertain response or failed refresh.
 
 ## Stack and repository layout
 
@@ -50,33 +58,43 @@ in-flight clicks, and reuses the key after an uncertain response or failed refre
 
 Exact Python pins are in `ecommerce_backend/requirements.txt`; frontend
 dependencies are declared in `ecommerce_frontend/package.json` and locked in
-`package-lock.json`. Locust is installed separately from backend requirements.
+`package-lock.json`. `redis` is pinned to 6.4.0 because Celery 5.6's `kombu`
+requires `redis<6.5`. Locust and Gunicorn are pinned separately in
+`locust_loadtest/requirements-loadtest.txt`.
 
 ```text
 ecommerce_project/
 ├── ecommerce_frontend/
-│   ├── src/pages/                Storefront, login, checkout, orders, tracking
-│   ├── src/utils/                Shared frontend helpers
-│   └── starting-code/            Tutorial/reference files
+│   ├── src/pages/                Storefront, auth, checkout, orders, tracking,
+│   │                             profile/addresses, vendor catalog/orders/stats
+│   ├── src/components/           Shared UI: logo, empty states, pagination controls
+│   ├── src/utils/                Money, pagination, checkout keys, error messages
+│   ├── public/                   Branding, avatar, tracking icons, catalog images
+│   └── starting-code/backend/    Catalog JSON read by import_catalog
 ├── ecommerce_backend/
-│   ├── config/                   Settings, shared Redis client, Celery, root URLs
-│   ├── users/                    Users, registration, session authentication
-│   ├── vendors/                  Vendor profiles and serializer
-│   ├── products/                 Catalog, cache locks, throttling, history/rankings
+│   ├── config/                   Settings, pagination, shared Redis client, Celery, URLs
+│   ├── users/                    Users, registration, profile/password, session auth
+│   ├── vendors/                  Vendor profiles; vendor catalog, order, and stats APIs
+│   ├── products/                 Public catalog, cache locks, throttling, history/rankings
+│   ├── addresses/                Saved delivery addresses
 │   ├── deliveryoptions/          Delivery prices and durations
 │   ├── cart/                     User-isolated carts
 │   ├── orders_and_paymentsummary/ Checkout, idempotency, snapshots, email tasks
-│   ├── media/                    Development product/UI images
+│   └── media/                    Development product/UI images
+├── locust_loadtest/              Load-test tooling (its data, dumps, and reports are gitignored)
+│   ├── locustfile.py             Load-test scenarios (locust_scenarios.py: opt-in extras)
 │   ├── setup_loadtest_postgres.py PostgreSQL load-test setup/reset helper
-│   └── prepare_loadtest_users.py  Dedicated Locust accounts and baseline
-├── locustfile.py                 Load-test scenarios
-├── POSTGRES_DEVELOPMENT.md        WSL services and database configuration
-└── LOAD_TESTING.md                Isolated workloads and reset instructions
+│   ├── prepare_loadtest_users.py Dedicated Locust accounts and baseline
+│   ├── audit_loadtest.py         Pre/post-run stock and order reconciliation
+│   ├── gunicorn.loadtest.conf.py Capacity-test server configuration
+│   └── LOAD_TESTING.md           Isolated workloads and reset instructions
+└── POSTGRES_DEVELOPMENT.md        WSL services and database configuration
 ```
 
 Bundled catalog JSON is in `ecommerce_frontend/starting-code/backend/`, with
-source images in `ecommerce_frontend/public/`. The active Django project is
-`ecommerce_backend/`.
+source images in `ecommerce_frontend/public/images/products/`. The running app
+loads product images from Django's `/media/`, not from `public/`. The active
+Django project is `ecommerce_backend/`.
 
 ## Run locally in WSL
 
@@ -158,7 +176,7 @@ settings.
 
 Redis defaults to `redis://127.0.0.1:6379/0`, with prefix `ecommerce:dev`.
 Override these with `REDIS_URL` and `REDIS_CACHE_PREFIX`. Load tests add
-`:loadtest` to the prefix and use `media.loadtest/`. Automated test settings
+`:loadtest` to the prefix and use `locust_loadtest/media.loadtest/`. Automated test settings
 use Redis with a `:test` prefix and PostgreSQL's temporary test database.
 
 `config/redis_client.py` provides one direct redis-py client/pool per process
@@ -185,15 +203,31 @@ See [POSTGRES_DEVELOPMENT.md](POSTGRES_DEVELOPMENT.md) for configuration details
 
 | Route | Behavior |
 | --- | --- |
-| `/` | Public catalog and add-to-cart actions |
-| `/login` | Username/password login; redirects signed-in users home |
-| `/checkout` | Protected cart, delivery selection, totals, place order |
-| `/orders` | Protected order history and buy-again actions |
-| `/orders/{orderId}/products/{productId}/tracking` | Protected order-product tracking view |
+| `/` | Public catalog: search (header box), sort, pages, add to cart |
+| `/products/{productId}` | Public product details |
+| `/trending` | Public: today's most-viewed products |
+| `/recently-viewed` | Protected: the user's recently viewed products |
+| `/login`, `/logout` | Username/password login (redirects signed-in users home); logout |
+| `/customer_registration`, `/vendor_registration` | Sign-up forms; redirect signed-in users home |
+| `/checkout` | Protected cart, delivery address and option, totals, place order |
+| `/orders` | Protected order history (paginated) and buy-again actions |
+| `/orders/{orderId}/products/{productId}/tracking` | Protected order-item tracking view |
+| `/profile`, `/vendor/profile` | Protected account summary, with the customer or vendor header |
+| `/profile/edit`, `/profile/change-password` | Protected profile and password forms |
+| `/profile/addresses` | Protected saved-address management |
+| `/profile/register-vendor` | Protected, customers only: open a vendor store |
+| `/about`, `/vendor/about` | About page, with the customer or vendor header |
+| `/vendor/catalog`, `/vendor/catalog/new`, `/vendor/catalog/{productId}` | Vendor catalog: list (search, sort, pages), add, edit or delete |
+| `/vendor/orders` | Vendor order items: delivery status updates and pending count |
+| `/vendor/stats` | Vendor sales stats with a 7/30/90-day or all-time filter |
 
-`App.jsx` owns user, cart, and order state. It restores the user with
-`/api/auth/me/`, then fetches that user's cart and orders. Logout clears all
-three states. Protected pages redirect guests to `/login`.
+`App.jsx` owns the user, the cart, and the current page of orders with the
+total order count. It restores the user with `/api/auth/me/`, then fetches that
+user's cart and first page of orders; the Orders page loads other pages.
+Logout clears all three states. Protected customer pages redirect guests to
+`/login`. Vendor pages are not guarded in the router; the vendor APIs reject
+other accounts with 403. Catalog, orders, and vendor-catalog pages keep `?page=`
+(and `?sort=`/`?search=`) in the URL, so reloads and the back button keep them.
 
 Authentication uses Django session cookies. `main.jsx` configures Axios to
 include credentials and map Django's `csrftoken` cookie to the
@@ -202,13 +236,15 @@ credentials; Django rotates the token after login. Unsafe API requests require
 the current CSRF token. The configured development browser origin is
 `http://localhost:5173`.
 
-Customer and vendor registration screens are available. Vendor product-management
-screens and product-write API endpoints are not currently enabled.
+Customer and vendor registration, profile, address, and vendor dashboard
+screens are all available.
 
 ## API reference
 
 All API paths below include trailing slashes. Authentication is required for
-cart, payment-summary, and order endpoints; writes also require CSRF protection.
+cart, payment-summary, address, order, and vendor endpoints; writes also require
+CSRF protection. Vendor endpoints also require a vendor account, and only ever
+read or change that vendor's own products and order items.
 
 | Method | Path | Access / behavior |
 | --- | --- | --- |
@@ -216,34 +252,88 @@ cart, payment-summary, and order endpoints; writes also require CSRF protection.
 | POST | `/api/auth/login/` | Public + CSRF; username/password session login |
 | POST | `/api/auth/logout/` | CSRF; clear session |
 | GET | `/api/auth/me/` | Current user, or 401 when signed out |
-| POST | `/api/auth/register_customer/` | Public + CSRF; create customer |
-| POST | `/api/auth/register_vendor/` | Public + CSRF; create vendor and store |
-| GET | `/api/products/` | Public catalog; accepts `?search=...` |
+| POST | `/api/auth/change_password/` | Signed in + CSRF; `password` and `new_password` |
+| POST, PATCH | `/api/auth/register_customer/` | POST: public, create customer. PATCH: signed-in customer updates own username/email |
+| POST, PATCH | `/api/auth/register_vendor/` | POST: public, create vendor and store. PATCH: a vendor updates details/store name; a customer upgrades to vendor |
+| GET | `/api/products/` | Public catalog, paginated; `?search=`, `?sort=`, `?page=` |
 | GET | `/api/products/{id}/` | Public product detail |
 | GET | `/api/products/recently-viewed/` | Signed-in user's ten most recent distinct products |
 | GET | `/api/products/most-viewed/` | Public top ten products by detail requests today (UTC) |
-| GET | `/api/delivery-options/` | Public delivery choices |
-| GET, POST | `/api/cart-items/` | List own cart / add or increase quantity |
+| GET | `/api/delivery-options/` | Public delivery choices (plain list) |
+| GET, POST | `/api/cart-items/` | List own cart (plain list) / add or increase quantity |
 | GET, PUT, PATCH, DELETE | `/api/cart-items/{productId}/` | Read or change own cart item |
 | GET | `/api/payment-summary/` | Calculate current cart totals |
-| GET, POST | `/api/orders/` | List own orders / check out current cart; POST requires `Idempotency-Key` |
-| GET | `/api/orders/{id}/` | Retrieve own order |
+| GET, POST | `/api/addresses/` | List own addresses, default first (plain list) / add one (at most 10) |
+| PATCH, DELETE | `/api/addresses/{id}/` | Change or delete own address; PUT returns 405 |
+| GET, POST | `/api/orders/` | List own orders, newest first, paginated / check out the cart; POST requires `Idempotency-Key` and `addressId` |
 | GET | `/api/orders/{orderId}/products/{productId}/tracking/` | Retrieve one owned order item for tracking |
+| GET, POST | `/api/vendor/products/` | Own products, paginated, with `?search=`, `?sort=`, `?page=` / create one (multipart form with image) |
+| GET, PUT, PATCH, DELETE | `/api/vendor/products/{id}/` | Read, change, or delete own product |
+| GET | `/api/vendor/orders/` | Own order items, preparing first then by estimated delivery; paginated, plus `pending_count` |
+| PUT, PATCH | `/api/vendor/orders/{id}/` | Move `deliveryStatus` one step forward: preparing → shipping → delivered |
+| GET | `/api/vendor/stats/` | Sales stats; `?range=7d`, `30d`, `90d`, or `all` (the default) |
+
+There is no endpoint for a single order; the orders list and the tracking
+endpoint cover the frontend's needs.
 
 Customer registration accepts `username`, `password`, and optional `email`;
 the server forces the customer role. Vendor registration also accepts
 `store_name`, forces the vendor role, and creates both records atomically.
 Passwords go through Django validation and are hashed with `create_user()`.
-Registration does not automatically log the user in.
+Registration does not automatically log the user in. PATCH on either endpoint
+edits the signed-in user instead; it cannot change the password, which has its
+own endpoint and keeps the session signed in after the change.
 
-The product API is read-only. Catalog changes currently use Django admin or the
-`import_catalog` management command. The product representation includes
-`id`, `image`, `name`, `rating`,
-`priceCents`, `keywords`, `inventory_stock`, and read-only `vendor`.
-The API mostly uses camelCase, with these product fields retaining their
-current names. Product prices must be nonnegative. Product UUIDs are normalized
-to lowercase, hyphenated strings for cache keys, invalidation, and tracking;
-malformed product URL UUIDs return 404.
+The public product API is read-only; vendors change their catalog through
+`/api/vendor/products/`, and Django admin and the `import_catalog` command also
+write products. The product representation includes `id`, `image`, `name`,
+`rating`, `priceCents`, `keywords`, `inventoryStock`, and read-only `vendor`.
+The API uses camelCase, except `store_name` in auth/user data, the
+`password`/`new_password` inputs, and `pending_count` in the vendor order list.
+Product prices must be nonnegative. Product UUIDs are normalized to lowercase,
+hyphenated strings for cache keys, invalidation, and tracking; malformed product
+URL UUIDs return 404.
+
+Saved addresses take `recipientName`, `phoneNumber` (with country code, e.g.
+`+919876543210`; spaces, dashes, and brackets are removed), `line1`, `city`,
+`state`, `postalCode`, `countryCode` (letters), and optional `line2`, `label`,
+and `isDefault`. A user's first address
+becomes the default, and choosing another default clears the old one; the
+database allows only one default per user.
+
+### Pagination
+
+List endpoints use DRF page-number pagination (`config/pagination.py`, 24 items
+per page) and return `{"count", "next", "previous", "results"}`. Request
+another page with `?page=N`; a page past the end returns 404 with
+`{"detail": "Invalid page."}`. Paginated: products, orders, vendor products,
+and vendor orders. The cart, addresses, and delivery options opt out with
+`pagination_class = None` and return plain lists, because their pages need the
+whole list. Recently viewed and most-viewed build their own short lists. New list
+endpoints are paginated by default. The frontend's `PAGE_SIZE` in
+`src/utils/pagination.js` must match the backend page size.
+
+### Search and sort
+
+`?search=` matches product names or keywords, ignoring case. `?sort=` takes
+`name_asc` (the default), `name_desc`, `price_asc`, `price_desc`, or
+`rating_desc`; products with equal values stay in a fixed order by id.
+Unknown sort values return 400. The vendor catalog compares names in lowercase
+and breaks rating ties by review count. The public catalog sorts names as
+stored, so with the database's `C.UTF-8` collation capital letters come first.
+
+### Vendor stats
+
+`/api/vendor/stats/` returns one flat object. Sales numbers cover the chosen
+range: `totalRevenueCents`, `unitsSold`, `ordersCount`, `avgOrderValue`,
+`topProducts` (top five by revenue), and `graph` (one `{day, revenue}` per UTC
+day, oldest first, including days without sales). Revenue is the product price
+stored on each order item times its quantity, so shipping and tax are not
+included. "Last 7 days" means today plus the six whole UTC days before it.
+Delivery numbers always cover every order item, whatever the range:
+`preparingItemsCount`, `shippingItemsCount`, `deliveredItemsCount`, and
+`overdueItemsCount` (past the estimated delivery time and not delivered).
+`lowStockProducts` lists products with `lowStockThreshold` (5) or fewer units.
 
 Expansion parameters:
 
@@ -252,7 +342,8 @@ Expansion parameters:
   `estimatedDeliveryTimeMs`.
 - `/api/orders/?expand=products`: include nested product snapshots.
 
-There is no standalone vendor-profile API or delivery-option write API.
+There is no delivery-option write API. Vendor store details are edited through
+`PATCH /api/auth/register_vendor/`.
 
 ## Cart, totals, and checkout
 
@@ -276,13 +367,17 @@ Checkout follows this flow; the database writes occur in one transaction:
    Return its existing order if this key already completed checkout.
 3. For a new key, lock the cart rows; reject an empty cart.
 4. Lock products in primary-key order and recheck available stock.
-5. Deduct inventory and create the order/items with product JSON snapshots.
+5. Deduct inventory, then create the order: `addressId` must be one of the
+   user's own saved addresses, and the order stores a copy of it. Order items
+   get product JSON snapshots. A missing or unknown address returns 400 and
+   rolls back the deduction.
 6. Link the checkout request to the order and delete the checked-out cart rows.
 7. After commit, queue confirmation, invalidate affected product caches, and
    cache the completed checkout response when Redis is available.
 
 Failures roll back inventory, orders, order items, and cart changes together.
-Snapshots preserve order history when the catalog changes. Order items retain
+Snapshots preserve order history when the catalog changes, and each order keeps
+its delivery address after the saved address is edited or deleted. Order items retain
 the user, vendor, order, quantity, product, delivery timing, delivery price,
 and tax snapshots.
 
@@ -301,7 +396,7 @@ Idempotency-Key: checkout-demo-001
 X-CSRFToken: <current-csrf-token>
 Content-Type: application/json
 
-{}
+{"addressId": "<id of one of your saved addresses>"}
 ```
 
 Use a new key for a new purchase and reuse the same key when retrying that
@@ -320,16 +415,19 @@ order relationship rather than an immutable copy of the original HTTP response.
 
 | Response | Logical key | Lifetime |
 | --- | --- | --- |
-| Unfiltered product list | `products:list` | 300 seconds |
-| Product detail | `products:{canonical-uuid}` | Randomly 300–360 seconds |
+| First page of the unsearched, unsorted product list | `products:v3:list` | 300 seconds |
+| Product detail | `products:v2:{canonical-uuid}` | Randomly 300–360 seconds |
 | Delivery options | `delivery-options:v1:expanded:0` or `:1` | 300 seconds |
 | Completed checkout | `checkout-result:user:{user}:key:{key}:expand:{True/False}` | 3,600 seconds |
 
 Django adds the configured prefix and cache version to these logical keys.
-Non-empty product searches bypass caching. Cache hits return serialized data;
-misses query PostgreSQL and populate the cache. Empty lists are valid hits.
+Searches, `?sort=` requests, and pages after the first bypass the list cache;
+`?page=1` and no `page` share the cached first page. The key moved to `v3`
+when the list became paginated, so older plain-list entries are never served.
+Cache hits return serialized data; misses query PostgreSQL and populate the
+cache. Empty lists are valid hits.
 
-The unfiltered product-list, product-detail, and delivery-option caches store
+The first-page product-list, product-detail, and delivery-option caches store
 rendered JSON bytes and return them directly as `application/json`, avoiding
 JSON rendering on warm requests. Delivery expansions retain separate keys, and
 product-detail cache hits still update history and rankings.
@@ -362,8 +460,10 @@ the connection/timeout fallback handlers.
 - Nonempty GET product searches use an atomic Lua token bucket. Signed-in users
   have capacity 5 with refill 5/minute; guests have capacity 3 with refill
   3/minute, identified by `REMOTE_ADDR`. Exhausted buckets return HTTP 429 with
-  `Retry-After`. Connection/timeout failures allow the request through. Other
-  endpoints are not covered by this throttle.
+  `Retry-After`. Connection/timeout failures allow the request through. Only
+  the first page of a search counts; requests for `?page=2` and later are not
+  charged. Other endpoints, including the vendor catalog search, are not
+  covered by this throttle.
 - Successful product-detail requests update signed-in users' recently viewed
   lists, including cache hits. Lua removes duplicate IDs, prepends the latest,
   keeps ten entries, and refreshes a 30-day expiry.
@@ -411,16 +511,22 @@ python manage.py migrate --check
 python manage.py test --settings=config.test
 ```
 
-The regression suite covers cart additions, stock validation, per-user
-isolation, constraints, payment totals, checkout snapshots/deduction, rejection,
-and rollback. Checkout tests send idempotency keys and verify both cache-backed
-and database-backed replay without duplicate stock deduction. Runtime-cleanup
-tests verify cache/queue scoping. Redis must be available; test settings execute
+The regression suite (63 tests) covers cart additions, stock validation,
+per-user isolation, constraints, payment totals, checkout snapshots/deduction,
+rejection, and rollback. Checkout tests send idempotency keys and verify both
+cache-backed and database-backed replay without duplicate stock deduction, and
+reject missing, unknown, and other users' addresses. Address tests cover the
+10-address limit, default handling, validation, and ownership. Product tests
+cover the list cache (including that later pages bypass it), the
+first-page-only search throttle, and cache invalidation. The `users` and
+`vendors` apps have no tests yet. Runtime-cleanup tests verify cache/queue
+scoping. Redis must be available; test settings execute
 Celery eagerly with an in-memory mail backend. Tests do not simulate concurrent
-PostgreSQL transactions. Load-generator recovery tests run separately:
+PostgreSQL transactions. Load-generator recovery tests for the tooling in
+`locust_loadtest/` run separately, from the project root:
 
 ```bash
-python -m unittest loadtest_tests
+python -m unittest discover -s locust_loadtest -p loadtest_tests.py
 ```
 
 From the frontend directory:
@@ -431,7 +537,7 @@ npm run build
 ```
 
 For Locust, run an isolated backend on port 8001. Follow
-[LOAD_TESTING.md](LOAD_TESTING.md) for resource setup, explicit search/replay/session
+[LOAD_TESTING.md](locust_loadtest/LOAD_TESTING.md) for resource setup, explicit search/replay/session
 scenarios, baseline reset, capacity-server configuration, and post-run auditing.
 The default workload uses idempotent checkout and authenticated history/rankings;
 search throttling is measured separately with accepted and rejected counts.
@@ -461,24 +567,27 @@ and images from `ecommerce_frontend/public`. Use `--catalog-dir` and
 
 ## Remaining limitations
 
-- Registration and vendor catalog management have APIs but no frontend screens.
-- Recently viewed and most-viewed APIs have no frontend integration.
 - Tracking details and progress use the stored order-item snapshot and delivery
   status, but there is no carrier or real payment-provider integration.
-- Frontend loading/error handling is limited outside login and tracking.
+- Vendor pages are not guarded in the frontend router; non-vendors reach them
+  and see the API's 403 errors.
+- Some pages show nothing while they load (for example vendor orders and stats).
+- Paging quickly on the customer Orders page can let an older response win,
+  because `App.jsx` owns that request and does not cancel the previous one.
+- Deleting the default address does not make another address the default.
+- Vendor stats use UTC days, so late-evening orders in other time zones count
+  toward the next day.
 - Cart POST returns 200 for both creation and increase; PUT acts like PATCH.
 - Cart stock is validated but not reserved.
 - Cache invalidation for admin/direct writes is incomplete. Concurrent
   cache fills and invalidation are not coordinated.
 - Email uses the console backend. A successful send followed by a failed
   timestamp commit can still produce duplicates; real SMTP needs a timeout.
-- Authentication, vendor permissions, and Redis failure/invalidation paths
-  lack dedicated regression coverage; concurrency coverage is also needed.
+- Authentication, the vendor dashboard APIs (catalog, orders, stats), vendor
+  permissions, and Redis failure/invalidation paths lack dedicated regression
+  coverage; concurrency coverage is also needed.
 - Development settings use `DEBUG=True` and a fallback secret key. Production
   deployment configuration is not provided.
-
-The older `ecommerce_backend/documentation.md` is tutorial API reference
-material, not the canonical description of implemented behavior.
 
 ## Guidance for future changes
 

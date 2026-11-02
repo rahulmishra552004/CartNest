@@ -1,11 +1,11 @@
 # Ecommerce Django Backend
 
-Last reviewed against the source code: **2026-10-28**.
+Last reviewed against the source code: **2026-11-03**.
 
 The canonical architecture, API, authentication, checkout, caching, and
 limitations reference is the [project README](../README.md).
 See also [PostgreSQL development](../POSTGRES_DEVELOPMENT.md) and
-[load testing](../LOAD_TESTING.md).
+[load testing](../locust_loadtest/LOAD_TESTING.md).
 
 ## Start in WSL
 
@@ -25,6 +25,7 @@ The development API is at `http://127.0.0.1:8000/api/`; admin is at
 `http://127.0.0.1:8000/admin/`. API routes use trailing slashes.
 
 Dependencies, including `celery[redis]`, are pinned in `requirements.txt`.
+`redis` stays at 6.4.0 because Celery 5.6's `kombu` requires `redis<6.5`.
 Catalog import sources default to the frontend starter JSON and public images;
 there is no active nested `ecommerce-backend/` server.
 
@@ -72,18 +73,26 @@ server's memory, eviction policy, and persistence configuration.
 
 | App | Responsibility |
 | --- | --- |
-| `users` | Custom customer/vendor users, registration, session login/logout, CSRF |
-| `vendors` | Store profiles created through vendor registration |
-| `products` | Read-only catalog API, caches/locks, search throttling, history/rankings |
+| `users` | Custom customer/vendor users, registration, profile and password updates, session login/logout, CSRF |
+| `vendors` | Store profiles; vendor catalog CRUD (search, sort), order-item status updates, sales stats |
+| `products` | Read-only public catalog API (search, sort, pagination), caches/locks, search throttling, history/rankings |
+| `addresses` | Saved delivery addresses: at most 10 per user, one default |
 | `deliveryoptions` | Public cached delivery choices |
 | `cart` | User-isolated carts, stock validation, coordinated transactional writes |
 | `orders_and_paymentsummary` | Totals, checkout/idempotency, snapshots, confirmation tasks/recovery |
 
-Checkout rejects empty carts and insufficient stock. It locks the user, cart
-rows, and products, then saves orders/items, deducts stock, and clears the cart
-in one transaction. Product caches are invalidated after commit. Product UUIDs
-are canonicalized for Redis keys, history, rankings, and invalidation. Catalog
-changes currently use Django admin or the `import_catalog` management command.
+Checkout rejects empty carts, insufficient stock, and addresses that are
+missing or not the user's own. It locks the user, cart rows, and products,
+then deducts stock, saves the order with a copy of the delivery address plus
+its items, and clears the cart in one transaction. Product caches are
+invalidated after commit. Product UUIDs are canonicalized for Redis keys,
+history, rankings, and invalidation. Catalog changes come from vendors
+(`/api/vendor/products/`), Django admin, or the `import_catalog` command.
+
+List endpoints are paginated by default (`config/pagination.py`, 24 per page,
+`?page=N`). The cart, addresses, and delivery options set
+`pagination_class = None` and return plain lists. See the root README for the
+response shape and every endpoint.
 
 ## Checkout and Redis features
 
@@ -95,6 +104,8 @@ changes currently use Django admin or the `import_catalog` management command.
 - Product-list, product-detail, and delivery-option caching store rendered JSON
   bytes for direct JSON responses, with legacy data entries accepted until expiry.
   Delivery expansions use separate keys, and detail hits still update tracking.
+  Only the first page of the unsearched, unsorted list is cached
+  (`products:v3:list`); searches, sorts, and later pages go to PostgreSQL.
   The product-list lifetime is 300 seconds;
   detail caches use 300–360 seconds
   of jitter. List rebuilds use a ten-second token-owned lock, a cache recheck,
@@ -102,7 +113,8 @@ changes currently use Django admin or the `import_catalog` management command.
   Redis operations can fall back to PostgreSQL.
 - Search-only token buckets allow bursts of five requests per signed-in user
   (refill five/minute) or three per guest IP (refill three/minute). Exhaustion
-  returns 429 with `Retry-After`; connection/timeout errors fail open.
+  returns 429 with `Retry-After`; connection/timeout errors fail open. Only the
+  first page of a search counts; `?page=2` and later are free.
 - GET `/api/products/recently-viewed/` requires authentication and returns up to
   ten distinct recent products; history expires 30 days after the latest write.
 - GET `/api/products/most-viewed/` is public and returns today's UTC ranking.
@@ -115,8 +127,8 @@ changes currently use Django admin or the `import_catalog` management command.
   fails; this is not an exactly-once delivery system.
 
 The frontend sends checkout idempotency keys and reuses them after uncertain
-failures. History/ranking frontend work is pending. See the root README for
-API details and the load-testing guide for isolated Celery setup.
+failures, and has pages for recently viewed and trending products. See the root
+README for API details and the load-testing guide for isolated Celery setup.
 
 ## Validation
 
@@ -127,13 +139,18 @@ python manage.py migrate --check
 python manage.py test --settings=config.test
 ```
 
-The regression tests cover read-only product routes, product-cache invalidation,
-cart constraints/isolation, stock validation, totals, snapshots, deduction,
-rollback, required checkout headers, cached and database-backed idempotency
-replay, and isolated runtime cleanup. They do not
-test true concurrent transactions, full browser CSRF flows, or real email
-providers. Test settings require Redis and use eager tasks with in-memory mail,
-so tests do not publish to development Celery.
+The 63 regression tests cover read-only product routes, product-cache
+invalidation, the first-page-only list cache and search throttle, cart
+constraints/isolation (the cart stays unpaginated), stock validation, totals,
+snapshots, deduction, rollback, required checkout headers and addresses, cached
+and database-backed idempotency replay, saved addresses (limit, defaults,
+validation, ownership), and isolated runtime cleanup. `users` and `vendors`
+have no tests yet, so authentication and the vendor catalog, order, and stats
+APIs are untested. The tests do not cover true concurrent transactions, full
+browser CSRF flows, or real email providers. Test settings require Redis and
+use eager tasks with in-memory mail, so tests do not publish to development
+Celery. `config/test_loadtest.py` imports the scripts from
+`../locust_loadtest/` and skips its tests if that folder is missing.
 
 ## Data-changing utilities
 
@@ -144,13 +161,14 @@ so tests do not publish to development Celery.
   warning if Redis is unavailable.
   Sources default to the repository's frontend starter catalog and public
   images; override them with `--catalog-dir` and `--image-root` if needed.
-- `setup_loadtest_postgres.py --reset` restores only the load-test baseline.
-  Stop the load-test server, Locust, worker, and Beat first.
-- `setup_loadtest_postgres.py --save-baseline` deliberately replaces that
-  baseline with current load-test records.
-- `prepare_loadtest_users.py` resets the load-test baseline, prepares dedicated
-  accounts, and saves a new baseline and credentials file.
+- Load-test scripts in `../locust_loadtest/`, run from the project root:
+  - `setup_loadtest_postgres.py --reset` restores only the load-test baseline.
+    Stop the load-test server, Locust, worker, and Beat first.
+  - `setup_loadtest_postgres.py --save-baseline` deliberately replaces that
+    baseline with current load-test records.
+  - `prepare_loadtest_users.py` resets the load-test baseline, prepares dedicated
+    accounts, and saves a new baseline and credentials file.
 
-Follow the linked load-testing guide before running these helpers. Preserve the
+Follow the linked [load-testing guide](../locust_loadtest/LOAD_TESTING.md) before running these helpers. Preserve the
 development database and keep credentials, local uploads, and baseline dumps
 out of Git.

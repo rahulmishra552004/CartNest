@@ -10,6 +10,9 @@ import os
 from pathlib import Path
 import sys
 
+#importing this first also puts ecommerce_backend on sys.path, so django.setup() below finds `config`
+from setup_loadtest_postgres import validate_database
+
 
 def snapshot():
     from products.models import Product
@@ -50,7 +53,6 @@ def main():
     django.setup()
     from django.conf import settings
     from django.utils import timezone
-    from setup_loadtest_postgres import validate_database
     from orders_and_paymentsummary.models import CheckoutRequest, Order
     validate_database(settings.DATABASES['default'])
     current = snapshot()

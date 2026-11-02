@@ -1,16 +1,29 @@
 from unittest.mock import MagicMock, patch
 from pathlib import Path
 import shutil
+import sys
 import tempfile
 from unittest import skipUnless
 
 from django.db import connection
 from django.test import SimpleTestCase, TransactionTestCase, override_settings
 
-from setup_loadtest_postgres import _restore_archive, clear_loadtest_runtime, run_postgres
-from audit_loadtest import reconcile
+#the load-test scripts live outside the Django project, in ../locust_loadtest.
+#if that folder is missing (e.g. a partial checkout of only the backend), these tests are skipped, not failed
+LOADTEST_DIR = Path(__file__).resolve().parents[2] / 'locust_loadtest'
+HAS_LOADTEST_TOOLS = (LOADTEST_DIR / 'setup_loadtest_postgres.py').is_file()
+requires_loadtest_tools = skipUnless(
+    HAS_LOADTEST_TOOLS, 'locust_loadtest/ is missing from this checkout',
+)
+
+if HAS_LOADTEST_TOOLS:
+    if str(LOADTEST_DIR) not in sys.path:
+        sys.path.insert(0, str(LOADTEST_DIR))
+    from setup_loadtest_postgres import _restore_archive, clear_loadtest_runtime, run_postgres
+    from audit_loadtest import reconcile
 
 
+@requires_loadtest_tools
 class RuntimeCleanupTests(SimpleTestCase):
     database = {'ENGINE': 'django.db.backends.postgresql', 'NAME': 'ecommerce_loadtest',
                 'HOST': '127.0.0.1', 'USER': 'ecommerce_user'}
@@ -40,6 +53,7 @@ class RuntimeCleanupTests(SimpleTestCase):
             redis.flushall.assert_not_called()
 
 
+@requires_loadtest_tools
 class AuditTests(SimpleTestCase):
     baseline = {'stock': {'p': 10}, 'sold': {'p': 3}, 'orders': ['old']}
 
@@ -55,6 +69,7 @@ class AuditTests(SimpleTestCase):
         self.assertTrue(reconcile(self.baseline, {'stock': {}, 'sold': {}, 'orders': []}))
 
 
+@requires_loadtest_tools
 @skipUnless(all(shutil.which(tool) for tool in ('pg_dump', 'pg_restore', 'psql')),
             'PostgreSQL command-line tools required for archive integration test')
 class ArchiveRestoreTests(TransactionTestCase):

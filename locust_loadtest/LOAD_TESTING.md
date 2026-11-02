@@ -7,7 +7,7 @@ run from the project root unless a block explicitly changes directory.
 ## Resources and installation
 
 Development uses database `ecommerce`. `config.loadtest` uses
-`ecommerce_loadtest`, `media.loadtest/`, Redis cache database `/2` with a
+`ecommerce_loadtest`, `locust_loadtest/media.loadtest/`, Redis cache database `/2` with a
 `:loadtest` key prefix, and Celery broker database `/3` with queue
 `ecommerce_loadtest`. `config.loadtest_postgres` is a compatibility alias.
 `LOADTEST_REDIS_URL` and `LOADTEST_CELERY_BROKER_URL` can override Redis URLs;
@@ -20,7 +20,7 @@ and load testing concurrently when collecting comparable capacity results.
 
 ```bash
 source ecommerce_backend/.venv/bin/activate
-python -m pip install -r ecommerce_backend/requirements-loadtest.txt
+python -m pip install -r locust_loadtest/requirements-loadtest.txt
 ```
 
 Gunicorn is used for capacity measurements on Linux/WSL. Locust's `FastHttpUser`
@@ -43,7 +43,7 @@ emails, and saves a fresh baseline. Checkout sends each account's saved
 Historical fixtures precede the saved stock baseline and do not enqueue mail:
 
 ```bash
-python ecommerce_backend/prepare_loadtest_users.py --users 200
+python locust_loadtest/prepare_loadtest_users.py --users 200
 ```
 
 The gitignored `loadtest_data.json` is written with owner-only permissions.
@@ -54,7 +54,7 @@ pool. Never share accounts between active workers or classes.
 To restore the prepared baseline between comparable runs:
 
 ```bash
-python ecommerce_backend/setup_loadtest_postgres.py --reset
+python locust_loadtest/setup_loadtest_postgres.py --reset
 ```
 
 This replaces only the isolated database's public schema in a single restore
@@ -68,13 +68,13 @@ queue cannot cancel tasks already reserved by a worker.
 To deliberately replace the baseline:
 
 ```bash
-python ecommerce_backend/setup_loadtest_postgres.py --save-baseline
+python locust_loadtest/setup_loadtest_postgres.py --save-baseline
 ```
 
 For initial setup only, if both destination tables and baseline are absent:
 
 ```bash
-python ecommerce_backend/setup_loadtest_postgres.py
+python locust_loadtest/setup_loadtest_postgres.py
 ```
 
 Initialization clones development into the isolated database, migrates, copies
@@ -94,7 +94,7 @@ For capacity measurements, use a dedicated terminal:
 
 ```bash
 ecommerce_backend/.venv/bin/gunicorn \
-  --config ecommerce_backend/gunicorn.loadtest.conf.py config.wsgi:application
+  --config locust_loadtest/gunicorn.loadtest.conf.py config.wsgi:application
 ```
 
 The Gunicorn configuration selects `config.loadtest_capacity`, binds port 8001,
@@ -126,7 +126,7 @@ on the worker. This measures job processing, not a real SMTP provider's latency.
 ## Default storefront workload
 
 ```bash
-locust -f locustfile.py --host http://127.0.0.1:8001
+locust -f locust_loadtest/locustfile.py --host http://127.0.0.1:8001
 ```
 
 Open `http://localhost:8089`. Start with one user and spawn rate one.
@@ -141,7 +141,7 @@ Open `http://localhost:8089`. Start with one user and spawn rate one.
 Select classes explicitly for individual smoke tests:
 
 ```bash
-locust -f locustfile.py CheckoutUser --host http://127.0.0.1:8001 \
+locust -f locust_loadtest/locustfile.py CheckoutUser --host http://127.0.0.1:8001 \
   --headless -u 1 -r 1 -t 30s --stop-timeout 15
 ```
 
@@ -191,8 +191,8 @@ These classes live in a separate file so they never enter the default mix:
 | `AuthSessionUser` | Repeated logout/CSRF/login with recovery after failed iterations |
 
 ```bash
-locust -f locust_scenarios.py CheckoutReplayUser --host http://127.0.0.1:8001
-locust -f locust_scenarios.py GuestSearchUser --host http://127.0.0.1:8001
+locust -f locust_loadtest/locust_scenarios.py CheckoutReplayUser --host http://127.0.0.1:8001
+locust -f locust_loadtest/locust_scenarios.py GuestSearchUser --host http://127.0.0.1:8001
 ```
 
 Always select the intended classes when using `locust_scenarios.py`. Otherwise all
@@ -210,7 +210,7 @@ limiter; the app uses REMOTE_ADDR.
 Before a run, capture stock and existing purchases using a new snapshot path:
 
 ```bash
-python ecommerce_backend/audit_loadtest.py --capture --snapshot /tmp/loadtest-run-01.json
+python locust_loadtest/audit_loadtest.py --capture --snapshot /tmp/loadtest-run-01.json
 ```
 
 Ramp through 10, 25, 50, and 100 users with spawn rate 1–5 users/second. Hold each
@@ -221,7 +221,7 @@ waits/connections, Redis memory/errors, and worker processing rates.
 For example, one independently reproducible plateau:
 
 ```bash
-locust -f locustfile.py --host http://127.0.0.1:8001 --headless \
+locust -f locust_loadtest/locustfile.py --host http://127.0.0.1:8001 --headless \
   -u 25 -r 2 -t 12m --stop-timeout 15 \
   --csv /tmp/loadtest-25 --csv-full-history --html /tmp/loadtest-25.html
 ```
@@ -240,7 +240,7 @@ Run separate experiments for:
 After stopping HTTP traffic, allow the worker to drain, then verify:
 
 ```bash
-python ecommerce_backend/audit_loadtest.py --verify --snapshot /tmp/loadtest-run-01.json
+python locust_loadtest/audit_loadtest.py --verify --snapshot /tmp/loadtest-run-01.json
 ```
 
 The audit exits nonzero if stock deductions differ from new order-item quantities,
@@ -268,11 +268,11 @@ would allocate the same accounts.
 ## Validation
 
 ```bash
-python -m unittest loadtest_tests
+python -m unittest discover -s locust_loadtest -p loadtest_tests.py
 python ecommerce_backend/manage.py check --settings=config.loadtest_capacity
-python ecommerce_backend/manage.py test --settings=config.test --noinput
-locust -f locustfile.py --list
-locust -f locust_scenarios.py --list
+(cd ecommerce_backend && python manage.py test --settings=config.test --noinput)
+locust -f locust_loadtest/locustfile.py --list
+locust -f locust_loadtest/locust_scenarios.py --list
 ```
 
 The Django suite uses its temporary PostgreSQL database, a `:test` cache prefix,

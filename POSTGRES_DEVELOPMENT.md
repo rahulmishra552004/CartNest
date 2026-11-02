@@ -43,7 +43,7 @@ Load tests use `LOADTEST_DB_NAME` (default `ecommerce_loadtest`) and optional
 `LOADTEST_DB_USER`, `LOADTEST_DB_PASSWORD`, `LOADTEST_DB_HOST`, and
 `LOADTEST_DB_PORT`. The load-test password file is `.loadtest-db-password`, with
 `.db-password` as a fallback. Load-test settings reject the development database
-name and use a separate Redis prefix and `media.loadtest/`.
+name and use a separate Redis prefix and `locust_loadtest/media.loadtest/`.
 
 ## Automated tests
 
@@ -73,4 +73,5 @@ includes 105 users, 42 products, 186 cart rows, 2,439 orders, and 2,463 order it
 Passwords, ownership, inventory, sessions, and product snapshots were preserved.
 
 The existing PostgreSQL load-test reset baseline remains available. See
-[LOAD_TESTING.md](LOAD_TESTING.md) for isolated workloads and reset commands.
+[LOAD_TESTING.md](locust_loadtest/LOAD_TESTING.md) for isolated workloads and
+reset commands.

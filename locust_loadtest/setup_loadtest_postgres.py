@@ -8,11 +8,18 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 
 
-BASE_DIR = Path(__file__).resolve().parent
-SNAPSHOT = BASE_DIR / 'loadtest-postgres-baseline.dump'
+#this folder holds the load-test scripts and their data (baseline dump, temporary restore files)
+LOADTEST_DIR = Path(__file__).resolve().parent
+#the Django project the scripts drive; on sys.path so `config`, `products`, ... can be imported.
+#prepare_loadtest_users.py and audit_loadtest.py import this module first, so they get it too
+BACKEND_DIR = LOADTEST_DIR.parent / 'ecommerce_backend'
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+SNAPSHOT = LOADTEST_DIR / 'loadtest-postgres-baseline.dump'
 
 
 def postgres_tool(name):
@@ -113,7 +120,7 @@ def _restore_archive(config, archive):
     # pg_restore --clean cannot drop old tables if newer tables (absent from
     # the archive) reference them. Replace the isolated public schema and load
     # the archive in one transaction, so restore errors roll back the removal.
-    with tempfile.TemporaryDirectory(prefix='.loadtest-restore-', dir=BASE_DIR) as directory:
+    with tempfile.TemporaryDirectory(prefix='.loadtest-restore-', dir=LOADTEST_DIR) as directory:
         sql = Path(directory) / 'baseline.sql'
         subprocess.run([
             postgres_tool('pg_restore'), '--no-owner', '--no-privileges',
@@ -177,7 +184,7 @@ def main(argv=None):
     if source['NAME'] == config['NAME']:
         raise RuntimeError('Development and load-test databases must be different.')
 
-    with tempfile.TemporaryDirectory(prefix='.postgres-migration-', dir=BASE_DIR) as directory:
+    with tempfile.TemporaryDirectory(prefix='.postgres-migration-', dir=LOADTEST_DIR) as directory:
         export = Path(directory) / 'development.dump'
         run_postgres('pg_dump', source, '--format=custom', '--no-owner', '--no-privileges',
                      '--file', str(export))
@@ -186,7 +193,8 @@ def main(argv=None):
                      '--single-transaction', str(export))
     call_command('migrate', interactive=False)
     count = Product.objects.update(inventory_stock=args.stock)
-    source_media = BASE_DIR / 'media'
+    #product images come from the development media folder in the Django project
+    source_media = BACKEND_DIR / 'media'
     if source_media.is_dir():
         shutil.copytree(source_media, settings.MEDIA_ROOT, dirs_exist_ok=True)
     invalidate_cache(product_ids())

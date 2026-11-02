@@ -21,17 +21,20 @@ env/
 *.sqlite3-wal
 *.sqlite3-shm
 *.sqlite3-journal
-ecommerce_backend/media.loadtest/
 test_accounts.csv
-loadtest_data.json
-loadtest-audit*.json
 .loadtest-db-password
 .db-password
 .postgres-migration-*
+
+# Load-test data; the scripts and docs in locust_loadtest/ are tracked.
+# The first three match anywhere on purpose: account files hold passwords, and
+# LOADTEST_DATA_PATH can point Locust at a copy outside locust_loadtest/
+loadtest_data.json
+loadtest-audit*.json
 .loadtest-restore-*
-ecommerce_backend/loadtest-export.json
-ecommerce_backend/loadtest-postgres-baseline.dump
-ecommerce_backend/loadtest-postgres-baseline.dump.tmp
+locust_loadtest/media.loadtest/
+locust_loadtest/loadtest-postgres-baseline.dump
+locust_loadtest/loadtest-postgres-baseline.dump.tmp
 
 # Celery scheduler runtime state
 celerybeat-schedule*
@@ -43,3 +46,6 @@ celerybeat-schedule*
 
 # Generated load-test reports
 locust_report/
+
+# Personal study notes, kept on disk but not in the repository
+notes/

@@ -34,6 +34,7 @@ MAILERS = {'default': {'BACKEND': os.environ.get(
 )}}
 
 # Product upload tests must not overwrite normal development images.
-MEDIA_ROOT = BASE_DIR / 'media.loadtest'  # noqa: F405
+# Kept with the other load-test files in ../locust_loadtest.
+MEDIA_ROOT = BASE_DIR.parent / 'locust_loadtest' / 'media.loadtest'  # noqa: F405
 
 MIDDLEWARE = ['config.loadtest_middleware.LoadtestMarkerMiddleware', *MIDDLEWARE]  # noqa: F405
