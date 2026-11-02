@@ -15,7 +15,7 @@ function getNiceStep(maxValue) {
   return [1, 2, 2.5, 5, 10].map((multiple) => multiple * magnitude).find((step) => step >= roughStep);
 }
 
-//graph: one { day: 'YYYY-MM-DD', revenue: cents } per day, oldest first, days without sales included
+//graph: one { day: 'YYYY-MM-DD', revenue: cents } per UTC day, oldest first, days without sales included
 export function VendorRevenueChart({ graph, range }) {
   const { label: rangeLabel } = getStatsRange(range);
 
@@ -36,8 +36,9 @@ export function VendorRevenueChart({ graph, range }) {
         <p>Daily revenue · {rangeLabel}</p>
       </header>
 
-      {graph.length === 0 ? (
-        <p className="vendor-stats-empty">No sales yet. Your daily revenue will show up here.</p>
+      {/* a fixed range sends a bar for every day, so "no sales" can also mean all bars are 0 */}
+      {maxRevenue === 0 ? (
+        <p className="vendor-stats-empty">No sales in this period yet. Your daily revenue will show up here.</p>
       ) : (
         <>
           <div className="vendor-revenue-chart">

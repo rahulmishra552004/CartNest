@@ -24,7 +24,8 @@ export function VendorStatusBreakdown({ summary }) {
     <section className="vendor-stats-card" aria-labelledby="vendor-status-title">
       <header className="vendor-stats-card-header">
         <h2 id="vendor-status-title">Delivery status</h2>
-        <p>{formatCount(total)} order items · {formatCount(pending)} pending</p>
+        {/* not tied to the time range: pending and overdue items need attention however old they are */}
+        <p>All orders · {formatCount(total)} order items · {formatCount(pending)} pending</p>
       </header>
 
       <div className="vendor-status-bar" role="img" aria-label={barLabel}>

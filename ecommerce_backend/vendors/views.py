@@ -1,5 +1,6 @@
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.mixins import ListModelMixin, UpdateModelMixin
 from django.db import transaction
@@ -29,6 +30,14 @@ from .permissions import IsVendorProductOwner
 
 #products with this many units or fewer show up as low stock on the stats page
 LOW_STOCK_THRESHOLD = 5
+DAY_MS = 24*60*60*1000
+#how many days each stats range covers; 'all' has no start date
+STATS_RANGE_DAYS = {
+    '7d': 7,
+    '30d': 30,
+    '90d': 90,
+    'all': None,
+}
 
 class VendorProductViewSet(ModelViewSet):
     permission_classes = [IsVendorProductOwner]
@@ -96,16 +105,40 @@ class VendorOrderViewSet(
 @api_view(['GET'])
 @permission_classes([IsVendorProductOwner])
 def get_stats_view(request):
-    queryset = (
-        OrderItem.objects
-        .filter(vendor_id = request.user.vendor.id)
-    )
+    #no range means all time
+    stats_range = request.query_params.get('range', '').strip() or 'all'
+    if stats_range not in STATS_RANGE_DAYS:
+        raise ValidationError({
+            'detail': 'invalid range parameter'
+        })
 
-    #one "now" for the whole request, so overdue and the graph agree on the time
+    #one "now" for the whole request, so every number agrees on the time
     now = datetime.now(timezone.utc)
     current_time = int(now.timestamp()*1000)
+    midnight = now.replace(
+        hour = 0,
+        minute = 0,
+        second = 0,
+        microsecond = 0,
+    )
+    today_start = int(midnight.timestamp()*1000)
+
+    #"last 7 days" is today plus the 6 whole UTC days before it,
+    #so the numbers and the graph cover exactly the same days
+    range_days = STATS_RANGE_DAYS[stats_range]
+    range_start = (
+        None if range_days is None
+        else today_start - (range_days - 1)*DAY_MS
+    )
+
+    vendor_items = OrderItem.objects.filter(vendor_id = request.user.vendor.id)
+    queryset = (
+        vendor_items if range_start is None
+        else vendor_items.filter(order__order_time_ms__gte = range_start)
+    )
     Status = OrderItem.DeliveryStatus
 
+    #sales in the selected range
     summary = queryset.aggregate(
         totalRevenueCents = Sum(
             Cast(F('product__priceCents'), IntegerField())
@@ -117,6 +150,11 @@ def get_stats_view(request):
         ordersCount = Count(
             'order', distinct=True
         ),
+    )
+
+    #delivery status is about right now, so it counts every order item, whatever
+    #the range: an old order that still isn't delivered is the most overdue one
+    summary.update(vendor_items.aggregate(
         overdueItemsCount = Count(
             'id',
             filter = (
@@ -136,7 +174,7 @@ def get_stats_view(request):
             'id',
             filter = Q(delivery_status = Status.DELIVERED),
         ),
-    )
+    ))
 
     top_products = list(
         queryset.values(productId=KT('product__id')).annotate(
@@ -163,14 +201,6 @@ def get_stats_view(request):
         )
     )
 
-    graph_array = []
-    midnight = now.replace(
-        hour = 0,
-        minute = 0,
-        second = 0,
-        microsecond = 0,
-    )
-    cutoff_time = int(midnight.timestamp()*1000)
     qs_list = list(
         queryset
         .values(
@@ -182,8 +212,21 @@ def get_stats_view(request):
         )
         .order_by('-order_time')
     )
+
+    #one bar per UTC day. a fixed range gets a bar for every day in it, even days
+    #without sales; all time starts on the day of the oldest sale (no sales: no bars)
+    if range_start is not None:
+        first_day = range_start
+    elif qs_list:
+        oldest_time = qs_list[-1]['order_time']
+        first_day = oldest_time - oldest_time % DAY_MS
+    else:
+        first_day = None
+
+    graph_array = []
+    cutoff_time = today_start
     i = 0
-    while(i < len(qs_list)):
+    while(first_day is not None and cutoff_time >= first_day):
         revenue = 0
         while(i < len(qs_list) and qs_list[i]['order_time'] >= cutoff_time):
             revenue += qs_list[i]['revenue_cents']
@@ -200,7 +243,7 @@ def get_stats_view(request):
             ),
             'revenue': revenue,
         })
-        cutoff_time -= 24 * 60 * 60 * 1000
+        cutoff_time -= DAY_MS
     graph_array.reverse()
 
     summary['totalRevenueCents'] = summary['totalRevenueCents'] or 0

@@ -17,20 +17,33 @@ const LOAD_ERROR_MESSAGE = "We couldn't load your stats. Please try again.";
 export function VendorStatsPage({ user }) {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
-  //the stats endpoint returns all-time numbers until the range filter is built
-  const range = 'all';
+  //one of the STATS_RANGES values; the endpoint takes the same strings as ?range=
+  const [range, setRange] = useState('30d');
 
+  //reloads whenever the range changes; the old numbers stay on screen until the new ones arrive
   useEffect(() => {
+    //if the range changes again before this request finishes, its answer is out of date
+    let ignore = false;
+
     const loadStats = async () => {
       try {
-        const response = await axios.get('/api/vendor/stats/');
-        setStats(response.data);
+        const response = await axios.get('/api/vendor/stats/', { params: { range } });
+        if (!ignore) {
+          setStats(response.data);
+          setError(null);
+        }
       } catch (requestError) {
-        setError(getRequestErrorMessage(requestError, LOAD_ERROR_MESSAGE));
+        if (!ignore) {
+          setError(getRequestErrorMessage(requestError, LOAD_ERROR_MESSAGE));
+        }
       }
     };
     loadStats();
-  }, []);
+
+    return () => {
+      ignore = true;
+    };
+  }, [range]);
 
   return (
     <>
@@ -43,6 +56,9 @@ export function VendorStatsPage({ user }) {
 
           <section className="vendor-stats" aria-labelledby="vendor-stats-title">
             <VendorStatsHeading />
+
+            {/* stays outside the error branch, so picking another range retries after a failed load */}
+            <VendorStatsRangeFilter range={range} onRangeChange={setRange} />
 
             {error ? (
               <section className="vendor-stats-error" role="alert">
@@ -60,8 +76,6 @@ export function VendorStatsPage({ user }) {
               </section>
             ) : stats && (
               <>
-                <VendorStatsRangeFilter range={range} />
-
                 <VendorStatTiles summary={stats} range={range} />
 
                 <VendorRevenueChart graph={stats.graph} range={range} />
