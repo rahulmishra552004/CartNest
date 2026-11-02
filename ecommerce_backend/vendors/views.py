@@ -16,7 +16,7 @@ from django.db.models import (
     CharField,
     Max,
 )
-from django.db.models.functions import Cast, Concat
+from django.db.models.functions import Cast, Concat, Lower
 from django.db.models.fields.json import KT
 from django.conf import settings
 from datetime import datetime, timezone
@@ -38,6 +38,17 @@ STATS_RANGE_DAYS = {
     '90d': 90,
     'all': None,
 }
+#?sort= values for the vendor catalog and the order_by() fields for each.
+#names compare in lowercase, because the database puts every capital letter
+#before every lowercase one ("Zebra" before "iPhone case").
+#equal stars fall back to the review count: 5.0 from 1,000 reviews before 5.0 from 2
+PRODUCT_SORT_OPTIONS = {
+    'name_asc': [Lower('name')],
+    'name_desc': [Lower('name').desc()],
+    'price_asc': ['price_cents'],
+    'price_desc': ['-price_cents'],
+    'rating_desc': ['-rating_stars', '-rating_count'],
+}
 
 class VendorProductViewSet(ModelViewSet):
     permission_classes = [IsVendorProductOwner]
@@ -47,6 +58,17 @@ class VendorProductViewSet(ModelViewSet):
         queryset = Product.objects.filter(vendor=self.request.user.vendor)
         if self.action in ['update', 'partial_update', 'destroy']:
             queryset = queryset.select_for_update()
+
+        #only the list is sorted: one-product requests ignore ?sort=
+        if self.action == 'list':
+            sort = self.request.query_params.get('sort', '').strip() or 'name_asc'
+            if sort not in PRODUCT_SORT_OPTIONS:
+                raise ValidationError({
+                    'detail': 'invalid sort option'
+                })
+            #'id' last keeps products with equal values in the same order every time
+            queryset = queryset.order_by(*PRODUCT_SORT_OPTIONS[sort], 'id')
+
         return queryset
 
     def perform_create(self, serializer):

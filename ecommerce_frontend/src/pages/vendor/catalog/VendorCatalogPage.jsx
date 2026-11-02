@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router';
 import './VendorCatalog.css';
 import { VendorHeader } from '../../header/VendorHeader.jsx';
 import { VendorCatalogNavigation } from './VendorCatalogNavigation.jsx';
@@ -7,12 +7,38 @@ import { VendorProductCard } from './VendorProductCard.jsx';
 import { accountError } from '../../profile/accountErrors.js';
 import { useState, useEffect } from 'react';
 
+//the ?sort= values /api/vendor/products/ accepts; name_asc is also its default
+const SORT_OPTIONS = [
+  { value: 'name_asc', label: 'Name: A–Z' },
+  { value: 'name_desc', label: 'Name: Z–A' },
+  { value: 'price_asc', label: 'Price: Low to high' },
+  { value: 'price_desc', label: 'Price: High to low' },
+  { value: 'rating_desc', label: 'Highest rated' },
+];
+const DEFAULT_SORT = 'name_asc';
+
 export function VendorCatalogPage({ user }) {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [vendorProducts, setVendorProducts] = useState();
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState(state?.successMessage ?? '');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  //the sort lives in the URL like on the home page, so it survives a reload or the back button.
+  //an unknown value (e.g. typed by hand) falls back to the default instead of failing the request
+  const sortParam = searchParams.get('sort');
+  const sort = SORT_OPTIONS.some((option) => option.value === sortParam) ? sortParam : DEFAULT_SORT;
+
+  function handleSortChange(value) {
+    const nextParams = new URLSearchParams(searchParams);
+    if (value === DEFAULT_SORT) {
+      nextParams.delete('sort');
+    } else {
+      nextParams.set('sort', value);
+    }
+    setSearchParams(nextParams);
+  }
 
   function handleProductDeleted(productId) {
     setVendorProducts((products) => products.filter((product) => product.id !== productId));
@@ -25,19 +51,28 @@ export function VendorCatalogPage({ user }) {
     }
   }, [navigate, state?.successMessage]);
   
+  //reloads when the sort changes; the current list stays on screen until the new order arrives
   useEffect(() => {
+    //choosing another sort cancels this request, so an older answer can't replace the newer list
+    const controller = new AbortController();
     const getVendorProducts = async () => {
       setError('');
       try {
-        const response = await axios.get('/api/vendor/products/');
-        const data = response.data;
-        setVendorProducts(data);
+        const response = await axios.get('/api/vendor/products/', {
+          signal: controller.signal,
+          params: { sort },
+        });
+        if (controller.signal.aborted) return;
+        setVendorProducts(response.data);
       } catch (requestError) {
-        setError(accountError(requestError));
+        if (!controller.signal.aborted) {
+          setError(accountError(requestError));
+        }
       }
     }
     getVendorProducts();
-  }, []);
+    return () => controller.abort();
+  }, [sort]);
 
   return (
     <>
@@ -55,10 +90,23 @@ export function VendorCatalogPage({ user }) {
                 <h1 id="vendor-catalog-title">Your catalog</h1>
                 <p>Review your products and keep their available quantities up to date.</p>
               </div>
-              <Link id="add-product" className="vendor-add-product-button" to="/vendor/catalog/new">
-                <span aria-hidden="true">+</span>
-                Add new product
-              </Link>
+              <div className="vendor-catalog-heading-actions">
+                {!error && vendorProducts?.length > 0 && (
+                  <label className="vendor-catalog-sort">
+                    <span>Sort by</span>
+                    <select name="sort" value={sort} onChange={(event) => handleSortChange(event.target.value)}>
+                      {SORT_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+
+                <Link id="add-product" className="vendor-add-product-button" to="/vendor/catalog/new">
+                  <span aria-hidden="true">+</span>
+                  Add new product
+                </Link>
+              </div>
             </header>
 
             {successMessage && (
