@@ -1,0 +1,870 @@
+.vendor-stats-page {
+  /* chart roles: single-series marks use the brand green; the delivery-status
+     ramp is one green hue light -> dark (validated as an ordinal ramp on white) */
+  --stats-ink: #183f2a;
+  --stats-ink-secondary: #58675e;
+  --stats-ink-muted: #647069;
+  --stats-border: #dce7df;
+  --stats-gridline: #e6eee9;
+  --stats-baseline: #c9d6cd;
+  --stats-series: #198754;
+  --stats-series-hover: #2a9d68;
+  --stats-status-preparing: #74c095;
+  --stats-status-shipping: #198754;
+  --stats-status-delivered: #0b4a2c;
+  --stats-up: #006300;
+  --stats-down: #b42318;
+  --stats-critical: #d03b3b;
+  --stats-warning: #fab219;
+
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding-top: 60px;
+  background: #f5f7f6;
+}
+
+.vendor-stats-page-content {
+  min-height: calc(100vh - 60px);
+}
+
+.vendor-stats {
+  display: grid;
+  gap: 20px;
+  box-sizing: border-box;
+  width: min(100%, 1288px);
+  margin: 0 auto;
+  padding: 38px 24px 64px;
+}
+
+.vendor-stats-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* heading */
+
+.vendor-stats-heading {
+  margin-bottom: 2px;
+}
+
+.vendor-stats-eyebrow {
+  margin-bottom: 7px;
+  color: #198754;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vendor-stats-heading h1 {
+  margin: 0;
+  color: var(--stats-ink);
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.2;
+}
+
+.vendor-stats-heading > p:last-child {
+  max-width: 650px;
+  margin-top: 10px;
+  color: var(--stats-ink-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* range filter: one row, above everything it scopes */
+
+.vendor-stats-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vendor-stats-range-option {
+  min-height: 36px;
+  padding: 7px 14px;
+  border: 1px solid var(--stats-border);
+  border-radius: 8px;
+  color: #5f6964;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.vendor-stats-range-option:hover {
+  background: #f0f7f2;
+  color: #084f2d;
+}
+
+.vendor-stats-range-option[aria-pressed="true"] {
+  border-color: #cfe3d6;
+  background: #eaf5ee;
+  color: #084f2d;
+}
+
+.vendor-stats-range-option:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 2px;
+}
+
+/* stat tiles */
+
+.vendor-stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vendor-stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 20px;
+  border: 1px solid var(--stats-border);
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 6px 22px rgba(8, 45, 28, 0.045);
+}
+
+.vendor-stat-tile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vendor-stat-label {
+  color: var(--stats-ink-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.vendor-stat-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  color: #198754;
+  background: #eaf5ee;
+}
+
+.vendor-stat-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.vendor-stat-value {
+  color: var(--stats-ink);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.vendor-stat-change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.vendor-stat-change svg {
+  width: 14px;
+  height: 14px;
+}
+
+.vendor-stat-change-value {
+  font-weight: 700;
+}
+
+.vendor-stat-change-up {
+  color: var(--stats-up);
+}
+
+.vendor-stat-change-down {
+  color: var(--stats-down);
+}
+
+.vendor-stat-change-flat {
+  color: var(--stats-ink-muted);
+}
+
+.vendor-stat-change-period {
+  color: var(--stats-ink-muted);
+}
+
+/* cards */
+
+.vendor-stats-card {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 20px 22px 22px;
+  border: 1px solid var(--stats-border);
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 6px 22px rgba(8, 45, 28, 0.045);
+}
+
+.vendor-stats-card-header {
+  margin-bottom: 18px;
+}
+
+.vendor-stats-card-header h2 {
+  margin: 0;
+  color: var(--stats-ink);
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.vendor-stats-card-header p {
+  margin-top: 3px;
+  color: var(--stats-ink-muted);
+  font-size: 13px;
+}
+
+.vendor-stats-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+/* load error: same look as the vendor orders page */
+
+.vendor-stats-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 24px;
+  border: 1px solid #ebc6c6;
+  border-radius: 13px;
+  background: #fffafa;
+  box-shadow: 0 6px 20px rgba(117, 37, 37, 0.05);
+}
+
+.vendor-stats-error-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  color: #a63c3c;
+  background: #fde9e9;
+}
+
+.vendor-stats-error-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.vendor-stats-error-copy {
+  min-width: 0;
+}
+
+.vendor-stats-error-copy h2 {
+  margin: 0;
+  color: #702b2b;
+  font-size: 19px;
+  line-height: 1.4;
+}
+
+.vendor-stats-error-copy p {
+  max-width: 650px;
+  margin-top: 7px;
+  color: #765454;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.vendor-stats-empty {
+  padding: 18px 0 6px;
+  color: var(--stats-ink-muted);
+  font-size: 14px;
+}
+
+.vendor-stats-link {
+  color: #198754;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.vendor-stats-link:hover {
+  text-decoration: underline;
+}
+
+.vendor-stats-link:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* revenue chart: the plot is 220px tall and the container includes the x-axis band */
+
+.vendor-revenue-chart {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  padding-bottom: 28px;
+}
+
+.vendor-revenue-y-axis {
+  position: relative;
+  height: 220px;
+}
+
+.vendor-revenue-y-axis span {
+  position: absolute;
+  right: 10px;
+  transform: translateY(50%);
+  color: var(--stats-ink-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.vendor-revenue-plot {
+  position: relative;
+  height: 220px;
+}
+
+.vendor-revenue-gridlines span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--stats-gridline);
+}
+
+.vendor-revenue-gridlines span:first-child {
+  background: var(--stats-baseline);
+}
+
+.vendor-revenue-columns {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* the whole slot is the hit target, not just the painted column */
+.vendor-revenue-slot {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+  border-radius: 4px 4px 0 0;
+  outline: none;
+}
+
+.vendor-revenue-slot:hover,
+.vendor-revenue-slot:focus-visible {
+  background: rgba(25, 135, 84, 0.06);
+}
+
+.vendor-revenue-slot:focus-visible {
+  box-shadow: inset 0 0 0 2px #198754;
+}
+
+.vendor-revenue-column {
+  width: min(16px, 70%);
+  height: var(--height);
+  border-radius: 4px 4px 0 0;
+  background: var(--stats-series);
+  transition: background-color 120ms ease;
+}
+
+.vendor-revenue-slot:hover .vendor-revenue-column,
+.vendor-revenue-slot:focus-visible .vendor-revenue-column {
+  background: var(--stats-series-hover);
+}
+
+.vendor-revenue-peak {
+  position: absolute;
+  bottom: calc(var(--height) + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--stats-ink);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vendor-revenue-x-label {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--stats-ink-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.vendor-chart-tooltip {
+  position: absolute;
+  bottom: calc(var(--height) + 10px);
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  gap: 1px;
+  padding: 7px 10px;
+  border: 1px solid var(--stats-border);
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 6px 18px rgba(8, 45, 28, 0.12);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 120ms ease;
+}
+
+.vendor-chart-tooltip strong {
+  color: var(--stats-ink);
+  font-size: 14px;
+}
+
+.vendor-chart-tooltip span {
+  color: var(--stats-ink-muted);
+  font-size: 12px;
+}
+
+.vendor-chart-tooltip-start {
+  left: 0;
+  transform: none;
+}
+
+.vendor-chart-tooltip-end {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.vendor-revenue-slot:hover .vendor-chart-tooltip,
+.vendor-revenue-slot:focus-visible .vendor-chart-tooltip {
+  opacity: 1;
+}
+
+/* table view: the same numbers without hovering */
+
+.vendor-chart-table {
+  margin-top: 8px;
+  border-top: 1px solid var(--stats-gridline);
+  padding-top: 12px;
+}
+
+.vendor-chart-table summary {
+  width: fit-content;
+  color: #198754;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.vendor-chart-table summary:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.vendor-chart-table-scroll {
+  max-height: 280px;
+  margin-top: 12px;
+  overflow-y: auto;
+}
+
+.vendor-chart-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.vendor-chart-table th,
+.vendor-chart-table td {
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--stats-gridline);
+  text-align: left;
+}
+
+.vendor-chart-table th {
+  position: sticky;
+  top: 0;
+  color: var(--stats-ink-secondary);
+  background: white;
+  font-size: 12px;
+}
+
+.vendor-chart-table td {
+  color: var(--stats-ink);
+}
+
+.vendor-chart-table th:last-child,
+.vendor-chart-table td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* top products: ranked bars, one hue, value at the tip */
+
+.vendor-top-products {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vendor-top-product {
+  display: grid;
+  grid-template-columns: 18px 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.vendor-top-product-rank {
+  color: var(--stats-ink-muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.vendor-top-product-image {
+  width: 44px;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 4px;
+  border: 1px solid var(--stats-gridline);
+  border-radius: 9px;
+  background: white;
+  object-fit: contain;
+}
+
+.vendor-top-product-body {
+  min-width: 0;
+}
+
+.vendor-top-product-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+
+.vendor-top-product-name {
+  overflow: hidden;
+  color: var(--stats-ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vendor-top-product-units {
+  flex-shrink: 0;
+  color: var(--stats-ink-muted);
+  font-size: 12px;
+}
+
+/* the right margin keeps room for the revenue label at the tip of the longest bar */
+.vendor-top-product-bar-row {
+  position: relative;
+  height: 16px;
+  margin-right: 76px;
+}
+
+.vendor-top-product-bar {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  width: calc(var(--share) * 100%);
+  height: 10px;
+  border-radius: 0 4px 4px 0;
+  background: var(--stats-series);
+}
+
+.vendor-top-product-revenue {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--share) * 100% + 8px);
+  transform: translateY(-50%);
+  color: var(--stats-ink);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* delivery status: thin segmented bar above the rows that carry the numbers */
+
+.vendor-status-bar {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  margin-bottom: 16px;
+}
+
+.vendor-status-segment {
+  flex-basis: 0;
+  min-width: 2px;
+}
+
+.vendor-status-segment:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+.vendor-status-segment:last-child {
+  border-radius: 0 999px 999px 0;
+}
+
+.vendor-status-segment:only-child {
+  border-radius: 999px;
+}
+
+.vendor-status-color-preparing {
+  background: var(--stats-status-preparing);
+}
+
+.vendor-status-color-shipping {
+  background: var(--stats-status-shipping);
+}
+
+.vendor-status-color-delivered {
+  background: var(--stats-status-delivered);
+}
+
+.vendor-status-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vendor-status-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--stats-gridline);
+  font-size: 14px;
+}
+
+.vendor-status-row:last-child {
+  border-bottom: none;
+}
+
+.vendor-status-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.vendor-status-name {
+  color: var(--stats-ink);
+  font-weight: 600;
+}
+
+.vendor-status-count {
+  color: var(--stats-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.vendor-status-share {
+  color: var(--stats-ink-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.vendor-status-overdue {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #f1d2d2;
+  border-radius: 10px;
+  background: #fffafa;
+}
+
+.vendor-status-overdue p {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 1px;
+  font-size: 13px;
+}
+
+.vendor-status-overdue strong {
+  color: var(--stats-ink);
+}
+
+.vendor-status-overdue span {
+  color: var(--stats-ink-secondary);
+}
+
+/* status icons: color never carries the meaning alone, the label beside it does */
+
+.vendor-alert-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.vendor-alert-icon circle {
+  stroke: none;
+}
+
+.vendor-alert-icon-critical circle {
+  fill: var(--stats-critical);
+}
+
+.vendor-alert-icon-critical path {
+  stroke: white;
+}
+
+.vendor-alert-icon-warning circle {
+  fill: var(--stats-warning);
+}
+
+.vendor-alert-icon-warning path {
+  stroke: #0b0b0b;
+}
+
+/* low stock */
+
+.vendor-low-stock-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vendor-low-stock-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid var(--stats-gridline);
+  border-radius: 11px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.vendor-low-stock-item:hover {
+  border-color: #cfe3d6;
+  background: #f7fbf8;
+}
+
+.vendor-low-stock-item:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 2px;
+}
+
+.vendor-low-stock-image {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  box-sizing: border-box;
+  padding: 4px;
+  border-radius: 9px;
+  background: white;
+  object-fit: contain;
+}
+
+.vendor-low-stock-text {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.vendor-low-stock-name {
+  overflow: hidden;
+  color: var(--stats-ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vendor-stock-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--stats-ink-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.vendor-stock-status .vendor-alert-icon {
+  width: 15px;
+  height: 15px;
+}
+
+@media (max-width: 1000px) {
+  .vendor-stat-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vendor-stats-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 690px) {
+  .vendor-revenue-columns {
+    gap: 2px;
+  }
+
+  .vendor-revenue-chart {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 450px) {
+  .vendor-stats {
+    padding: 30px 16px 44px;
+  }
+
+  .vendor-stat-tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vendor-stats-card {
+    padding: 18px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vendor-stats-range-option,
+  .vendor-revenue-column,
+  .vendor-chart-tooltip,
+  .vendor-low-stock-item {
+    transition: none;
+  }
+}

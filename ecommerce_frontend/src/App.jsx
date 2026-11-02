@@ -19,6 +19,7 @@ import { VendorCatalogPage } from './pages/vendor/catalog/VendorCatalogPage.jsx'
 import { VendorAddProductPage } from './pages/vendor/catalog/VendorAddProductPage.jsx';
 import { VendorProductDetailsPage } from './pages/vendor/catalog/VendorProductDetailsPage.jsx';
 import { VendorOrdersPage } from './pages/vendor/orders/VendorOrdersPage.jsx';
+import { VendorStatsPage } from './pages/vendor/stats/VendorStatsPage.jsx';
 import './App.css'
 import { Routes, Route, Navigate } from 'react-router';
 import axios from 'axios';
@@ -148,6 +149,7 @@ function App() {
         <Route path="/vendor/catalog/new" element={<VendorAddProductPage user={user} />} />
         <Route path="/vendor/catalog/:productId" element={<VendorProductDetailsPage user={user} />} />
         <Route path="/vendor/orders" element={<VendorOrdersPage user={user} />} />
+        <Route path="/vendor/stats" element={<VendorStatsPage user={user} />} />
         <Route path="/trending" element={<TrendingProductsPage cart={cart} user={user} getCartData={getCartData} />} />
         <Route
           path="/products/:productId"

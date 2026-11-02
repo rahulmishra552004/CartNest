@@ -52,9 +52,12 @@
     padding: 13px 16px;
   }
 
+  /* three links share the row, so trim the side padding to fit 320px screens */
   .vendor-navigation-link {
     flex: 1;
     justify-content: center;
+    gap: 7px;
+    padding: 10px 8px;
   }
 }
 
