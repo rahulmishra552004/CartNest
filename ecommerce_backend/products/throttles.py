@@ -56,11 +56,21 @@ counter_script = r.register_script("""
                                    """)
 
 class ProductSearchThrottle(BaseThrottle):
-    user_capacity = 5
-    user_refill_rate = 5/60
+    #token bucket: `capacity` requests in a burst, then `refill_rate` new requests per second.
+    #every load of the catalog with a search costs a token: submitting a search, changing the
+    #sort, going back to the results from a product page, or pressing "Try again". A person
+    #doing all of that every few seconds stays within these limits; a script firing many
+    #searches per second is slowed to one every 2-3 seconds once its burst is spent.
 
-    guest_capacity = 3
-    guest_refill_rate = 3/60
+    #signed-in users, per account: a burst of 30, then 30 per minute
+    user_capacity = 30
+    user_refill_rate = 30/60
+
+    #guests, per IP address: a burst of 20, then 20 per minute. Lower than signed-in users,
+    #but not much lower, because one IP is often shared (a home or office network, a mobile
+    #carrier; in development every guest arrives as 127.0.0.1 through the Vite proxy)
+    guest_capacity = 20
+    guest_refill_rate = 20/60
 
     def allow_request(self, request, view):
         self.retry_after = None
@@ -69,8 +79,10 @@ class ProductSearchThrottle(BaseThrottle):
             return True
 
         search = request.query_params.get('search', '').strip()
+        page = request.query_params.get('page', '').strip()
 
-        if not search:
+        #a search costs one token when it starts (page 1); moving through its pages is free
+        if not search or page not in ('', '1'):
             return True
 
         if request.user.is_authenticated:

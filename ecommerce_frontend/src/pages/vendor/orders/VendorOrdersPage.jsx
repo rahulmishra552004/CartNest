@@ -3,41 +3,59 @@ import { VendorCatalogNavigation } from '../catalog/VendorCatalogNavigation.jsx'
 import { VendorOrderCard } from './components/VendorOrderCard.jsx';
 import { VendorOrdersHeading } from './components/VendorOrdersHeading.jsx';
 import { EmptyState } from '../../../components/EmptyState.jsx';
+import { Pagination } from '../../../components/Pagination.jsx';
 import './VendorOrdersPage.css';
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router';
 import axios from 'axios';
 import { getRequestErrorMessage } from '../../../utils/addressErrors.js';
+import { getPage, withPage, isMissingPage } from '../../../utils/pagination.js';
 
 const LOAD_ERROR_MESSAGE = "We couldn't load your orders. Please try again.";
 
-//outside the component: it only uses its argument, so useEffect doesn't need it as a dependency
-function getPendingOrders(orders) {
-  let pendingOrders = 0;
-  orders?.forEach((order) => {
-    if (order.deliveryStatus !== 'delivered') {
-      pendingOrders++;
-    }
-  })
-  return pendingOrders;
-}
-
 export function VendorOrdersPage({ user }) {
   const [orders, setOrders] = useState(null);
+  //how many order items there are across every page, for "Page X of Y"
+  const [count, setCount] = useState(0);
   const [error, setError] = useState(null);
   const [pendingOrders, setPendingOrders] = useState();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = getPage(searchParams);
 
   useEffect(() => {
+    //a newer page cancels this request, so an older answer can't replace the newer list
+    const controller = new AbortController();
     const loadOrders = async () => {
       try {
-        const response = await axios.get('/api/vendor/orders/');
-        setOrders(response.data);
-        setPendingOrders(getPendingOrders(response.data));
+        const response = await axios.get('/api/vendor/orders/', {
+          signal: controller.signal,
+          params: page === 1 ? {} : { page },
+        });
+        if (controller.signal.aborted) return;
+        setOrders(response.data.results);
+        setCount(response.data.count);
+        //counted by the backend across every page, not only the orders on this one
+        setPendingOrders(response.data.pending_count);
+        setError(null);
       } catch (requestError) {
+        if (controller.signal.aborted) return;
+        //?page= past the last page (an old link): go back to page 1
+        if (isMissingPage(requestError, page)) {
+          setSearchParams((params) => withPage(params, 1), { replace: true });
+          return;
+        }
         setError(getRequestErrorMessage(requestError, LOAD_ERROR_MESSAGE));
       }
     }
     loadOrders();
-  }, []);
+    return () => controller.abort();
+  }, [page, setSearchParams]);
+
+  function goToPage(nextPage) {
+    setSearchParams(withPage(searchParams, nextPage));
+    //start the new page at the top, not where the old one was scrolled to
+    window.scrollTo(0, 0);
+  }
 
   return (
     <>
@@ -74,11 +92,14 @@ export function VendorOrdersPage({ user }) {
                 primaryAction={{ label: 'View your catalog', to: '/vendor/catalog' }}
               />
             ) : (
-              <div className="vendor-orders-list">
-                {orders && orders.map((order) => (
-                  <VendorOrderCard key={order.id} order={order} setPendingOrders={setPendingOrders}/>
-                ))}
-              </div>
+              <>
+                <div className="vendor-orders-list">
+                  {orders && orders.map((order) => (
+                    <VendorOrderCard key={order.id} order={order} setPendingOrders={setPendingOrders}/>
+                  ))}
+                </div>
+                <Pagination page={page} count={count} onPageChange={goToPage} label="Order pages" />
+              </>
             )}
           </section>
         </div>

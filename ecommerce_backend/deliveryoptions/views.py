@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class DeliveryOptionListView(generics.ListAPIView):
     queryset = DeliveryOption.objects.all()
     serializer_class = DeliveryOptionSerializer
+    pagination_class = None
 
     def list(self, request, *args, **kwargs):
         expanded = request.query_params.get('expand') == 'estimatedDeliveryTime'

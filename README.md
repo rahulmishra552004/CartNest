@@ -149,7 +149,9 @@ Vite proxies `/api` and `/media` to Django; `/images` is rewritten to
 
 To rebuild the Python environment, create `.venv` with
 `python3 -m venv .venv`, activate it, and run
-`python -m pip install -r requirements.txt`. A fresh checkout also requires
+`python -m pip install -r requirements.txt`. For editor type checking, use
+`requirements-dev.txt` instead; it adds the Django, DRF and Celery type stubs
+on top of `requirements.txt`. A fresh checkout also requires
 the PostgreSQL role/databases, local credentials, and Redis; see the
 [database guide](POSTGRES_DEVELOPMENT.md).
 
@@ -458,8 +460,11 @@ the connection/timeout fallback handlers.
 ### Search throttling, history, and rankings
 
 - Nonempty GET product searches use an atomic Lua token bucket. Signed-in users
-  have capacity 5 with refill 5/minute; guests have capacity 3 with refill
-  3/minute, identified by `REMOTE_ADDR`. Exhausted buckets return HTTP 429 with
+  get a burst of 30 with refill 30/minute per account; guests get a burst of 20
+  with refill 20/minute per IP, identified by `REMOTE_ADDR`. Every catalog load
+  with a search costs a token (submitting, changing the sort, returning to the
+  results, retrying), so these limits leave room for normal browsing while
+  slowing scripts to one search every 2-3 seconds. Exhausted buckets return HTTP 429 with
   `Retry-After`. Connection/timeout failures allow the request through. Only
   the first page of a search counts; requests for `?page=2` and later are not
   charged. Other endpoints, including the vendor catalog search, are not
@@ -577,6 +582,10 @@ and images from `ecommerce_frontend/public`. Use `--catalog-dir` and
 - Deleting the default address does not make another address the default.
 - Vendor stats use UTC days, so late-evening orders in other time zones count
   toward the next day.
+- Guest search limits are per `REMOTE_ADDR`. Behind a reverse proxy every guest
+  would share the proxy's address and one bucket; a deployment needs to read
+  the client IP from the proxy's trusted forwarding header first.
+- Login and registration have no rate limit.
 - Cart POST returns 200 for both creation and increase; PUT acts like PATCH.
 - Cart stock is validated but not reserved.
 - Cache invalidation for admin/direct writes is incomplete. Concurrent

@@ -69,7 +69,9 @@ class ProductViewSet(ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         search = self.request.query_params.get('search', '').strip()
         sort = self.request.query_params.get('sort', '').strip()
-        if search or sort:
+        page = self.request.query_params.get('page', '').strip()
+
+        if search or sort or page not in ('', '1'):
             return super().list(request, *args, **kwargs)
 
         key = PRODUCT_LIST_CACHE_KEY

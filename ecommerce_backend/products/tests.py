@@ -1,17 +1,39 @@
+from types import SimpleNamespace
 from unittest.mock import call, patch
 from uuid import uuid4
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.test import SimpleTestCase, override_settings
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
-from rest_framework.test import APITestCase
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory, APITestCase
 
 from vendors.models import Vendor
 from .cache_invalidation import invalidate_products
 from .cache_keys import PRODUCT_LIST_CACHE_KEY, product_detail_cache_key
 from .models import Product
+from .throttles import ProductSearchThrottle
+
+
+class ProductSearchThrottlePageTests(SimpleTestCase):
+    def test_only_the_first_page_of_a_search_counts_against_the_limit(self):
+        view = SimpleNamespace(action='list')
+        cases = (
+            ('?search=shirt', True),
+            ('?search=shirt&page=1', True),
+            ('?search=shirt&page=2', False),
+            ('?page=2', False),
+        )
+        for query, counted in cases:
+            with self.subTest(query=query):
+                request = Request(APIRequestFactory().get('/api/products/' + query))
+                request.user = AnonymousUser()
+                with patch('products.throttles.counter_script', return_value=(True, None)) as counter:
+                    self.assertTrue(ProductSearchThrottle().allow_request(request, view))
+                self.assertEqual(counter.called, counted)
 
 
 class ProductCacheInvalidationTests(SimpleTestCase):
@@ -90,7 +112,8 @@ class RenderedCatalogTests(APITestCase):
         payload = cache.get(PRODUCT_LIST_CACHE_KEY)
         self.assertIsInstance(payload, bytes)
         self.assertEqual(first.content, payload)
-        product = first.json()[0]
+        self.assertEqual(first.json()['count'], 1)
+        product = first.json()['results'][0]
         self.assertEqual(product['id'], str(self.product.pk))
         self.assertEqual(product['rating'], {'stars': 4.5, 'count': 12})
         self.assertEqual(product['priceCents'], 1200)
@@ -139,7 +162,7 @@ class RenderedCatalogTests(APITestCase):
         with patch('products.views.cache.set', side_effect=RedisConnectionError):
             response = self.client.get('/api/products/')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()[0]['id'], str(self.product.pk))
+        self.assertEqual(response.json()['results'][0]['id'], str(self.product.pk))
         self.assertEqual(response['Content-Type'], 'application/json')
         self.release.assert_called_once_with(PRODUCT_LIST_CACHE_KEY, 'test-token')
 
@@ -147,8 +170,23 @@ class RenderedCatalogTests(APITestCase):
         self.client.get('/api/products/')
         original = cache.get(PRODUCT_LIST_CACHE_KEY)
         response = self.client.get('/api/products/', {'search': 'no-matching-product'})
-        self.assertEqual(response.json(), [])
+        self.assertEqual(response.json()['results'], [])
         self.assertEqual(cache.get(PRODUCT_LIST_CACHE_KEY), original)
+
+    def test_later_pages_bypass_rendered_list_cache(self):
+        #the cache only holds page 1; page 2 must come from the database, not the cached page 1
+        self.client.get('/api/products/')
+        original = cache.get(PRODUCT_LIST_CACHE_KEY)
+        response = self.client.get('/api/products/', {'page': 2})
+        #one product fits on page 1, so page 2 doesn't exist
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(cache.get(PRODUCT_LIST_CACHE_KEY), original)
+
+    def test_explicit_first_page_uses_rendered_list_cache(self):
+        first = self.client.get('/api/products/')
+        with self.assertNumQueries(0):
+            response = self.client.get('/api/products/', {'page': 1})
+        self.assertEqual(response.content, first.content)
 
     def test_product_write_methods_are_disabled(self):
         self.client.force_authenticate(self.owner)

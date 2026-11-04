@@ -5,7 +5,9 @@ import { VendorHeader } from '../../header/VendorHeader.jsx';
 import { VendorCatalogNavigation } from './VendorCatalogNavigation.jsx';
 import { VendorProductCard } from './VendorProductCard.jsx';
 import { EmptyState } from '../../../components/EmptyState.jsx';
+import { Pagination } from '../../../components/Pagination.jsx';
 import { accountError } from '../../profile/accountErrors.js';
+import { getPage, withPage, isMissingPage } from '../../../utils/pagination.js';
 import { useState, useEffect } from 'react';
 
 //the ?sort= values /api/vendor/products/ accepts; name_asc is also its default
@@ -22,6 +24,8 @@ export function VendorCatalogPage({ user }) {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [vendorProducts, setVendorProducts] = useState();
+  //how many products match across every page, for "Page X of Y"
+  const [count, setCount] = useState(0);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState(state?.successMessage ?? '');
   const [searchParams, setSearchParams] = useSearchParams();
@@ -32,7 +36,8 @@ export function VendorCatalogPage({ user }) {
   const sort = SORT_OPTIONS.some((option) => option.value === sortParam) ? sortParam : DEFAULT_SORT;
   //set by the "Search your catalog" box in the vendor header
   const search = (searchParams.get('search') ?? '').trim();
-  //"Clear search" keeps the chosen sort
+  const page = getPage(searchParams);
+  //"Clear search" keeps the chosen sort (and starts again from page 1)
   const clearSearchUrl = sort === DEFAULT_SORT ? '/vendor/catalog' : `/vendor/catalog?sort=${sort}`;
 
   function handleSortChange(value) {
@@ -42,12 +47,26 @@ export function VendorCatalogPage({ user }) {
     } else {
       nextParams.set('sort', value);
     }
+    //a new order starts again from its first page
+    nextParams.delete('page');
     setSearchParams(nextParams);
   }
 
+  function goToPage(nextPage) {
+    setSearchParams(withPage(searchParams, nextPage));
+    //start the new page at the top, not where the old one was scrolled to
+    window.scrollTo(0, 0);
+  }
+
   function handleProductDeleted(productId) {
-    setVendorProducts((products) => products.filter((product) => product.id !== productId));
+    const remaining = vendorProducts.filter((product) => product.id !== productId);
+    setVendorProducts(remaining);
+    setCount((current) => current - 1);
     setSuccessMessage('Product deleted successfully.');
+    //deleting the last product on a later page would leave an empty page with no controls
+    if (remaining.length === 0 && page > 1) {
+      goToPage(page - 1);
+    }
   }
 
   useEffect(() => {
@@ -56,29 +75,34 @@ export function VendorCatalogPage({ user }) {
     }
   }, [navigate, state?.successMessage]);
   
-  //reloads when the sort or search changes; the current list stays on screen until the new one arrives
+  //reloads when the sort, search or page changes; the current list stays on screen until the new one arrives
   useEffect(() => {
-    //a newer sort or search cancels this request, so an older answer can't replace the newer list
+    //a newer request cancels this one, so an older answer can't replace the newer list
     const controller = new AbortController();
     const getVendorProducts = async () => {
       setError('');
       try {
         const response = await axios.get('/api/vendor/products/', {
           signal: controller.signal,
-          //like the home page, an empty search isn't sent
-          params: { sort, ...(search === '' ? {} : { search }) },
+          //like the home page, an empty search and page 1 aren't sent
+          params: { sort, ...(search === '' ? {} : { search }), ...(page === 1 ? {} : { page }) },
         });
         if (controller.signal.aborted) return;
-        setVendorProducts(response.data);
+        setVendorProducts(response.data.results);
+        setCount(response.data.count);
       } catch (requestError) {
-        if (!controller.signal.aborted) {
-          setError(accountError(requestError));
+        if (controller.signal.aborted) return;
+        //?page= past the last page (an old link, or products were deleted): go back to page 1
+        if (isMissingPage(requestError, page)) {
+          setSearchParams((params) => withPage(params, 1), { replace: true });
+          return;
         }
+        setError(accountError(requestError));
       }
     }
     getVendorProducts();
     return () => controller.abort();
-  }, [sort, search]);
+  }, [sort, search, page, setSearchParams]);
 
   return (
     <>
@@ -148,15 +172,18 @@ export function VendorCatalogPage({ user }) {
                 primaryAction={{ label: 'Clear search', to: clearSearchUrl }}
               />
             ) : (
-              <div className="vendor-products-grid">
-                {vendorProducts?.map((product) => (
-                  <VendorProductCard
-                    key={product.id}
-                    product={product}
-                    onDeleted={handleProductDeleted}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="vendor-products-grid">
+                  {vendorProducts?.map((product) => (
+                    <VendorProductCard
+                      key={product.id}
+                      product={product}
+                      onDeleted={handleProductDeleted}
+                    />
+                  ))}
+                </div>
+                <Pagination page={page} count={count} onPageChange={goToPage} label="Catalog pages" />
+              </>
             )}
           </section>
         </div>

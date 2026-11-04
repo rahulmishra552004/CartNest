@@ -161,7 +161,11 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
+    origin.strip()
+    for origin in
+    os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS',
+    'http://localhost:5173').split(',')
+    if origin.strip()
 ]
 
 REST_FRAMEWORK = {

@@ -111,8 +111,8 @@ response shape and every endpoint.
   of jitter. List rebuilds use a ten-second token-owned lock, a cache recheck,
   roughly one second of polling, and Lua-based safe release. Waiting or failed
   Redis operations can fall back to PostgreSQL.
-- Search-only token buckets allow bursts of five requests per signed-in user
-  (refill five/minute) or three per guest IP (refill three/minute). Exhaustion
+- Search-only token buckets allow bursts of 30 requests per signed-in user
+  (refill 30/minute) or 20 per guest IP (refill 20/minute). Exhaustion
   returns 429 with `Retry-After`; connection/timeout errors fail open. Only the
   first page of a search counts; `?page=2` and later are free.
 - GET `/api/products/recently-viewed/` requires authentication and returns up to

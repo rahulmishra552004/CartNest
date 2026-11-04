@@ -196,9 +196,12 @@ locust -f locust_loadtest/locust_scenarios.py GuestSearchUser --host http://127.
 ```
 
 Always select the intended classes when using `locust_scenarios.py`. Otherwise all
-four participate. Guest search allows a burst of three and refills three/minute
-per remote IP. A single local generator shares that bucket across guests.
-Authenticated search allows a burst of five and refills five/minute per account.
+four participate. Guest search allows a burst of 20 and refills 20/minute per
+remote IP. A single local generator shares that bucket across guests, so at
+`GuestSearchUser`'s 20-25 s think time, 429s start at about eight guests.
+Authenticated search allows a burst of 30 and refills 30/minute per account;
+`AuthSearchUser` searches every 2.5-3.5 s (about 20/minute) to stay under it.
+Only the first page of a search counts against either limit.
 The guest scenario marks a well-formed 429 as an expected outcome in its own row;
 report rejection percentage as `throttled / (accepted + throttled)` instead of
 claiming those responses are successful searches. Unexpected statuses and malformed

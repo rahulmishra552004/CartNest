@@ -129,6 +129,31 @@ class RecoveryTests(unittest.TestCase):
         response.success.assert_not_called()
         sleep.assert_not_called()
 
+    def _guest_search_with_body(self, body):
+        user = scenarios.GuestSearchUser(Environment())
+        response = Mock(status_code=200, request_meta={})
+        response.json.return_value = body
+        user.client.get = Mock()
+        user.client.get.return_value.__enter__ = Mock(return_value=response)
+        user.client.get.return_value.__exit__ = Mock(return_value=False)
+        user.search()
+        return response
+
+    def test_paginated_search_results_are_accepted(self):
+        # /api/products/ is paginated: one page is an object with a results list
+        response = self._guest_search_with_body(
+            {'count': 1, 'next': None, 'previous': None, 'results': [{'id': 'product-a'}]})
+        response.failure.assert_not_called()
+
+    def test_plain_list_search_response_is_a_failure(self):
+        response = self._guest_search_with_body([{'id': 'product-a'}])
+        response.failure.assert_called_once()
+
+    def test_page_shape_check(self):
+        self.assertTrue(workload.is_page({'count': 0, 'next': None, 'previous': None, 'results': []}))
+        self.assertFalse(workload.is_page([]))
+        self.assertFalse(workload.is_page({'results': None}))
+
 
 class DistributionTests(unittest.TestCase):
     def test_product_popularity_is_symmetric_and_peaks_in_middle(self):

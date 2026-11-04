@@ -17,6 +17,7 @@ class AddressViewSet(
     serializer_class = AddressSerializer
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'delete']
+    pagination_class = None
 
     def _lock_user(self):
         get_user_model().objects.select_for_update().get(pk=self.request.user.pk)

@@ -3,7 +3,8 @@ import { CustomerHeader } from '../header/CustomerHeader.jsx';
 import { VendorHeader } from '../header/VendorHeader.jsx';
 import './ProfilePage.css';
 
-export function ProfilePage({ cart, orders, user, headerVariant = 'customer' }) {
+//ordersCount is the total across every page of orders, not just the page App.jsx has loaded
+export function ProfilePage({ cart, ordersCount, user, headerVariant = 'customer' }) {
   const { state } = useLocation();
   const accountType = user.role === 'vendor' ? 'Vendor' : 'Customer';
   const cartQuantity = cart.reduce((quantity, item) => quantity + item.quantity, 0);
@@ -47,7 +48,7 @@ export function ProfilePage({ cart, orders, user, headerVariant = 'customer' }) 
 
               <div className="profile-stats">
                 <Link to="/orders" className="profile-stat">
-                  <strong>{orders.length}</strong>
+                  <strong>{ordersCount}</strong>
                   <span>Orders</span>
                 </Link>
                 <Link to="/checkout" className="profile-stat">

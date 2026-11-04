@@ -28,7 +28,9 @@ import { accountError } from './pages/profile/accountErrors.js';
 
 function App() {
   const [cart, setCart] = useState([]);
+  //one page of orders (newest first); ordersCount is the total across every page
   const [orders, setOrders] = useState([]);
+  const [ordersCount, setOrdersCount] = useState(0);
   const [user, setUser] = useState(undefined);
   const [cartLoading, setCartLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -51,25 +53,33 @@ function App() {
       if (currentVersion === version.current) setCartLoading(false);
     }
   }
-  const getOrdersData = async () => {
+  //loads one page of orders. useCallback keeps it the same function between renders,
+  //so OrdersPage can list it in its effect without refetching after every render
+  const getOrdersData = useCallback(async (page = 1) => {
     const currentVersion = version.current;
     setOrdersLoading(true);
     setOrdersError('');
     try {
-      const response = await axios('/api/orders/?expand=products');
-      if (currentVersion === version.current) setOrders(response.data);
+      const response = await axios('/api/orders/', {
+        params: { expand: 'products', ...(page === 1 ? {} : { page }) },
+      });
+      if (currentVersion === version.current) {
+        setOrders(response.data.results);
+        setOrdersCount(response.data.count);
+      }
     } catch (requestError) {
       if (currentVersion === version.current) setOrdersError(accountError(requestError));
       throw requestError;
     } finally {
       if (currentVersion === version.current) setOrdersLoading(false);
     }
-  }
+  }, []);
   const handleSessionExpired = useCallback(() => {
     version.current += 1;
     setUser(null);
     setCart([]);
     setOrders([]);
+    setOrdersCount(0);
     setCartLoading(false);
     setOrdersLoading(false);
     setCartError('');
@@ -97,7 +107,8 @@ function App() {
       getCartData().catch(() => {});
       getOrdersData().catch(() => {});
     }
-  }, [user]);
+    //getOrdersData never changes (useCallback with no dependencies), so this still runs only when user changes
+  }, [user, getOrdersData]);
 
   if (user === undefined){
     return <p> Loading... </p>;
@@ -185,11 +196,12 @@ function App() {
               <OrdersPage
               cart={cart}
               orders={orders}
+              ordersCount={ordersCount}
               getCartData={getCartData}
               user={user}
               isLoading={ordersLoading}
               error={ordersError}
-              onRetry={getOrdersData}
+              loadOrders={getOrdersData}
             />
             )
             : <Navigate to="/login" replace />
@@ -241,7 +253,7 @@ function App() {
             ? (
                 <ProfilePage
                   cart={cart}
-                  orders={orders}
+                  ordersCount={ordersCount}
                   user={user}
                 />
             )
@@ -255,7 +267,7 @@ function App() {
             ? (
                 <ProfilePage
                   cart={cart}
-                  orders={orders}
+                  ordersCount={ordersCount}
                   user={user}
                   headerVariant="vendor"
                 />

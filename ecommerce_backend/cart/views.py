@@ -11,6 +11,8 @@ class CartItemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'product_id'
     lookup_url_kwarg = 'productId'
+    #the header count, checkout and "added to cart" checks need the whole cart
+    pagination_class = None
 
     def _lock_cart_user(self):
         get_user_model().objects.select_for_update().get(pk=self.request.user.pk)
@@ -36,5 +38,4 @@ class CartItemViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             self._lock_cart_user()
             return super().destroy(request, *args, **kwargs)
-
 

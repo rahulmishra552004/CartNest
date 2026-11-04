@@ -6,7 +6,9 @@ import { ProductsGrid } from './ProductsGrid.jsx';
 import { Product } from './Product.jsx';
 import { CatalogNavigation } from './CatalogNavigation.jsx';
 import { EmptyState } from '../../components/EmptyState.jsx';
+import { Pagination } from '../../components/Pagination.jsx';
 import { accountError } from '../profile/accountErrors.js';
+import { getPage, withPage, isMissingPage } from '../../utils/pagination.js';
 import { useSearchParams } from 'react-router';
 
 // Hidden card content reserves the same space as a normal product card.
@@ -21,6 +23,8 @@ const loadingProduct = {
 export function HomePage({ cart, getCartData, user }) {
 
   const [products, setProducts] = useState([]);
+  //how many products match across every page, for "Page X of Y"
+  const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -28,6 +32,7 @@ export function HomePage({ cart, getCartData, user }) {
 
   const search = searchParams.get('search') ?? '';
   const sort = searchParams.get('sort') ?? 'default';
+  const page = getPage(searchParams);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -40,13 +45,22 @@ export function HomePage({ cart, getCartData, user }) {
           params: {
             ...(sort === 'default' ? {} : {sort}),
             ...(search === '' ? {} : {search}),
+            //page 1 is sent without ?page=, so it uses the backend's cached first page
+            ...(page === 1 ? {} : {page}),
           },
         });
         if (controller.signal.aborted) return;
-        if (!Array.isArray(response.data)) throw new Error('Unexpected product response');
-        setProducts(response.data);
+        if (!Array.isArray(response.data?.results)) throw new Error('Unexpected product response');
+        setProducts(response.data.results);
+        setCount(response.data.count);
       } catch (requestError) {
-        if (!controller.signal.aborted) setError(accountError(requestError));
+        if (controller.signal.aborted) return;
+        //?page= past the last page (an old link, or fewer products now): go back to page 1
+        if (isMissingPage(requestError, page)) {
+          setSearchParams((params) => withPage(params, 1), { replace: true });
+          return;
+        }
+        setError(accountError(requestError));
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
       }
@@ -54,7 +68,7 @@ export function HomePage({ cart, getCartData, user }) {
 
     getProductsData();
     return () => controller.abort();
-  }, [retry, sort, search]);
+  }, [retry, sort, search, page, setSearchParams]);
 
   function handleSortChange(value) {
     const nextParams = new URLSearchParams(searchParams);
@@ -64,11 +78,17 @@ export function HomePage({ cart, getCartData, user }) {
     } else {
       nextParams.set('sort', value);
     }
+    //a new order starts again from its first page
+    nextParams.delete('page');
 
     setSearchParams(nextParams);
   }
 
-  
+  function goToPage(nextPage) {
+    setSearchParams(withPage(searchParams, nextPage));
+    //start the new page at the top, not where the old one was scrolled to
+    window.scrollTo(0, 0);
+  }
 
   return (
     <>
@@ -100,9 +120,12 @@ export function HomePage({ cart, getCartData, user }) {
           ) : products.length === 0 ? (
             <EmptyState eyebrow="Something good is on its way" title="Fresh finds are coming soon" description="There aren’t any products to browse right now. Check back soon to discover something you’ll love." primaryAction={{ label: 'Refresh products', onClick: () => setRetry((value) => value + 1) }} secondaryAction={{ label: 'Contact us', to: '/about' }} />
           ) : (
-            <div className="products-grid catalog-products-ready">
-              <ProductsGrid products={products} getCartData={getCartData} user={user} />
-            </div>
+            <>
+              <div className="products-grid catalog-products-ready">
+                <ProductsGrid products={products} getCartData={getCartData} user={user} />
+              </div>
+              <Pagination page={page} count={count} onPageChange={goToPage} label="Product pages" />
+            </>
           )}
         </div>
       </main>

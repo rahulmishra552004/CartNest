@@ -39,6 +39,15 @@ def check(condition, message):
         raise ValueError(message)
 
 
+def is_page(data):
+    """True for one page of a paginated list: {"count", "next", "previous", "results": [...]}.
+
+    /api/products/ and /api/orders/ are paginated; the cart, addresses, delivery
+    options, recently viewed, and most-viewed stay plain lists.
+    """
+    return isinstance(data, dict) and isinstance(data.get('results'), list)
+
+
 @lru_cache(maxsize=8)
 def product_cumulative_weights(count):
     """Discrete Gaussian spanning approximately -3 to +3 standard deviations."""
@@ -139,7 +148,7 @@ class CatalogUser(IsolatedUser):
     @flow
     def browse_product(self):
         self.request('GET', '/api/products/', name='Catalog',
-                     validate=lambda data: check(isinstance(data, list) and bool(data), 'Empty catalog'))
+                     validate=lambda data: check(is_page(data) and bool(data['results']), 'Empty catalog'))
 
     @task(30)
     @flow
@@ -225,7 +234,9 @@ class CustomerUser(AuthenticatedUser):
     @task(1)
     @flow
     def orders(self):
-        orders = self.request('GET', '/api/orders/', params={'expand': 'products'}).json()
+        #first page only (newest first); the list is paginated
+        orders = self.request('GET', '/api/orders/', params={'expand': 'products'},
+                              validate=lambda data: check(is_page(data), 'Expected a page of orders')).json()['results']
         if orders:
             order_id = random.choice(orders)['id']
             self.request('GET', f'/api/orders/{order_id}/', name='/api/orders/[id]/')

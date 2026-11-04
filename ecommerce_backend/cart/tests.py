@@ -82,3 +82,11 @@ class CartMutationTests(APITestCase):
             CartItem.objects.create(
                 user=self.user, product=self.product, quantity=0,
             )
+
+    def test_list_is_the_whole_cart_not_a_page(self):
+        #the cart opts out of the API-wide pagination: the header count and checkout need every item
+        CartItem.objects.create(user=self.user, product=self.product, quantity=1)
+        response = self.client.get("/api/cart-items/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.json(), list)
+        self.assertEqual(len(response.json()), 1)

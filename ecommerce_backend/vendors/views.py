@@ -128,6 +128,15 @@ class VendorOrderViewSet(
         ).order_by('status_rank', 'estimated_delivery_time_ms')
         return queryset
 
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        response.data['pending_count'] = (
+            self.get_queryset()
+            .exclude(delivery_status = OrderItem.DeliveryStatus.DELIVERED)
+            .count()
+        )
+        return response
+
     def update(self, request, *args, **kwargs):
         with transaction.atomic():
             return super().update(request, *args, **kwargs)
