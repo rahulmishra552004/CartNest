@@ -1,0 +1,62 @@
+x-backend: &backend
+  build: ./ecommerce_backend
+  env_file: .env
+  volumes:
+    - ./ecommerce_backend:/app
+  depends_on:
+    db: 
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+      
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    <<: *backend
+    command: sh -c "python manage.py migrate && exec python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+
+  celery-worker:
+    <<: *backend
+    command: celery -A config worker --loglevel=INFO
+
+  celery-beat:
+    <<: *backend
+    command: celery -A config beat --loglevel=INFO --schedule /tmp/celerybeat-schedule
+
+  frontend:
+    build: ./ecommerce_frontend
+    environment:
+      BACKEND_URL: ${BACKEND_URL}
+    volumes:
+      - ./ecommerce_frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

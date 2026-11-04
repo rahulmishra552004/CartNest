@@ -28,10 +28,7 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 # Application definition
 
@@ -146,12 +143,19 @@ AUTH_USER_MODEL = 'users.User'
 LOGIN_REDIRECT_URL = ''
 
 ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
+    host.strip()
+    for host in
+    os.environ.get('DJANGO_ALLOWED_HOSTS',
+    'localhost,127.0.0.1').split(',')
+    if host.strip()
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
+    origin.strip()
+    for origin in
+    os.environ.get('DJANGO_CORS_ALLOWED_ORIGINS',
+    'http://localhost:5173').split(',')
+    if origin.strip()
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -164,6 +168,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
     ],
+    'DEFAULT_PAGINATION_CLASS' : 'config.pagination.StandardPagination',
 }
 
 REDIS_URL = os.environ.get(
