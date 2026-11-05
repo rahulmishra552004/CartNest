@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v7
+
+      - name: Create .env from the template
+        run: cp .env.example .env
+
+      - name: Build images
+        run: docker compose build
+
+      - name: Run all checks
+        run: ./check.sh
+
+      - name: Clean up
+        if: always()
+        run: docker compose down -v
+
