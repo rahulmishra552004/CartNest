@@ -1,0 +1,103 @@
+name: ecommerce-prod
+
+# Keep at most 3 log files of 10 MB each per container.
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+# Settings shared by every container that runs Django code.
+x-django: &django
+  build: ./ecommerce_backend
+  env_file: .env.prod
+  <<: *logging
+
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    <<: *logging
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    <<: *logging
+
+  # Runs once, updates the database tables, then exits.
+  migrate:
+    <<: *django
+    command: python manage.py migrate
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  backend:
+    <<: *django
+    restart: unless-stopped
+    volumes:
+      - media:/app/media
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/admin/login/')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  celery-worker:
+    <<: *django
+    restart: unless-stopped
+    command: celery -A config worker --loglevel=INFO
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  celery-beat:
+    <<: *django
+    restart: unless-stopped
+    command: celery -A config beat --loglevel=INFO --schedule /tmp/celerybeat-schedule
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # nginx: the only service your browser can reach.
+  frontend:
+    build:
+      context: ./ecommerce_frontend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - media:/srv/media:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    <<: *logging
+
+volumes:
+  pgdata:
+  media:
+

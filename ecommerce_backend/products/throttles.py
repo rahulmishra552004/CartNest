@@ -1,5 +1,6 @@
 import logging
 from django.core.cache import cache
+from django.conf import settings
 from redis.exceptions import ConnectionError, TimeoutError
 from rest_framework.throttling import BaseThrottle
 from config.redis_client import redis_client as r
@@ -90,7 +91,10 @@ class ProductSearchThrottle(BaseThrottle):
             capacity = self.user_capacity
             refill_rate = self.user_refill_rate
         else:
-            ip = request.META.get("REMOTE_ADDR") or 'unknown'
+            if settings.BEHIND_PROXY:
+                ip = request.META.get("HTTP_X_REAL_IP") or request.META.get("REMOTE_ADDR") or 'unknown'
+            else:
+                ip = request.META.get("REMOTE_ADDR") or 'unknown'
             identity = f"ip:{ip}"
             capacity = self.guest_capacity
             refill_rate = self.guest_refill_rate

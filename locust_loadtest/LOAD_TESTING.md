@@ -274,6 +274,7 @@ would allocate the same accounts.
 python -m unittest discover -s locust_loadtest -p loadtest_tests.py
 python ecommerce_backend/manage.py check --settings=config.loadtest_capacity
 (cd ecommerce_backend && python manage.py test --settings=config.test --noinput)
+(cd ecommerce_backend && python manage.py test config.loadtest_tooling_tests --settings=config.test --noinput)
 locust -f locust_loadtest/locustfile.py --list
 locust -f locust_loadtest/locust_scenarios.py --list
 ```

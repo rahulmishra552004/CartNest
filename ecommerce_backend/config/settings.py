@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from pathlib import Path
 from .database import postgres_database
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +30,11 @@ SECRET_KEY = os.environ.get(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
+
+BEHIND_PROXY = os.environ.get('DJANGO_BEHIND_PROXY', 'False').lower() in ('true', '1', 'yes')
+
+if not DEBUG and SECRET_KEY == 'django-insecure-development-only-key':
+  raise ImproperlyConfigured('Set DJANGO_SECRET_KEY when DJANGO_DEBUG is off')
 
 # Application definition
 
@@ -54,6 +60,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -124,6 +131,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
 # Email
@@ -214,3 +222,17 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 DEFAULT_FROM_EMAIL = 'store@example.com'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+      'console': {'class': 'logging.StreamHandler'},
+    },
+    'root': {
+      'handlers': ['console'], 'level': 'WARNING',
+    },
+    'loggers': {
+      'django': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+    },
+}

@@ -516,7 +516,7 @@ python manage.py migrate --check
 python manage.py test --settings=config.test
 ```
 
-The regression suite (63 tests) covers cart additions, stock validation,
+The regression suite (56 tests) covers cart additions, stock validation,
 per-user isolation, constraints, payment totals, checkout snapshots/deduction,
 rejection, and rollback. Checkout tests send idempotency keys and verify both
 cache-backed and database-backed replay without duplicate stock deduction, and
@@ -524,11 +524,21 @@ reject missing, unknown, and other users' addresses. Address tests cover the
 10-address limit, default handling, validation, and ownership. Product tests
 cover the list cache (including that later pages bypass it), the
 first-page-only search throttle, and cache invalidation. The `users` and
-`vendors` apps have no tests yet. Runtime-cleanup tests verify cache/queue
-scoping. Redis must be available; test settings execute
+`vendors` apps have no tests yet. Redis must be available; test settings execute
 Celery eagerly with an in-memory mail backend. Tests do not simulate concurrent
-PostgreSQL transactions. Load-generator recovery tests for the tooling in
-`locust_loadtest/` run separately, from the project root:
+PostgreSQL transactions.
+
+Load-test tooling tests are excluded from the default run. The Django-side
+ones (runtime-cleanup cache/queue scoping, audit reconciliation, baseline
+restore) live in `config/loadtest_tooling_tests.py`; run them from the backend
+directory:
+
+```bash
+python manage.py test config.loadtest_tooling_tests --settings=config.test
+```
+
+Load-generator recovery tests for the tooling in `locust_loadtest/` run from
+the project root:
 
 ```bash
 python -m unittest discover -s locust_loadtest -p loadtest_tests.py

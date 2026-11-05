@@ -139,18 +139,27 @@ python manage.py migrate --check
 python manage.py test --settings=config.test
 ```
 
-The 63 regression tests cover read-only product routes, product-cache
+The 56 regression tests cover read-only product routes, product-cache
 invalidation, the first-page-only list cache and search throttle, cart
 constraints/isolation (the cart stays unpaginated), stock validation, totals,
 snapshots, deduction, rollback, required checkout headers and addresses, cached
 and database-backed idempotency replay, saved addresses (limit, defaults,
-validation, ownership), and isolated runtime cleanup. `users` and `vendors`
+validation, ownership). `users` and `vendors`
 have no tests yet, so authentication and the vendor catalog, order, and stats
 APIs are untested. The tests do not cover true concurrent transactions, full
 browser CSRF flows, or real email providers. Test settings require Redis and
 use eager tasks with in-memory mail, so tests do not publish to development
-Celery. `config/test_loadtest.py` imports the scripts from
-`../locust_loadtest/` and skips its tests if that folder is missing.
+Celery.
+
+Load-test tooling tests (runtime-cleanup scoping, audit reconciliation, and
+baseline restore) live in `config/loadtest_tooling_tests.py`. The name is
+outside the `test*.py` discovery pattern, so the default run skips them. They
+import the scripts from `../locust_loadtest/` and skip if that folder is
+missing. Run them explicitly:
+
+```bash
+python manage.py test config.loadtest_tooling_tests --settings=config.test
+```
 
 ## Data-changing utilities
 

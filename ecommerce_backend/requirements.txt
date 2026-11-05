@@ -7,3 +7,5 @@ pillow==12.3.0
 sqlparse==0.6.0
 psycopg[binary]==3.3.6
 redis==6.4.0  # celery[redis] 5.6 needs kombu, which requires redis<6.5
+whitenoise==6.12.0
+gunicorn==23.0.0

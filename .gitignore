@@ -49,3 +49,5 @@ locust_report/
 
 # Personal study notes, kept on disk but not in the repository
 notes/
+
+staticfiles/
