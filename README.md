@@ -130,6 +130,13 @@ first created.
 
 Open `http://localhost:5173`. Django is at `http://localhost:8000/admin/`.
 The backend runs migrations on start, so a new stack has its tables but no data.
+To fill an empty database with demo accounts, the 42 products, addresses, carts,
+and orders:
+
+```bash
+docker compose exec backend python manage.py seed_demo
+```
+
 Code changes appear without a rebuild, because `compose.yml` bind-mounts both
 apps. Restart the worker after changing task code:
 
@@ -658,7 +665,7 @@ python manage.py migrate --check
 python manage.py test --settings=config.test
 ```
 
-The regression suite (56 tests) covers cart additions, stock validation,
+The regression suite (60 tests) covers cart additions, stock validation,
 per-user isolation, constraints, payment totals, checkout snapshots/deduction,
 rejection, and rollback. Checkout tests send idempotency keys and verify both
 cache-backed and database-backed replay without duplicate stock deduction, and
@@ -701,14 +708,31 @@ search throttling is measured separately with accepted and rejected counts.
 
 ## Catalog import and local data
 
-The migrated development seed includes 5 users, 2 vendor profiles, 42 products,
-3 delivery options, and 3 existing orders. These are a migration snapshot,
-not counts guaranteed to remain unchanged during development.
+`python manage.py seed_demo` fills an empty database with the same demo data on
+every machine. It creates 7 users, 2 vendors, 42 products with their stock, 3
+delivery options, 6 addresses, 16 orders spread over the last 140 days, and 6
+cart items. Order dates are relative to the day you run it, and every delivery
+status appears. Products come from `products/seed_data/catalog.json`. Demo order
+emails are marked as already sent. Redis-only data (trending products, recently
+viewed products, cached sessions) is not seeded.
 
-The local demo users are `alice_customer`, `bob_customer`, `tech_vendor`,
-and `home_vendor`, with local-only password `DemoPass123!`. Vendor stores
-are Tech Haven and Home Essentials. The `rahul` superuser password is not
-documented. Do not reuse demo credentials outside local development.
+The command only runs with `DEBUG` on, and it refuses a database that already
+has users, vendors, products, delivery options, or orders. To replace the Docker
+development database, delete it first; **this removes all its data**:
+
+```bash
+docker compose down -v
+docker compose up -d
+docker compose exec backend python manage.py seed_demo
+```
+
+The demo users are `demo_admin` (superuser), `alice_customer`, `bob_customer`,
+`carol_customer`, `david_customer`, `tech_vendor`, and `home_vendor`, all with
+the local-only password `DemoPass123!`. Vendor stores are Tech Haven and Home
+Store. Do not reuse demo credentials outside local development.
+
+The local WSL database has its own migrated data, including a `rahul` superuser
+whose password is not documented.
 
 `python manage.py import_catalog --vendor-id <vendor-profile-id> --initial-stock 10`
 reads the bundled catalog/delivery JSON and copies product images. Create the

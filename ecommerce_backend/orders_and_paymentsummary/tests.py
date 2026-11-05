@@ -1,7 +1,10 @@
+from io import StringIO
 from unittest.mock import patch
 from uuid import uuid4
 
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.db import IntegrityError
 from django.core.cache import cache
 from rest_framework.test import APITestCase
@@ -281,3 +284,54 @@ class CheckoutTests(APITestCase):
         self.second_product.refresh_from_db()
         self.assertEqual(self.product.inventory_stock, 10)
         self.assertEqual(self.second_product.inventory_stock, 10)
+
+
+class SeedDemoTests(APITestCase):
+    def seed(self):
+        with self.settings(DEBUG=True):
+            call_command('seed_demo', stdout=StringIO())
+
+    def test_refuses_with_debug_off(self):
+        with self.settings(DEBUG=False), self.assertRaises(CommandError):
+            call_command('seed_demo', stdout=StringIO())
+        self.assertFalse(get_user_model().objects.exists())
+
+    def test_refuses_a_database_with_data(self):
+        get_user_model().objects.create_user(username='existing', password='pw')
+        with self.assertRaises(CommandError):
+            self.seed()
+        self.assertEqual(get_user_model().objects.count(), 1)
+        self.assertFalse(Product.objects.exists())
+
+    def test_order_totals_match_their_items(self):
+        self.seed()
+        self.assertEqual(Product.objects.count(), 42)
+        self.assertEqual(
+            set(OrderItem.objects.values_list('delivery_status', flat=True)),
+            set(OrderItem.DeliveryStatus.values),
+        )
+
+        for order in Order.objects.prefetch_related('order_items'):
+            items = list(order.order_items.all())
+            before_tax = sum(
+                item.quantity * item.product['priceCents'] + item.delivery_price_cents
+                for item in items
+            )
+            self.assertEqual(order.total_cost_cents, before_tax + round(0.1 * before_tax))
+            self.assertIsNotNone(order.confirmation_email_sent_at)
+
+    def test_seeded_cart_checks_out(self):
+        self.seed()
+        user = get_user_model().objects.get(username='alice_customer')
+        address = user.addresses.get(is_default=True)
+        self.client.force_authenticate(user)
+
+        response = self.client.post(
+            '/api/orders/',
+            {'addressId': str(address.pk)},
+            format='json',
+            HTTP_IDEMPOTENCY_KEY=str(uuid4()),
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertFalse(CartItem.objects.filter(user=user).exists())
