@@ -1,6 +1,6 @@
 # Ecommerce Django Backend
 
-Last reviewed against the source code: **2026-11-03**.
+Last reviewed against the source code: **2026-11-05**.
 
 The canonical architecture, API, authentication, checkout, caching, and
 limitations reference is the [project README](../README.md).
@@ -42,6 +42,15 @@ celery -A config beat --loglevel=INFO
 
 Use one Beat scheduler. The worker executes tasks; Beat schedules confirmation
 recovery every 60 seconds. Emails print in the worker console, not an inbox.
+
+## Docker
+
+The [project README](../README.md#run-with-docker) covers the development and
+production-style stacks. This folder's `Dockerfile` serves both. Its default
+command is Gunicorn, as non-root `appuser` (UID 1000, matching the WSL user so
+development bind mounts stay writable). `compose.yml` replaces that command with
+`migrate` and `runserver`. `collectstatic` runs during the image build into
+`staticfiles/`, and WhiteNoise serves those files when debug is off.
 
 ## Settings and services
 

@@ -3,7 +3,7 @@
 A full-stack ecommerce learning project with a React storefront, a Django REST
 Framework API, PostgreSQL, Redis, and Celery background jobs.
 
-Last reviewed against the source code: **2026-11-03**.
+Last reviewed against the source code: **2026-11-05**.
 
 The active development copy is `~/projects/ecommerce_project` in Ubuntu WSL.
 This README is the main project reference; verify the relevant source when
@@ -55,11 +55,14 @@ clicks, and reuses the key after an uncertain response or failed refresh.
 | Cache | Redis through Django's built-in Redis cache backend |
 | Background jobs | Celery with Redis as broker; Celery Beat for periodic recovery |
 | Testing | Django/DRF regression tests and Locust workloads |
+| Containers | Docker, Docker Compose |
+| Production-style serving | Gunicorn, nginx, WhiteNoise |
+| CI | GitHub Actions |
 
 Exact Python pins are in `ecommerce_backend/requirements.txt`; frontend
 dependencies are declared in `ecommerce_frontend/package.json` and locked in
 `package-lock.json`. `redis` is pinned to 6.4.0 because Celery 5.6's `kombu`
-requires `redis<6.5`. Locust and Gunicorn are pinned separately in
+requires `redis<6.5`. Locust is pinned separately in
 `locust_loadtest/requirements-loadtest.txt`.
 
 ```text
@@ -70,7 +73,10 @@ ecommerce_project/
 │   ├── src/components/           Shared UI: logo, empty states, pagination controls
 │   ├── src/utils/                Money, pagination, checkout keys, error messages
 │   ├── public/                   Branding, avatar, tracking icons, catalog images
-│   └── starting-code/backend/    Catalog JSON read by import_catalog
+│   ├── starting-code/backend/    Catalog JSON read by import_catalog
+│   ├── Dockerfile                Development image (Vite dev server)
+│   ├── Dockerfile.prod           Production image (React build served by nginx)
+│   └── nginx.conf                Production routing for React, Django, and media
 ├── ecommerce_backend/
 │   ├── config/                   Settings, pagination, shared Redis client, Celery, URLs
 │   ├── users/                    Users, registration, profile/password, session auth
@@ -80,7 +86,13 @@ ecommerce_project/
 │   ├── deliveryoptions/          Delivery prices and durations
 │   ├── cart/                     User-isolated carts
 │   ├── orders_and_paymentsummary/ Checkout, idempotency, snapshots, email tasks
-│   └── media/                    Development product/UI images
+│   ├── media/                    Development product/UI images
+│   └── Dockerfile                Backend image; runs Gunicorn as a non-root user
+├── .github/workflows/ci.yml      GitHub Actions: runs check.sh on pushes and pull requests
+├── check.sh                      Runs every check in Docker
+├── compose.yml                   Docker development stack
+├── compose.prod.yml              Production-style Docker stack
+├── .env.example                  Template for the gitignored .env and .env.prod files
 ├── locust_loadtest/              Load-test tooling (its data, dumps, and reports are gitignored)
 │   ├── locustfile.py             Load-test scenarios (locust_scenarios.py: opt-in extras)
 │   ├── setup_loadtest_postgres.py PostgreSQL load-test setup/reset helper
@@ -95,6 +107,111 @@ Bundled catalog JSON is in `ecommerce_frontend/starting-code/backend/`, with
 source images in `ecommerce_frontend/public/images/products/`. The running app
 loads product images from Django's `/media/`, not from `public/`. The active
 Django project is `ecommerce_backend/`.
+
+## Run with Docker
+
+Docker runs the whole project: PostgreSQL, Redis, Django, the Celery worker,
+Celery Beat, and the frontend. Install Docker Desktop with WSL integration and
+keep it running.
+
+### Development
+
+Stop any local `runserver`, Vite, and Celery processes first, because the stack
+uses ports 8000 and 5173. From the project root:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Edit `.env` and replace `change_me` for `DJANGO_SECRET_KEY` and `DB_PASSWORD`
+before the first start. PostgreSQL only reads the password when its volume is
+first created.
+
+Open `http://localhost:5173`. Django is at `http://localhost:8000/admin/`.
+The backend runs migrations on start, so a new stack has its tables but no data.
+Code changes appear without a rebuild, because `compose.yml` bind-mounts both
+apps. Restart the worker after changing task code:
+
+```bash
+docker compose restart celery-worker
+```
+
+Rebuild after changing `requirements.txt`, `package.json`, or a Dockerfile.
+After changing `package.json`, also replace the `node_modules` volume:
+
+```bash
+docker compose up --build -V
+```
+
+| Command | What it does |
+| --- | --- |
+| `docker compose up -d` | Start everything in the background |
+| `docker compose ps` | Show running services and their health |
+| `docker compose logs -f backend` | Follow one service's logs |
+| `docker compose run --rm backend python manage.py <command>` | Run a one-off Django command |
+| `docker compose down` | Remove the containers; volumes and data stay |
+| `docker compose down -v` | Also delete the volumes, **including the database** |
+
+### Production-style stack
+
+`compose.prod.yml` runs the app the way a server would, on your machine, at
+`http://localhost:8080`. It uses Gunicorn, `DEBUG=False`, a non-root user, and
+nginx as the only public entry point. nginx serves the React build and
+`/media/`, and forwards `/api/`, `/admin/`, and `/static/` to Django. It has its
+own containers and volumes (project `ecommerce-prod`), so it can run beside the
+development stack.
+
+Create `.env.prod` from `.env.example`. It is gitignored. Use a new
+`DJANGO_SECRET_KEY` and `DB_PASSWORD`, and set these values:
+
+```text
+DJANGO_DEBUG=false
+DJANGO_ALLOWED_HOSTS=localhost,backend
+DJANGO_CORS_ALLOWED_ORIGINS=
+DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost:8080
+DJANGO_BEHIND_PROXY=true
+REDIS_CACHE_PREFIX=ecommerce:prod
+```
+
+Every command for this stack needs the project, file, and env-file options. An
+alias, which lasts for the current terminal, keeps them from being missed:
+
+```bash
+alias prod='docker compose -p ecommerce-prod -f compose.prod.yml --env-file .env.prod'
+prod up -d --build
+prod ps -a
+```
+
+`migrate` should show `Exited (0)`; it runs once before the backend starts.
+The new stack has no product images until you copy them into its `media`
+volume:
+
+```bash
+prod run --rm --no-deps -v ./ecommerce_backend/media:/seed:ro backend cp -r /seed/. /app/media/
+```
+
+Without `prod`, plain `docker compose` commands act on the development stack.
+
+### Copy a database into Docker
+
+**This replaces the target stack's database.** Create a dump outside the
+repository, because it contains user data:
+
+```bash
+PGPASSWORD="$(cat ecommerce_backend/.db-password)" \
+  pg_dump -h 127.0.0.1 -U ecommerce_user -d ecommerce -Fc -f ~/ecommerce.dump
+```
+
+Then restore it and clear the cached catalog. This example targets the
+production-style stack; replace `prod` with `docker compose` for development.
+
+```bash
+prod stop backend celery-worker celery-beat
+prod exec -T db pg_restore -U ecommerce_user -d ecommerce --no-owner --no-privileges --clean --if-exists < ~/ecommerce.dump
+prod exec redis redis-cli -n 0 flushdb
+prod start backend celery-worker celery-beat
+```
 
 ## Run locally in WSL
 
@@ -200,6 +317,19 @@ Celery. Test settings use eager tasks and an in-memory email backend. Redis
 database numbers still share server resources.
 
 See [POSTGRES_DEVELOPMENT.md](POSTGRES_DEVELOPMENT.md) for configuration details.
+
+These environment variables have development defaults in the code. Docker
+Compose supplies them from `.env` or `.env.prod`:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `DJANGO_SECRET_KEY` | Development-only key | Django secret key. Startup fails if this default is used with debug off |
+| `DJANGO_DEBUG` | `True` | Debug mode; `true`, `1`, or `yes` turn it on |
+| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated hosts |
+| `DJANGO_CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated browser origins |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | `http://localhost:5173` | Comma-separated browser origins |
+| `DJANGO_BEHIND_PROXY` | `False` | Read the guest IP from nginx's `X-Real-IP`. Only enable behind a proxy that sets this header |
+| `BACKEND_URL` | `http://127.0.0.1:8000` | Vite's proxy target in development; not used by the production build |
 
 ## Frontend routes and authentication
 
@@ -507,7 +637,19 @@ to another email. The task also holds the database lock during the send.
 
 ## Checks and tests
 
-From the backend directory, with the virtual environment active:
+To run the backend tests, the missing-migration check, frontend lint, and the
+frontend build in Docker, from the project root:
+
+```bash
+./check.sh
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs the same script on every push
+and pull request, using `.env.example` for its throwaway stack. It tests the
+development stack; it does not start `compose.prod.yml`.
+
+To run checks without Docker, from the backend directory, with the virtual
+environment active:
 
 ```bash
 python manage.py check
@@ -592,9 +734,12 @@ and images from `ecommerce_frontend/public`. Use `--catalog-dir` and
 - Deleting the default address does not make another address the default.
 - Vendor stats use UTC days, so late-evening orders in other time zones count
   toward the next day.
-- Guest search limits are per `REMOTE_ADDR`. Behind a reverse proxy every guest
-  would share the proxy's address and one bucket; a deployment needs to read
-  the client IP from the proxy's trusted forwarding header first.
+- Guest search limits use `REMOTE_ADDR`, or nginx's `X-Real-IP` when
+  `DJANGO_BEHIND_PROXY` is on. Docker Desktop can show every visitor with the
+  same address, so local production-style runs may share one bucket.
+- The cached first catalog page stores absolute image URLs built from the host
+  of the request that filled it, so it assumes one public host. Requests that
+  reach Django under another host can fill the cache with unusable URLs.
 - Login and registration have no rate limit.
 - Cart POST returns 200 for both creation and increase; PUT acts like PATCH.
 - Cart stock is validated but not reserved.
@@ -605,8 +750,10 @@ and images from `ecommerce_frontend/public`. Use `--catalog-dir` and
 - Authentication, the vendor dashboard APIs (catalog, orders, stats), vendor
   permissions, and Redis failure/invalidation paths lack dedicated regression
   coverage; concurrency coverage is also needed.
-- Development settings use `DEBUG=True` and a fallback secret key. Production
-  deployment configuration is not provided.
+- Development settings use `DEBUG=True` and a fallback secret key.
+  `compose.prod.yml` is a local production-style setup, not a deployment: it
+  has no HTTPS or secure-cookie settings, and `manage.py check --deploy` reports
+  those gaps plus the console email backend. There is no automated deployment.
 
 ## Guidance for future changes
 
