@@ -81,7 +81,8 @@ def recover_order_confirmation():
         Order.objects
         .filter(
             confirmation_email_sent_at__isnull=True,
-            confirmation_email_attempts__lt=MAX_CONFIRMATION_ATTEMPTS
+            confirmation_email_attempts__lt=MAX_CONFIRMATION_ATTEMPTS,
+            status = Order.STATUS.CONFIRMED,
         )
         .exclude(user__email='')
         .filter(

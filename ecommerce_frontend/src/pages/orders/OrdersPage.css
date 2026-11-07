@@ -142,6 +142,64 @@
   overflow-wrap: anywhere;
 }
 
+/* payment status and "Pay now" */
+.order-payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border: 1px solid #bfe0cb;
+  border-radius: 999px;
+  background: #eef8f1;
+  color: #0b5a33;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.order-status-awaiting_payment {
+  border-color: #ecd9a6;
+  background: #fff8e8;
+  color: #5c4300;
+}
+
+.order-status-cancelled {
+  border-color: rgb(238, 176, 176);
+  background: rgb(255, 241, 241);
+  color: rgb(145, 28, 28);
+}
+
+.pay-now-button {
+  padding: 9px 20px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pay-now-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.order-payment-error {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid rgb(238, 176, 176);
+  border-left: 4px solid rgb(198, 40, 40);
+  border-radius: 8px;
+  background: rgb(255, 241, 241);
+  color: rgb(145, 28, 28);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 .order-delivery-address {
   display: flex;
   align-items: flex-start;

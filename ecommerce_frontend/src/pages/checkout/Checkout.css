@@ -322,6 +322,21 @@
   }
 }
 
+/* payment method band: runs edge to edge inside the summary card */
+.checkout-page .payment-methods {
+  margin: 22px -22px 0;
+  padding: 18px 22px 10px;
+  border-top: 1px solid #e6eee9;
+  border-bottom: 1px solid #e6eee9;
+}
+
+.checkout-page .payment-methods-title {
+  margin-bottom: 12px;
+  color: #20392a;
+  font-size: 16px;
+  font-weight: 700;
+}
+
 /* payment summary card */
 .checkout-page .payment-summary {
   position: sticky;
@@ -460,6 +475,13 @@
   .checkout-page .payment-summary {
     padding: 20px 16px 2px;
     border-radius: 11px;
+  }
+
+  .checkout-page .payment-methods {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 

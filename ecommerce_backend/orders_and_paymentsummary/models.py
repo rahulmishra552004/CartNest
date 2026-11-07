@@ -70,6 +70,15 @@ def get_payment_summary(cart_items):
     return payment_summary
 
 class Order(models.Model):
+    class STATUS(models.TextChoices):
+        AWAITING_PAYMENT = 'awaiting_payment', 'Awaiting payment'
+        CONFIRMED = 'confirmed', 'Confirmed'
+        CANCELLED = 'cancelled', 'Cancelled'
+
+    class PAYMENT_METHOD(models.TextChoices):
+        ONLINE = 'online', 'Online'
+        COD = 'cod', 'Cash on delivery'
+
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     user = models.ForeignKey(
             settings.AUTH_USER_MODEL,
@@ -121,6 +130,35 @@ class Order(models.Model):
     )
     delivery_country_code = models.CharField(
         max_length = 2,
+    )
+    status = models.CharField(
+        choices=STATUS.choices,
+        default=STATUS.AWAITING_PAYMENT,
+        max_length=20,
+    )
+    payment_method = models.CharField(
+        choices=PAYMENT_METHOD.choices,
+        default=PAYMENT_METHOD.ONLINE,
+        max_length=20,
+    )
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    razorpay_order_id = models.CharField(
+        max_length=64,
+        unique=True,
+        null=True,
+        blank=True,
+        editable=False
+    )
+    razorpay_payment_id = models.CharField(
+        max_length=64,
+        unique=True,
+        null=True,
+        blank=True,
+        editable=False
     )
 
 class OrderItem(models.Model):

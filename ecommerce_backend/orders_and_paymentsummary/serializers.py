@@ -44,6 +44,17 @@ class OrderSerializer(serializers.ModelSerializer):
         source = 'delivery_country_code',
         read_only = True,
     )
+    paymentMethod = serializers.ChoiceField(
+        source = 'payment_method',
+        choices = Order.PAYMENT_METHOD.choices,
+        default = Order.PAYMENT_METHOD.ONLINE,
+    )
+    paidAt = serializers.DateTimeField(
+        source = 'paid_at',
+        required = False,
+        read_only = True,
+    )
+
     class Meta:
         model = Order
         fields = [
@@ -61,12 +72,17 @@ class OrderSerializer(serializers.ModelSerializer):
             'deliveryState',
             'deliveryPostalCode',
             'deliveryCountryCode',
+            'status',
+            'paymentMethod',
+            'paidAt',
         ]
         read_only_fields = [
             'id',
             'orderTimeMs',
             'totalCostCents',
             'products',
+            'paidAt',
+            'status',
        ]
 
     def to_representation(self, instance):
@@ -178,4 +194,10 @@ class OrderItemSerializer(serializers.ModelSerializer):
             raise ValidationError({'deliveryStatus': 'deliveryStatus is required to update status'})
         return attrs
 
-
+class PaymentSerializer(serializers.Serializer):
+    razorpay_payment_id = serializers.CharField(
+        max_length = 64,
+    )
+    razorpay_signature = serializers.RegexField(
+        r'^[0-9a-f]{64}$'
+    )

@@ -8,6 +8,7 @@ import { OrderDetailsGrid } from './OrderDetailsGrid.jsx';
 import { EmptyState } from '../../components/EmptyState.jsx';
 import { Pagination } from '../../components/Pagination.jsx';
 import { getPage, withPage, isMissingPage } from '../../utils/pagination.js';
+import { payForOrder } from '../../utils/razorpayCheckout.js';
 
 function formatDeliveryAddress(order) {
   const cityLine = [
@@ -27,6 +28,21 @@ function formatDeliveryAddress(order) {
   return structuredAddress;
 }
 
+const PAYMENT_LABELS = {
+  awaiting_payment: 'Payment pending',
+  cancelled: 'Cancelled',
+};
+
+function paymentLabel(order) {
+  if (PAYMENT_LABELS[order.status]) return PAYMENT_LABELS[order.status];
+  return order.paymentMethod === 'cod' ? 'Cash on delivery' : 'Paid';
+}
+
+function paymentErrorMessage(error) {
+  return error?.response?.data?.detail
+    || 'We could not confirm your payment. Refresh the page before you pay again.';
+}
+
 //orders and ordersCount live in App.jsx; this page picks which page of them loadOrders fetches
 export function OrdersPage({ cart, orders, ordersCount, getCartData, user, isLoading = false, error = '', loadOrders }) {
   const location = useLocation();
@@ -36,6 +52,29 @@ export function OrdersPage({ cart, orders, ordersCount, getCartData, user, isLoa
   //a one-time message passed by checkout, e.g. when the cart turned out to be empty already
   const [notice] = useState(location.state?.notice ?? '');
   const showState = error || (!isLoading && orders.length === 0);
+  const [payingOrderId, setPayingOrderId] = useState(null);
+  const [paymentError, setPaymentError] = useState({ orderId: null, message: '' });
+
+  async function payNow(orderId) {
+    if (payingOrderId) return;
+
+    if (!window.Razorpay) {
+      setPaymentError({ orderId, message: 'The payment window could not load. Refresh the page and try again.' });
+      return;
+    }
+
+    setPayingOrderId(orderId);
+    setPaymentError({ orderId: null, message: '' });
+
+    try {
+      await payForOrder(orderId);
+    } catch (requestError) {
+      setPaymentError({ orderId, message: paymentErrorMessage(requestError) });
+    } finally {
+      await loadOrders(page).catch(() => {});
+      setPayingOrderId(null);
+    }
+  }
 
   //loads the page in the URL whenever it changes
   useEffect(() => {
@@ -121,6 +160,25 @@ export function OrdersPage({ cart, orders, ordersCount, getCartData, user, isLoa
                           <div className="order-id-value" title={order.id}>{order.id}</div>
                         </div>
                       </div>
+
+                      <div className="order-payment-row">
+                        <span className={`order-status-badge order-status-${order.status}`}>
+                          {paymentLabel(order)}
+                        </span>
+                        {order.status === 'awaiting_payment' && (
+                          <button
+                            type="button"
+                            className="pay-now-button button-primary"
+                            onClick={() => payNow(order.id)}
+                            disabled={payingOrderId !== null}
+                          >
+                            {payingOrderId === order.id ? 'Opening payment…' : 'Pay now'}
+                          </button>
+                        )}
+                      </div>
+                      {paymentError.orderId === order.id && (
+                        <p className="order-payment-error" role="alert">{paymentError.message}</p>
+                      )}
   
                       <div className="order-delivery-address">
                         <span className="order-address-icon" aria-hidden="true">

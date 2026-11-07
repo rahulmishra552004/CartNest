@@ -1,10 +1,21 @@
 import logging
 from kombu.exceptions import OperationalError
-from products.cache_invalidation import invalidate_products
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins, viewsets
 from rest_framework.generics import RetrieveAPIView
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+from django.db import transaction
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.utils import timezone
+from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import TimeoutError as RedisTimeoutError
+from razorpay.errors import SignatureVerificationError
+
 from .models import (
     Order,
     OrderItem,
@@ -15,19 +26,13 @@ from .models import (
     TAX,
     current_time_ms,
 )
-from .serializers import OrderSerializer, OrderItemSerializer
-from rest_framework.response import Response
 from cart.models import CartItem
 from addresses.models import Address
-from django.db import transaction
-from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import ValidationError
 from products.models import Product
-from django.contrib.auth import get_user_model
-from django.core.cache import cache
-from redis.exceptions import ConnectionError as RedisConnectionError
-from redis.exceptions import TimeoutError as RedisTimeoutError
+from products.cache_invalidation import invalidate_products
 from .tasks import send_order_confirmation
+from .payments import RAZORPAY_ERRORS, get_razorpay_client
+from .serializers import OrderSerializer, OrderItemSerializer, PaymentSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -153,6 +158,13 @@ class OrderViewSet(
         #runs after the user row is locked, so the address can't be mid-edit.
         #an unknown address raises inside the transaction and rolls back the stock deduction.
         address_id = serializer.validated_data.pop('addressId')
+        payment_method = serializer.validated_data.get('payment_method')
+
+        status = (
+            Order.STATUS.CONFIRMED if
+            payment_method == Order.PAYMENT_METHOD.COD
+            else Order.STATUS.AWAITING_PAYMENT
+        )
         address = Address.objects.filter(pk=address_id, user=self.request.user).first()
         if address is None:
             raise ValidationError({
@@ -180,7 +192,8 @@ class OrderViewSet(
                 delivery_state = address.state,
                 delivery_postal_code = address.postal_code,
                 delivery_country_code = address.country_code,
-                )
+                status = status,
+            )
 
         order_items = []
         for cart_item in cart_items:
@@ -209,9 +222,104 @@ class OrderViewSet(
         self.checkout_request.order = order
         self.checkout_request.save(update_fields=['order'])
 
-        transaction.on_commit(
-            lambda: self._enqueue_order_confirmation(order.pk)
-        )
+        if payment_method == Order.PAYMENT_METHOD.COD:
+            transaction.on_commit(
+                lambda: self._enqueue_order_confirmation(order.pk)
+            )
+
+    @action(detail=True, methods=['post'], url_path='payment')
+    def create_payment(self, request, pk):
+        order = self.get_object()
+        if order.payment_method == Order.PAYMENT_METHOD.COD:
+            return Response(
+                {'detail': 'payment method is cash on delivery'},
+                status = 409,
+            )
+        if order.status == Order.STATUS.CONFIRMED:
+            return Response(
+                {'detail': 'order is already paid'},
+                status = 409,
+            )
+        if order.status == Order.STATUS.CANCELLED:
+            return Response(
+                {'detail': 'order has been cancelled'},
+                status = 409,
+            )
+        if order.razorpay_order_id == None:
+            try:
+                razorpay_order = get_razorpay_client().order.create(
+                    data={
+                        'amount': order.total_cost_cents,
+                        'currency': settings.RAZORPAY_CURRENCY,
+                        'receipt': str(order.id),
+                    }, timeout = 10)
+
+            except RAZORPAY_ERRORS:
+                logger.exception(f'failed to connect to razorpay client for order: {order.id}')
+                return Response({
+                    'detail': 'could not start payment, please try again later',
+                }, status = 502)
+
+            Order.objects.filter(pk=order.pk, razorpay_order_id__isnull=True).update(razorpay_order_id = razorpay_order['id'])
+            order.refresh_from_db(fields=['razorpay_order_id'])
+
+        return Response({
+            'keyId': settings.RAZORPAY_KEY_ID,
+            'razorpayOrderId': order.razorpay_order_id,
+            'amountCents': order.total_cost_cents,
+            'currency': settings.RAZORPAY_CURRENCY,
+        }, status = 200)
+
+    @action(detail=True, methods=['post'], url_path='payment/verify')
+    def verify_payment(self, request, pk):
+        order = self.get_object()
+        serializer = PaymentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        razorpay_payment_id = serializer.validated_data.get('razorpay_payment_id')
+        razorpay_signature = serializer.validated_data.get('razorpay_signature')
+
+        razorpay_order_id = order.razorpay_order_id
+        if not razorpay_order_id:
+            return Response(
+                {'detail': 'your order could not be found, please contact support'},
+                status = 409
+            )
+
+        try:
+            get_razorpay_client().utility.verify_payment_signature({
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': razorpay_payment_id,
+                'razorpay_signature': razorpay_signature,
+            })
+        except SignatureVerificationError:
+            logger.exception('failed to verify signature')
+            return Response(
+                {'detail': 'payment verification failed. Please contact support'},
+                status = 400,
+            )
+
+        updated = (
+                Order.objects.filter(pk=pk, status=Order.STATUS.AWAITING_PAYMENT)
+                .update(
+                    status = Order.STATUS.CONFIRMED,
+                    razorpay_payment_id = razorpay_payment_id,
+                    paid_at = timezone.now(),
+                 )
+            )
+        order.refresh_from_db()
+
+        if updated:
+            self._enqueue_order_confirmation(order.id)
+
+        if order.status == Order.STATUS.CANCELLED:
+            logger.error(f'payment done for failed order: {order.id}, razorpay_payment_id : {razorpay_payment_id}')
+            return Response(
+                {'detail': 'you made payment for a cancelled order, your payment will be refunded. Please contact support'},
+                status = 409,
+            )
+
+        return Response(self.get_serializer(order).data, status=200)
 
     def _enqueue_order_confirmation(self, order_id):
         try:

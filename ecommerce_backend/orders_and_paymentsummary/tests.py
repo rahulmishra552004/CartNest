@@ -91,6 +91,7 @@ class CheckoutTests(APITestCase):
         self.assertFalse(Order.objects.exists())
 
     def test_replay_uses_cache_then_database_without_deducting_stock_twice(self):
+        self.order_data['paymentMethod'] = 'cod'
         with patch('orders_and_paymentsummary.views.send_order_confirmation.delay') as enqueue:
             with self.captureOnCommitCallbacks(execute=True):
                 first = self.client.post('/api/orders/', self.order_data, format='json')

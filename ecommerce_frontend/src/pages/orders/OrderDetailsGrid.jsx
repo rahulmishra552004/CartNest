@@ -44,11 +44,13 @@ export function OrderDetailsGrid({ order, getCartData }) {
                   <img className="buy-again-icon" src="/media/icons/buy-again.png" alt="" />
                   <span className="buy-again-message">Add to Cart</span>
                 </button>
-                <Link
-                  className="track-package-button button-secondary"
-                  to={`/orders/${order.id}/products/${orderedProduct.productId}/tracking`}>
-                  Track package
-                </Link>
+                {order.status === 'confirmed' && (
+                  <Link
+                    className="track-package-button button-secondary"
+                    to={`/orders/${order.id}/products/${orderedProduct.productId}/tracking`}>
+                    Track package
+                  </Link>
+                )}
               </div>
             </div>
           )

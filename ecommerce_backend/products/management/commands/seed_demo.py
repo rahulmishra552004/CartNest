@@ -251,6 +251,8 @@ class Command(BaseCommand):
                 order_time_ms=order_time_ms,
                 total_cost_cents=get_payment_summary(cart_items)['total_cost_cents'],
                 products=get_products(cart_items, order_time_ms),
+                status=Order.STATUS.CONFIRMED,
+                paid_at=ordered_at,
                 #marked as sent so the recovery task doesn't email every demo order
                 confirmation_email_sent_at=ordered_at,
                 confirmation_email_attempts=1,

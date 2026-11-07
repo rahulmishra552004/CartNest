@@ -1,7 +1,7 @@
 const STORAGE_KEY = 'cartnest:idempotency-details'
 
-export function getIdempotencyKey(cart, addressId) {
-  const fingerprint = getCartFingerprint(cart, addressId);
+export function getIdempotencyKey(cart, addressId, paymentMethod) {
+  const fingerprint = getCartFingerprint(cart, addressId, paymentMethod);
 
   try {
     const idempotencyDetails = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
@@ -25,7 +25,7 @@ export function getIdempotencyKey(cart, addressId) {
 //create a cart fingerprint to check if user has changed cart content before sending another request
 //if no --> fetch key from storage
 //if yes ---> generate a new key for the new cart
-function getCartFingerprint(cart, addressId) {
+function getCartFingerprint(cart, addressId, paymentMethod) {
   const items = (
     cart
     .map(({ productId, quantity, deliveryOptionId }) => {
@@ -39,6 +39,7 @@ function getCartFingerprint(cart, addressId) {
   );
 
   return JSON.stringify({
+    paymentMethod,
     addressId,
     items
   });

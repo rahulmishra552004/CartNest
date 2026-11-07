@@ -3,9 +3,14 @@ import axios from 'axios';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { getIdempotencyKey, resetIdempotencyKey } from '../../utils/checkoutIdempotency.js';
+import { payForOrder } from '../../utils/razorpayCheckout.js';
 
 const CART_ALREADY_EMPTY_NOTICE =
   'Your cart was already empty, so your order may have been placed. Check your orders below.';
+const PAYMENT_NOT_FINISHED_NOTICE = 
+  'Your order is saved, but it has not been paid yet. You can pay for it from your orders.';
+const PAYMENT_UNCONFIRMED_NOTICE = 
+  'We could not confirm your payment. Check your orders before you pay again.';
 
 //the server's cart is already empty. Most likely an earlier attempt placed the order but its
 //response never arrived; otherwise the cart was emptied in another tab. Either way checkout can't continue
@@ -75,6 +80,7 @@ export function PaymentSummary({
   const navigate = useNavigate();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [placeOrderError, setPlaceOrderError] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('online');
 
   //shared by a placed order and a cart that turned out to be empty already
   async function goToOrders(notice) {
@@ -90,15 +96,23 @@ export function PaymentSummary({
 
   async function placeOrder() {
     if (isPlacingOrder) return;
+    
+    if (paymentMethod === 'online' && !window.Razorpay) {
+      setPlaceOrderError('The payment window could not load. Refresh the page, or choose cash on delivery.');
+      return
+    }
 
     setIsPlacingOrder(true);
     setPlaceOrderError('');
 
     try {
-      const idempotencyKey = getIdempotencyKey(cart, selectedAddressId);
+      const idempotencyKey = getIdempotencyKey(cart, selectedAddressId, paymentMethod);
       const response = await axios.post(
         '/api/orders/',
-        { addressId: selectedAddressId },
+        { 
+          addressId: selectedAddressId,
+          paymentMethod: paymentMethod,
+        },
         {
           headers: {
             'Idempotency-Key': idempotencyKey,
@@ -110,7 +124,21 @@ export function PaymentSummary({
         throw new Error(`Unexpected checkout status: ${response.status}`);
       }
 
-      await goToOrders();
+      if (paymentMethod === 'cod') {
+        await goToOrders();
+      } else {
+        try {
+          const result = await payForOrder(response.data.id);
+          if (result) {
+            await goToOrders();
+          } else {
+            await goToOrders(PAYMENT_NOT_FINISHED_NOTICE);
+          }
+        } catch {
+          await goToOrders(PAYMENT_UNCONFIRMED_NOTICE);
+        }
+      }
+
     } catch (error) {
       if (isCartAlreadyEmptyError(error)) {
         await goToOrders(CART_ALREADY_EMPTY_NOTICE);
@@ -151,6 +179,36 @@ export function PaymentSummary({
       <div className="payment-summary-row total-row">
         <div>Order total:</div>
         <div className="payment-summary-money">${formatCurrency(paymentSummary.totalCostCents)}</div>
+      </div>
+
+      <div className="payment-methods">
+        <div className="payment-methods-title">Payment method</div>
+
+        <label className="delivery-option">
+          <input
+            type="radio"
+            name="payment-method"
+            value="online"
+            className="delivery-option-input"
+            checked={paymentMethod === 'online'}
+            onChange={() => setPaymentMethod('online')}
+            disabled={isPlacingOrder}
+          />
+          <div className="delivery-option-date">Pay online</div>
+        </label>
+
+        <label className="delivery-option">
+          <input
+            type="radio"
+            name="payment-method"
+            value="cod"
+            className="delivery-option-input"
+            checked={paymentMethod === 'cod'}
+            onChange={() => setPaymentMethod('cod')}
+            disabled={isPlacingOrder}
+          />
+          <div className="delivery-option-date">Cash on delivery</div>
+        </label>
       </div>
 
       {placeOrderError && (

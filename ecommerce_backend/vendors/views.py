@@ -25,7 +25,7 @@ from products.cache_invalidation import invalidate_products
 from products.models import Product
 from products.serializers import ProductSerializer
 from orders_and_paymentsummary.serializers import OrderItemSerializer
-from orders_and_paymentsummary.models import OrderItem
+from orders_and_paymentsummary.models import OrderItem, Order
 from .permissions import IsVendorProductOwner
 
 #products with this many units or fewer show up as low stock on the stats page
@@ -111,7 +111,10 @@ class VendorOrderViewSet(
     def get_queryset(self):
         queryset = (
             OrderItem.objects
-            .filter(vendor_id=self.request.user.vendor.id)
+            .filter(
+                vendor_id=self.request.user.vendor.id,
+                order__status=Order.STATUS.CONFIRMED,
+            )
             .select_related('order')
         )
         if self.action in ['update', 'partial_update']:
@@ -170,7 +173,13 @@ def get_stats_view(request):
         else today_start - (range_days - 1)*DAY_MS
     )
 
-    vendor_items = OrderItem.objects.filter(vendor_id = request.user.vendor.id)
+    vendor_items = (
+        OrderItem.objects
+        .filter(
+            vendor_id = request.user.vendor.id,
+            order__status = Order.STATUS.CONFIRMED,
+        )
+    )
     queryset = (
         vendor_items if range_start is None
         else vendor_items.filter(order__order_time_ms__gte = range_start)
