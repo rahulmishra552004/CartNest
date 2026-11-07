@@ -219,6 +219,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'orders_and_paymentsummary.tasks.recover_order_confirmation',
         'schedule': 60.0,
     },
+    'cancel-unpaid-orders': {
+        'task': 'orders_and_paymentsummary.tasks.cancel_unpaid_orders',
+        'schedule': 300.0,
+    },
 }
 
 DEFAULT_FROM_EMAIL = 'store@example.com'

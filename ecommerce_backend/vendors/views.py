@@ -19,6 +19,7 @@ from django.db.models import (
 from django.db.models.functions import Cast, Concat, Lower
 from django.db.models.fields.json import KT
 from django.conf import settings
+from django.utils import timezone as django_timezone
 from datetime import datetime, timezone
 
 from products.cache_invalidation import invalidate_products
@@ -143,6 +144,27 @@ class VendorOrderViewSet(
     def update(self, request, *args, **kwargs):
         with transaction.atomic():
             return super().update(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        item = serializer.save()
+
+        if (
+            item.delivery_status != OrderItem.DeliveryStatus.DELIVERED
+            or item.order.payment_method != Order.PAYMENT_METHOD.COD
+        ):
+            return
+
+        order = Order.objects.select_for_update().get(pk=item.order_id)
+        if order.paid_at is not None:
+            return
+
+        undelivered = order.order_items.exclude(
+            delivery_status=OrderItem.DeliveryStatus.DELIVERED
+        ).exists()
+        if not undelivered:
+            order.paid_at = django_timezone.now()
+            order.save(update_fields=['paid_at'])
+
 
 @api_view(['GET'])
 @permission_classes([IsVendorProductOwner])
